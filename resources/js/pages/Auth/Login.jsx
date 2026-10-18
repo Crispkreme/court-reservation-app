@@ -19,7 +19,7 @@ export default function Login() {
             [e.target.name]: e.target.value,
         });
     };
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -27,9 +27,21 @@ export default function Login() {
         setError('');
 
         try {
-            await login(form);
+            const response = await login(form);
+            const user = response?.name;
+            const role = response?.role?.toLowerCase();
+ 
+            console.log('login response', response);
+            console.log('login user', user);
+            console.log('login role', role);
 
-            navigate('/courts');
+            if (role === 'admin') {
+                navigate('/admin-dashboard', { replace: true });
+            } else if (role === 'member') {
+                navigate('/member-dashboard', { replace: true });
+            } else {
+                setError('Your account role is not recognized.');
+            }
         } catch (err) {
             console.error(err);
 

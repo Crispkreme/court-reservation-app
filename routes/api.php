@@ -40,6 +40,7 @@ use App\Http\Controllers\ReservationNotificationController;
 
 use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\MemberDashboardController;
 
 use App\Http\Controllers\FailureExceptionController;
 
@@ -205,6 +206,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [CustomerDashboardController::class,'index']);
             Route::get('/settings', [CustomerDashboardController::class,'settings']);
             Route::put('/settings', [CustomerDashboardController::class,'updateSettings']);
+        });
+
+        Route::prefix('member-dashboard')->group(function () {
+            Route::get('/', [MemberDashboardController::class,'index']);
         });
 
         Route::prefix('admin-dashboard')->group(function () {

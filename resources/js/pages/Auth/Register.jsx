@@ -37,7 +37,7 @@ export default function Register() {
         try {
             await register(form);
 
-            navigate('/courts');
+            navigate('/member-dashboard', { replace: true });
         } catch (err) {
             console.error(err);
 

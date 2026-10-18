@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
+import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 
 const API = "/api/v1";
 
@@ -101,42 +103,6 @@ export default function AdminDashboard() {
         fetchDashboard();
     }, []);
 
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat("en-PH", {
-            style: "currency",
-            currency: "PHP",
-        }).format(Number(value || 0));
-    };
-
-    const formatDate = (value) => {
-        if (!value) {
-            return "-";
-        }
-
-        return new Date(value).toLocaleDateString();
-    };
-
-    const formatTime = (value) => {
-        if (!value) {
-            return "-";
-        }
-
-        const [hours, minutes] = value.split(":");
-
-        const date = new Date();
-
-        date.setHours(
-            Number(hours),
-            Number(minutes),
-            0
-        );
-
-        return date.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-        });
-    };
-
     const clearFilters = () => {
         const today = new Date()
             .toISOString()
@@ -194,14 +160,9 @@ export default function AdminDashboard() {
     }
 
     const summary = dashboard?.summary || {};
-    const bookingStatus =
-        dashboard?.booking_status || {};
-
-    const membership =
-        dashboard?.membership_statistics || {};
-
-    const waitlist =
-        dashboard?.waitlist_activity || {};
+    const bookingStatus = dashboard?.booking_status || {};
+    const membership = dashboard?.membership_statistics || {};
+    const waitlist = dashboard?.waitlist_activity || {};
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -270,11 +231,7 @@ export default function AdminDashboard() {
                             <input
                                 type="date"
                                 value={dateTo}
-                                onChange={(e) =>
-                                    setDateTo(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setDateTo(e.target.value)}
                                 className="input"
                             />
                         </FilterField>
@@ -283,11 +240,7 @@ export default function AdminDashboard() {
                             <input
                                 type="time"
                                 value={timeFrom}
-                                onChange={(e) =>
-                                    setTimeFrom(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setTimeFrom(e.target.value)}
                                 className="input"
                             />
                         </FilterField>
@@ -296,11 +249,7 @@ export default function AdminDashboard() {
                             <input
                                 type="time"
                                 value={timeTo}
-                                onChange={(e) =>
-                                    setTimeTo(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setTimeTo(e.target.value)}
                                 className="input"
                             />
                         </FilterField>
@@ -308,36 +257,15 @@ export default function AdminDashboard() {
                         <FilterField label="Status">
                             <select
                                 value={status}
-                                onChange={(e) =>
-                                    setStatus(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setStatus(e.target.value)}
                                 className="input"
                             >
-                                <option value="">
-                                    All Statuses
-                                </option>
-
-                                <option value="confirmed">
-                                    Confirmed
-                                </option>
-
-                                <option value="pending">
-                                    Pending
-                                </option>
-
-                                <option value="cancelled">
-                                    Cancelled
-                                </option>
-
-                                <option value="completed">
-                                    Completed
-                                </option>
-
-                                <option value="failed">
-                                    Failed
-                                </option>
+                                <option value="">All Statuses</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="pending">Pending</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
                             </select>
                         </FilterField>
 
@@ -345,11 +273,7 @@ export default function AdminDashboard() {
                             <input
                                 type="number"
                                 value={sportCategoryId}
-                                onChange={(e) =>
-                                    setSportCategoryId(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setSportCategoryId(e.target.value)}
                                 placeholder="Sport ID"
                                 className="input"
                             />
@@ -359,11 +283,7 @@ export default function AdminDashboard() {
                             <input
                                 type="number"
                                 value={courtId}
-                                onChange={(e) =>
-                                    setCourtId(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setCourtId(e.target.value)}
                                 placeholder="Court ID"
                                 className="input"
                             />
@@ -373,15 +293,9 @@ export default function AdminDashboard() {
                             <input
                                 type="text"
                                 value={search}
-                                onChange={(e) =>
-                                    setSearch(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (
-                                        e.key === "Enter"
-                                    ) {
+                                    if (e.key === "Enter") {
                                         fetchDashboard();
                                     }
                                 }}
@@ -392,16 +306,12 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="mt-4 flex gap-2">
-                        <button
-                            onClick={fetchDashboard}
-                            className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white"
+                        <button onClick={fetchDashboard} className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white"
                         >
                             Generate Report
                         </button>
 
-                        <button
-                            onClick={clearFilters}
-                            className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium"
+                        <button onClick={clearFilters} className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium"
                         >
                             Clear
                         </button>
@@ -413,46 +323,32 @@ export default function AdminDashboard() {
 
                     <SummaryCard
                         title="Total Bookings"
-                        value={
-                            summary.total_bookings || 0
-                        }
+                        value={ summary.total_bookings || 0 }
                     />
 
                     <SummaryCard
                         title="Today's Revenue"
-                        value={formatCurrency(
-                            summary.today_revenue
-                        )}
+                        value={formatCurrency(summary.today_revenue)}
                     />
 
                     <SummaryCard
                         title="Outstanding"
-                        value={formatCurrency(
-                            summary.outstanding_payments
-                        )}
+                        value={formatCurrency(summary.outstanding_payments)}
                     />
 
                     <SummaryCard
                         title="Failed Transactions"
-                        value={
-                            summary.failed_transactions ||
-                            0
-                        }
+                        value={summary.failed_transactions || 0}
                     />
 
                     <SummaryCard
                         title="Available Courts"
-                        value={
-                            summary.available_courts || 0
-                        }
+                        value={summary.available_courts || 0}
                     />
 
                     <SummaryCard
                         title="Maintenance"
-                        value={
-                            summary.maintenance_courts ||
-                            0
-                        }
+                        value={summary.maintenance_courts || 0}
                     />
                 </div>
 
@@ -463,40 +359,23 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-5">
                         <StatusCard
                             label="Confirmed"
-                            value={
-                                bookingStatus.confirmed ||
-                                0
-                            }
+                            value={ bookingStatus.confirmed || 0 }
                         />
-
                         <StatusCard
                             label="Pending"
-                            value={
-                                bookingStatus.pending || 0
-                            }
+                            value={ bookingStatus.pending || 0 }
                         />
-
                         <StatusCard
                             label="Cancelled"
-                            value={
-                                bookingStatus.cancelled ||
-                                0
-                            }
+                            value={ bookingStatus.cancelled || 0 }
                         />
-
                         <StatusCard
                             label="Completed"
-                            value={
-                                bookingStatus.completed ||
-                                0
-                            }
+                            value={ bookingStatus.completed || 0 }
                         />
-
                         <StatusCard
                             label="Failed"
-                            value={
-                                bookingStatus.failed || 0
-                            }
+                            value={ bookingStatus.failed || 0 }
                         />
                     </div>
                 </section>
@@ -508,29 +387,22 @@ export default function AdminDashboard() {
                         <SectionHeader title="Daily Booking Summary" />
 
                         <div className="p-5">
-                            {dashboard?.daily_bookings
-                                ?.length === 0 ? (
+                            {dashboard?.daily_bookings?.length === 0 ? (
                                 <EmptyState message="No bookings found for this period." />
                             ) : (
                                 <div className="space-y-3">
                                     {dashboard?.daily_bookings?.map(
                                         (item) => (
                                             <div
-                                                key={
-                                                    item.booking_date
-                                                }
+                                                key={item.booking_date}
                                                 className="flex items-center justify-between rounded-lg border p-3"
                                             >
                                                 <span>
-                                                    {formatDate(
-                                                        item.booking_date
-                                                    )}
+                                                    {formatDate(item.booking_date)}
                                                 </span>
 
                                                 <span className="font-bold">
-                                                    {
-                                                        item.total
-                                                    }
+                                                    { item.total }
                                                 </span>
                                             </div>
                                         )
@@ -544,32 +416,24 @@ export default function AdminDashboard() {
                         <SectionHeader title="Sport Summary" />
 
                         <div className="p-5">
-                            {dashboard?.sport_summary
-                                ?.length === 0 ? (
+                            {dashboard?.sport_summary?.length === 0 ? (
                                 <EmptyState message="No sport bookings found." />
                             ) : (
                                 <div className="space-y-3">
                                     {dashboard?.sport_summary?.map(
                                         (item) => (
                                             <div
-                                                key={
-                                                    item.sport_category_id
-                                                }
+                                                key={item.sport_category_id}
                                                 className="flex items-center justify-between rounded-lg border p-3"
                                             >
                                                 <div>
                                                     <p className="font-medium">
-                                                        {item
-                                                            .sport_category
-                                                            ?.name ||
-                                                            "Unknown Sport"}
+                                                        {item.sport_category?.name || "Unknown Sport"}
                                                     </p>
                                                 </div>
 
                                                 <span className="font-bold">
-                                                    {
-                                                        item.total_bookings
-                                                    }
+                                                    {item.total_bookings}
                                                 </span>
                                             </div>
                                         )
@@ -611,25 +475,15 @@ export default function AdminDashboard() {
                                     (item) => (
                                         <tr key={item.court_id}>
                                             <td className="px-5 py-3 font-medium">
-                                                {item.court
-                                                    ?.name ||
-                                                    "Unknown"}
+                                                {item.court?.name || "Unknown"}
                                             </td>
 
                                             <td className="px-5 py-3">
-                                                {item.court
-                                                    ?.sport_category
-                                                    ?.name ||
-                                                    item.court
-                                                        ?.sportCategory
-                                                        ?.name ||
-                                                    "-"}
+                                                {item.court?.sport_category?.name || item.court?.sportCategory?.name || "-"}
                                             </td>
 
                                             <td className="px-5 py-3">
-                                                {
-                                                    item.total_bookings
-                                                }
+                                                {item.total_bookings}
                                             </td>
 
                                             <td className="px-5 py-3">
@@ -647,10 +501,7 @@ export default function AdminDashboard() {
                                                     </div>
 
                                                     <span className="w-16 text-right text-sm">
-                                                        {
-                                                            item.utilization_percentage
-                                                        }
-                                                        %
+                                                        {item.utilization_percentage} %
                                                     </span>
                                                 </div>
                                             </td>
@@ -671,9 +522,7 @@ export default function AdminDashboard() {
                         </p>
 
                         <p className="mt-2 text-3xl font-bold">
-                            {formatCurrency(
-                                summary.today_revenue
-                            )}
+                            {formatCurrency(summary.today_revenue)}
                         </p>
                     </InfoPanel>
 
@@ -683,9 +532,7 @@ export default function AdminDashboard() {
                         </p>
 
                         <p className="mt-2 text-3xl font-bold">
-                            {formatCurrency(
-                                summary.outstanding_payments
-                            )}
+                            {formatCurrency(summary.outstanding_payments)}
                         </p>
                     </InfoPanel>
 
@@ -695,9 +542,7 @@ export default function AdminDashboard() {
                         </p>
 
                         <p className="mt-2 text-3xl font-bold">
-                            {
-                                summary.failed_transactions
-                            }
+                            {summary.failed_transactions}
                         </p>
                     </InfoPanel>
                 </div>
@@ -711,37 +556,27 @@ export default function AdminDashboard() {
                         <div className="grid grid-cols-2 gap-4 p-5">
                             <StatBox
                                 label="Total"
-                                value={
-                                    waitlist.total || 0
-                                }
+                                value={waitlist.total || 0}
                             />
 
                             <StatBox
                                 label="Waiting"
-                                value={
-                                    waitlist.waiting || 0
-                                }
+                                value={waitlist.waiting || 0}
                             />
 
                             <StatBox
                                 label="Promoted"
-                                value={
-                                    waitlist.promoted || 0
-                                }
+                                value={waitlist.promoted || 0}
                             />
 
                             <StatBox
                                 label="Cancelled"
-                                value={
-                                    waitlist.cancelled || 0
-                                }
+                                value={waitlist.cancelled || 0}
                             />
 
                             <StatBox
                                 label="Expired"
-                                value={
-                                    waitlist.expired || 0
-                                }
+                                value={waitlist.expired || 0}
                             />
                         </div>
                     </section>
@@ -752,46 +587,32 @@ export default function AdminDashboard() {
                         <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
                             <StatBox
                                 label="Total"
-                                value={
-                                    membership.total || 0
-                                }
+                                value={membership.total || 0}
                             />
 
                             <StatBox
                                 label="Active"
-                                value={
-                                    membership.active || 0
-                                }
+                                value={membership.active || 0}
                             />
 
                             <StatBox
                                 label="Pending"
-                                value={
-                                    membership.pending || 0
-                                }
+                                value={membership.pending || 0}
                             />
 
                             <StatBox
                                 label="Expired"
-                                value={
-                                    membership.expired || 0
-                                }
+                                value={membership.expired || 0}
                             />
 
                             <StatBox
                                 label="Suspended"
-                                value={
-                                    membership.suspended ||
-                                    0
-                                }
+                                value={membership.suspended || 0}
                             />
 
                             <StatBox
                                 label="Cancelled"
-                                value={
-                                    membership.cancelled ||
-                                    0
-                                }
+                                value={membership.cancelled || 0}
                             />
                         </div>
                     </section>
@@ -802,8 +623,7 @@ export default function AdminDashboard() {
                     <SectionHeader title="Upcoming Sessions" />
 
                     <div className="overflow-x-auto">
-                        {dashboard?.upcoming_sessions
-                            ?.length === 0 ? (
+                        {dashboard?.upcoming_sessions?.length === 0 ? (
                             <EmptyState message="No upcoming sessions." />
                         ) : (
                             <table className="min-w-full">
@@ -836,39 +656,24 @@ export default function AdminDashboard() {
                                         (session) => (
                                             <tr key={session.id}>
                                                 <td className="px-5 py-3">
-                                                    {formatDate(
-                                                        session.booking_date
-                                                    )}
+                                                    {formatDate(session.booking_date)}
                                                 </td>
 
                                                 <td className="px-5 py-3">
-                                                    {formatTime(
-                                                        session.start_time
-                                                    )}
+                                                    {formatTime(session.start_time)}
                                                 </td>
 
                                                 <td className="px-5 py-3">
-                                                    {session
-                                                        .court
-                                                        ?.name ||
-                                                        "-"}
+                                                    {session.court?.name || "-"}
                                                 </td>
 
                                                 <td className="px-5 py-3">
-                                                    {session
-                                                        .sport_category
-                                                        ?.name ||
-                                                        session
-                                                            .sportCategory
-                                                            ?.name ||
-                                                        "-"}
+                                                    {session.sport_category?.name ||session.sportCategory?.name || "-"}
                                                 </td>
 
                                                 <td className="px-5 py-3">
                                                     <StatusBadge
-                                                        status={
-                                                            session.status
-                                                        }
+                                                        status={session.status}
                                                     />
                                                 </td>
                                             </tr>
@@ -893,26 +698,16 @@ export default function AdminDashboard() {
                                 >
                                     <div className="flex items-center justify-between">
                                         <h3 className="font-semibold">
-                                            {
-                                                court.name
-                                            }
+                                            {court.name}
                                         </h3>
 
                                         <StatusBadge
-                                            status={
-                                                court.status
-                                            }
+                                            status={court.status}
                                         />
                                     </div>
 
                                     <p className="mt-2 text-sm text-gray-500">
-                                        {court
-                                            .sport_category
-                                            ?.name ||
-                                            court
-                                                .sportCategory
-                                                ?.name ||
-                                            "-"}
+                                        {court.sport_category?.name || court.sportCategory?.name || "-"}
                                     </p>
                                 </div>
                             )
@@ -921,152 +716,5 @@ export default function AdminDashboard() {
                 </section>
             </div>
         </div>
-    );
-}
-
-function SummaryCard({ title, value }) {
-    return (
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-gray-500">
-                {title}
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-gray-900">
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function StatusCard({ label, value }) {
-    return (
-        <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">
-                {label}
-            </p>
-
-            <p className="mt-1 text-2xl font-bold">
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function StatBox({ label, value }) {
-    return (
-        <div className="rounded-lg bg-gray-50 p-4">
-            <p className="text-sm text-gray-500">
-                {label}
-            </p>
-
-            <p className="mt-1 text-xl font-bold">
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function InfoPanel({ title, children }) {
-    return (
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-            <h3 className="font-semibold">
-                {title}
-            </h3>
-
-            <div className="mt-3">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-function SectionHeader({ title }) {
-    return (
-        <div className="border-b px-5 py-4">
-            <h2 className="font-semibold text-gray-900">
-                {title}
-            </h2>
-        </div>
-    );
-}
-
-function FilterField({ label, children }) {
-    return (
-        <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
-                {label}
-            </label>
-
-            {children}
-        </div>
-    );
-}
-
-function EmptyState({ message }) {
-    return (
-        <div className="p-8 text-center text-sm text-gray-500">
-            {message}
-        </div>
-    );
-}
-
-function StatusBadge({ status }) {
-    const normalized = String(
-        status || "unknown"
-    ).toLowerCase();
-
-    let classes =
-        "bg-gray-100 text-gray-700";
-
-    if (
-        [
-            "confirmed",
-            "paid",
-            "completed",
-            "active",
-            "available",
-            "success",
-            "successful",
-        ].includes(normalized)
-    ) {
-        classes =
-            "bg-green-100 text-green-700";
-    }
-
-    if (
-        [
-            "pending",
-            "held",
-            "reserved",
-            "processing",
-            "waiting",
-        ].includes(normalized)
-    ) {
-        classes =
-            "bg-yellow-100 text-yellow-700";
-    }
-
-    if (
-        [
-            "cancelled",
-            "failed",
-            "expired",
-            "closed",
-            "maintenance",
-            "no_show",
-        ].includes(normalized)
-    ) {
-        classes =
-            "bg-red-100 text-red-700";
-    }
-
-    return (
-        <span
-            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${classes}`}
-        >
-            {String(
-                status || "Unknown"
-            ).replaceAll("_", " ")}
-        </span>
     );
 }

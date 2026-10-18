@@ -51,6 +51,7 @@ import Notifications from './pages/Notifications/Index';
 
 import CustomerDashboard from './pages/CustomerDashboard/Index';
 import AdminDashboard from './pages/AdminDashboard/Index';
+import MemberDashboard from './pages/MemberDashboard/Index';
 
 import FailureExceptionsIndex from './pages/FailureExceptions/Index';
 
@@ -430,6 +431,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/member-dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <MemberDashboard />
                         </ProtectedRoute>
                     }
                 />

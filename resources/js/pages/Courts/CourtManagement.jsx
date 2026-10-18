@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CourtModal from "../../components/modal/CourtModal";
 import {
     getCourts,
     getSportCategories,
@@ -34,6 +35,7 @@ export default function CourtManagement() {
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -112,19 +114,21 @@ export default function CourtManagement() {
             setLoading(false);
         }
     };
-
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
 
         setForm((previous) => ({
             ...previous,
-            [name]: type === "checkbox" ? checked : value,
+            [name]:
+                type === "checkbox"
+                    ? checked
+                    : type === "number"
+                    ? Number(value)
+                    : value,
         }));
     };
-
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         setError("");
 
         try {
@@ -136,43 +140,54 @@ export default function CourtManagement() {
                 await createCourt(form);
             }
 
-            setForm(initialForm);
+            setIsModalOpen(false);
             setEditingId(null);
+            setForm({ ...initialForm });
 
             await loadData();
         } catch (err) {
             console.error(err);
 
-            setError(err.response?.data?.message ||"Unable to save court.");
+            setError(
+                err.response?.data?.message ||
+                "Unable to save court."
+            );
         } finally {
             setLoading(false);
         }
     };
-
     const handleEdit = (court) => {
         setEditingId(court.id);
 
         setForm({
-            sport_category_id: court.sport_category_id,
-            name: court.name,
-            court_number: court.court_number || "",
-            branch: court.branch,
-            location: court.location || "",
-            min_players: court.min_players,
-            max_players: court.max_players,
-            status: court.status,
+            sport_category_id: court.sport_category_id ?? court.sport_category?.id ?? "",
+            name: court.name ?? "",
+            court_number: court.court_number ?? "",
+            branch: court.branch ?? "",
+            location: court.location ?? "",
+            min_players: court.min_players ?? 1,
+            max_players: court.max_players ?? 10,
+            status: court.status ?? "available",
             opening_time: court.opening_time?.substring(0, 5) || "08:00",
             closing_time: court.closing_time?.substring(0, 5) || "22:00",
-            booking_interval: court.booking_interval,
-            minimum_booking_duration: court.minimum_booking_duration,
-            maximum_booking_duration: court.maximum_booking_duration,
-            base_price: court.base_price,
-            currency: court.currency,
-            description: court.description || "",
-            is_active: court.is_active,
+            booking_interval: court.booking_interval ?? 30,
+            minimum_booking_duration: court.minimum_booking_duration ?? 30,
+            maximum_booking_duration: court.maximum_booking_duration ?? 120,
+            base_price: court.base_price ?? 0,
+            currency: court.currency ?? "PHP",
+            description: court.description ?? "",
+            is_active: court.is_active ?? true,
         });
-    };
 
+        setError("");
+        setIsModalOpen(true);
+    };
+    const handleCreate = () => {
+        setEditingId(null);
+        setForm({ ...initialForm });
+        setError("");
+        setIsModalOpen(true);
+    };
     const handleDelete = async (id) => {
         if (!window.confirm("Delete this court?")) {
             return;
@@ -188,25 +203,15 @@ export default function CourtManagement() {
             setError(err.response?.data?.message ||"Unable to delete court.");
         }
     };
-
     const cancelEdit = () => {
+        setIsModalOpen(false);
         setEditingId(null);
-        setForm(initialForm);
+        setForm({ ...initialForm });
+        setError("");
     };
 
     return (
         <div className="p-6 space-y-6">
-
-            <div>
-                <h1 className="text-2xl font-bold">
-                    Court Management
-                </h1>
-
-                <p className="text-gray-500">
-                    Manage sports courts, schedules, pricing,
-                    capacity and availability.
-                </p>
-            </div>
 
             {error && (
                 <div className="rounded-lg bg-red-50 p-4 text-red-700">
@@ -214,384 +219,34 @@ export default function CourtManagement() {
                 </div>
             )}
 
-            <div className="rounded-xl bg-white p-6 shadow">
-                <h2 className="mb-6 text-lg font-semibold">
-                    {editingId
-                        ? "Edit Court"
-                        : "Create Court"}
-                </h2>
+            <CourtModal
+                isOpen={isModalOpen}
+                editingId={editingId}
+                form={form}
+                categories={categories}
+                loading={loading}
+                error={error}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                onClose={cancelEdit}
+            />
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="grid grid-cols-1 gap-5 md:grid-cols-2"
-                >
-
-                    {/* Sport Category */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Sport Category
-                        </label>
-
-                        <select
-                            name="sport_category_id"
-                            value={form.sport_category_id}
-                            onChange={handleChange}
-                            required
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option value="">
-                                Select sport
-                            </option>
-
-                            {categories.map((category) => (
-                                <option
-                                    key={category.id}
-                                    value={category.id}
-                                >
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Court Name */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Court Name
-                        </label>
-
-                        <input
-                            type="text"
-                            name="name"
-                            value={form.name}
-                            onChange={handleChange}
-                            placeholder="Basketball Court 1"
-                            required
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Court Number */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Court Number
-                        </label>
-
-                        <input
-                            type="text"
-                            name="court_number"
-                            value={form.court_number}
-                            onChange={handleChange}
-                            placeholder="Court 1"
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Branch */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Branch
-                        </label>
-
-                        <input
-                            type="text"
-                            name="branch"
-                            value={form.branch}
-                            onChange={handleChange}
-                            placeholder="Main Branch"
-                            required
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Location */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Location
-                        </label>
-
-                        <input
-                            type="text"
-                            name="location"
-                            value={form.location}
-                            onChange={handleChange}
-                            placeholder="2nd Floor"
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Status */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Status
-                        </label>
-
-                        <select
-                            name="status"
-                            value={form.status}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option value="available">
-                                Available
-                            </option>
-
-                            <option value="maintenance">
-                                Maintenance
-                            </option>
-
-                            <option value="closed">
-                                Closed
-                            </option>
-
-                            <option value="temporarily_blocked">
-                                Temporarily Blocked
-                            </option>
-                        </select>
-                    </div>
-
-                    {/* Minimum Players */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Minimum Players
-                        </label>
-
-                        <input
-                            type="number"
-                            min="1"
-                            name="min_players"
-                            value={form.min_players}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Maximum Players */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Maximum Players
-                        </label>
-
-                        <input
-                            type="number"
-                            min="1"
-                            name="max_players"
-                            value={form.max_players}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Opening */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Opening Time
-                        </label>
-
-                        <input
-                            type="time"
-                            name="opening_time"
-                            value={form.opening_time}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Closing */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Closing Time
-                        </label>
-
-                        <input
-                            type="time"
-                            name="closing_time"
-                            value={form.closing_time}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Booking Interval */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Booking Interval (minutes)
-                        </label>
-
-                        <select
-                            name="booking_interval"
-                            value={form.booking_interval}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option value="15">15 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="60">60 minutes</option>
-                        </select>
-                    </div>
-
-                    {/* Minimum Duration */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Minimum Booking Duration
-                        </label>
-
-                        <select
-                            name="minimum_booking_duration"
-                            value={form.minimum_booking_duration}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option value="30">30 minutes</option>
-                            <option value="60">1 hour</option>
-                            <option value="90">1.5 hours</option>
-                        </select>
-                    </div>
-
-                    {/* Maximum Duration */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Maximum Booking Duration
-                        </label>
-
-                        <select
-                            name="maximum_booking_duration"
-                            value={form.maximum_booking_duration}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option value="60">1 hour</option>
-                            <option value="90">1.5 hours</option>
-                            <option value="120">2 hours</option>
-                            <option value="180">3 hours</option>
-                        </select>
-                    </div>
-
-                    {/* Base Price */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Base Price
-                        </label>
-
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            name="base_price"
-                            value={form.base_price}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Currency */}
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Currency
-                        </label>
-
-                        <input
-                            type="text"
-                            name="currency"
-                            maxLength="3"
-                            value={form.currency}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Description */}
-
-                    <div className="md:col-span-2">
-                        <label className="mb-1 block text-sm font-medium">
-                            Description
-                        </label>
-
-                        <textarea
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            rows="3"
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    {/* Active */}
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            name="is_active"
-                            checked={form.is_active}
-                            onChange={handleChange}
-                        />
-
-                        <label>
-                            Active
-                        </label>
-                    </div>
-
-                    {/* Buttons */}
-
-                    <div className="flex justify-end gap-2 md:col-span-2">
-
-                        {editingId && (
-                            <button
-                                type="button"
-                                onClick={cancelEdit}
-                                className="rounded-lg border px-4 py-2"
-                            >
-                                Cancel
-                            </button>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="rounded-lg bg-black px-5 py-2 text-white"
-                        >
-                            {loading
-                                ? "Saving..."
-                                : editingId
-                                    ? "Update Court"
-                                    : "Create Court"}
-                        </button>
-
-                    </div>
-
-                </form>
-            </div>
-
-            {/* Courts Table */}
             <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
                 <div className="flex flex-col gap-3 border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 className="text-lg font-bold tracking-tight text-slate-900">
-                            Courts
+                            Court Management
                         </h2>
                         <p className="mt-1 text-sm text-slate-500">
-                            Manage courts, pricing, availability, and details.
+                            Manage sports courts, schedules, pricing, capacity and availability.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="h-2 w-2 bg-emerald-500" />
-                        {courts.length} {courts.length === 1 ? "court" : "courts"} total
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <span className="h-2 w-2 bg-emerald-500" />
+                            {courts.length} {courts.length === 1 ? "court" : "courts"} total
+                        </div>
                     </div>
                 </div>
 
@@ -671,6 +326,26 @@ export default function CourtManagement() {
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    
+                    <div className="flex items-end">
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="inline-flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:w-auto xl:w-full"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="h-4 w-4"
+                            >
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            Add Court
+                        </button>
                     </div>
                 </div>
 

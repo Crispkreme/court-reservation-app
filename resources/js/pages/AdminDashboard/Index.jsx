@@ -211,19 +211,15 @@ export default function AdminDashboard() {
                             search term.
                         </p>
                     </div>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-8">
+            
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">
 
                         <FilterField label="Date From">
                             <input
                                 type="date"
                                 value={dateFrom}
-                                onChange={(e) =>
-                                    setDateFrom(
-                                        e.target.value
-                                    )
-                                }
-                                className="input"
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -232,7 +228,7 @@ export default function AdminDashboard() {
                                 type="date"
                                 value={dateTo}
                                 onChange={(e) => setDateTo(e.target.value)}
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -241,7 +237,7 @@ export default function AdminDashboard() {
                                 type="time"
                                 value={timeFrom}
                                 onChange={(e) => setTimeFrom(e.target.value)}
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -250,7 +246,7 @@ export default function AdminDashboard() {
                                 type="time"
                                 value={timeTo}
                                 onChange={(e) => setTimeTo(e.target.value)}
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -258,7 +254,7 @@ export default function AdminDashboard() {
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             >
                                 <option value="">All Statuses</option>
                                 <option value="confirmed">Confirmed</option>
@@ -275,7 +271,7 @@ export default function AdminDashboard() {
                                 value={sportCategoryId}
                                 onChange={(e) => setSportCategoryId(e.target.value)}
                                 placeholder="Sport ID"
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -285,7 +281,7 @@ export default function AdminDashboard() {
                                 value={courtId}
                                 onChange={(e) => setCourtId(e.target.value)}
                                 placeholder="Court ID"
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
 
@@ -300,9 +296,10 @@ export default function AdminDashboard() {
                                     }
                                 }}
                                 placeholder="Booking/customer..."
-                                className="input"
+                                className="w-full min-w-0 box-border border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                             />
                         </FilterField>
+
                     </div>
 
                     <div className="mt-4 flex gap-2">
@@ -684,36 +681,57 @@ export default function AdminDashboard() {
                         )}
                     </div>
                 </section>
-
-                {/* Court status */}
+                
+                {/* Court Status */}
                 <section className="rounded-xl bg-white shadow-sm">
                     <SectionHeader title="Court Status" />
 
-                    <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-                        {dashboard?.court_status?.map(
-                            (court) => (
+                    <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {dashboard?.court_status?.length > 0 ? (
+                            dashboard.court_status.map((court) => (
                                 <div
                                     key={court.id}
-                                    className="rounded-lg border p-4"
+                                    className="min-w-0 border border-slate-200 bg-white p-4 transition duration-200 hover:border-emerald-300 hover:shadow-sm"
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold">
+                                    {/* Court Name and Status */}
+                                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <h3 className="min-w-0 break-words font-semibold text-slate-800">
                                             {court.name}
                                         </h3>
 
-                                        <StatusBadge
-                                            status={court.status}
-                                        />
+                                        <div className="shrink-0">
+                                            <StatusBadge status={court.status} />
+                                        </div>
                                     </div>
 
-                                    <p className="mt-2 text-sm text-gray-500">
-                                        {court.sport_category?.name || court.sportCategory?.name || "-"}
-                                    </p>
+                                    {/* Sport Category */}
+                                    <div className="mt-4 border-t border-slate-100 pt-3">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            Sport Category
+                                        </p>
+
+                                        <p className="mt-1 break-words text-sm font-medium text-slate-700">
+                                            {court.sport_category?.name ||
+                                                court.sportCategory?.name ||
+                                                "-"}
+                                        </p>
+                                    </div>
                                 </div>
-                            )
+                            ))
+                        ) : (
+                            <div className="col-span-full px-4 py-10 text-center">
+                                <p className="text-sm font-medium text-slate-600">
+                                    No courts available.
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Court status information will appear here when available.
+                                </p>
+                            </div>
                         )}
                     </div>
                 </section>
+
             </div>
         </div>
     );

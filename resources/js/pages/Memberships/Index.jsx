@@ -5,6 +5,7 @@ import MembershipCreateModal from "../../components/modal/MembershipCreateModal"
 import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
 import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
 import { getMemberUsers } from '../../services/userService';
+import PageHeader from '../../components/PageHeader';
 
 const statusClasses = {
     active: "bg-green-100 text-green-700",
@@ -246,7 +247,7 @@ export default function Index() {
     };
 
     return (
-        <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
+        <div className="p-6 space-y-6">
 
             <MembershipCreateModal
                 isOpen={isCreateModalOpen}
@@ -272,26 +273,6 @@ export default function Index() {
                 }}
                 onRenew={handleRenew}
             />
-
-            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Membership Management
-                    </h1>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        Manage membership types, member subscriptions, benefits, discounts, access rules, and renewals.
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                    Add Membership
-                </button>
-            </div>
 
             {statistics && (
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -346,50 +327,97 @@ export default function Index() {
                 </div>
             )}
 
-            <div className="mb-4 flex flex-col gap-3 md:flex-row">
-                <input
-                    type="text"
-                    placeholder="Search member..."
-                    value={search}
-                    onChange={(event) =>
-                        setSearch(event.target.value)
-                    }
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
+                <PageHeader
+                    title="Membership Management"
+                    description="Manage membership types, member subscriptions, benefits, discounts, access rules, and renewals."
+                    count={memberships.length}
+                    countLabel="memberships total"
                 />
 
-                <select
-                    value={status}
-                    onChange={(event) =>
-                        setStatus(event.target.value)
-                    }
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
+                {/* <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                    <option value="">
-                        All Statuses
-                    </option>
+                    Add Membership
+                </button> */}
 
-                    <option value="active">
-                        Active
-                    </option>
+                <div className="grid grid-cols-1 gap-3 border-b border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="sm:col-span-2 xl:col-span-1">
+                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Search Membership
+                        </label>
 
-                    <option value="pending">
-                        Pending
-                    </option>
+                        <div className="relative">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                            >
+                                <circle cx="11" cy="11" r="7" />
+                                <path d="m20 20-4-4" />
+                            </svg>
 
-                    <option value="expired">
-                        Expired
-                    </option>
+                            <input
+                                type="text"
+                                placeholder="Search member..."
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                    </div>
 
-                    <option value="suspended">
-                        Suspended
-                    </option>
+                    <div>
+                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Status
+                        </label>
+                        <select
+                            value={status}
+                            onChange={(event) =>
+                                setStatus(event.target.value)
+                            }
+                            className="w-full min-w-0 border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="expired">Expired</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
 
-                    <option value="cancelled">
-                        Cancelled
-                    </option>
-                </select>
+                    <div>
+                    </div>
+                    
+                    <div className="flex items-end">
+                        <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="inline-flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:w-auto xl:w-full"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="h-4 w-4"
+                            >
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            Add Court
+                        </button>
+                    </div>
+                </div>
             </div>
-
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[1050px] border-collapse text-left text-sm">

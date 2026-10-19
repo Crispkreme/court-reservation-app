@@ -28,6 +28,7 @@ use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MembershipTypeController;
 use App\Http\Controllers\MembershipTierController;
 use App\Http\Controllers\MembershipPrivilegeController;
+use App\Http\Controllers\UserController;
 
 use App\Http\Controllers\MatchmakingController;
 
@@ -53,6 +54,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
     });
+
+    Route::get('/users/members', [UserController::class, 'members']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
 
     Route::apiResource('sport-categories', SportCategoryController::class);
     Route::get('courts', [CourtController::class, 'index']);
@@ -142,7 +147,7 @@ Route::prefix('v1')->group(function () {
         
         Route::apiResource('membership-types',MembershipTypeController::class);
         Route::get('membership-tiers',[MembershipTierController::class, 'index']);
-        Route::apiResource('memberships',MembershipController::class);
+        Route::apiResource('memberships', MembershipController::class);
         Route::apiResource('membership-privileges',MembershipPrivilegeController::class);
         Route::get('membership-privileges-membership-types', [MembershipPrivilegeController::class, 'membershipTypes']);
 

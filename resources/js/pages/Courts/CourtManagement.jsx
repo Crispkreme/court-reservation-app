@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../services/authService";
 import CourtModal from "../../components/modal/CourtModal";
+import PageHeader from '../../components/PageHeader';
 import {
     getCourts,
     getSportCategories,
@@ -212,17 +213,6 @@ export default function CourtManagement() {
         setForm({ ...initialForm });
         setError("");
     };
-    const handleGoHome = () => {
-        const role = getUserRole();
-
-        if (role === "admin") {
-            navigate("/admin-dashboard");
-        } else if (role === "member") {
-            navigate("/member-dashboard");
-        } else {
-            navigate("/login");
-        }
-    };
 
     return (
         <div className="p-6 space-y-6">
@@ -246,50 +236,12 @@ export default function CourtManagement() {
             />
 
             <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
-                <div className="flex flex-col gap-3 border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                        <div>
-                            <h2 className="text-lg font-bold tracking-tight text-slate-900">
-                                Court Management
-                            </h2>
-
-                            <p className="mt-1 text-sm text-slate-500">
-                                Manage sports courts, schedules, pricing, capacity and availability.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <span className="h-2 w-2 bg-emerald-500" />
-                            {courts.length} {courts.length === 1 ? "court" : "courts"} total
-                        </div>
-                        <div>
-                            <button
-                                type="button"
-                                onClick={handleGoHome}
-                                title="Go to Dashboard"
-                                aria-label="Go to Dashboard"
-                                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="h-5 w-5"
-                                >
-                                    <path d="m3 10 9-7 9 7" />
-                                    <path d="M5 9v12h14V9" />
-                                    <path d="M9 21v-7h6v7" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Court Management"
+                    description="Manage sports courts, schedules, pricing, capacity and availability."
+                    count={courts.length}
+                    countLabel="courts total"
+                />
 
                 <div className="grid grid-cols-1 gap-3 border-b border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="sm:col-span-2 xl:col-span-1">

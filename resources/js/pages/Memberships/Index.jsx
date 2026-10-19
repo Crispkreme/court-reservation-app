@@ -3,7 +3,8 @@ import StatCard from '../../components/StatCard';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import MembershipCreateModal from "../../components/modal/MembershipCreateModal";
 import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
-import { getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
+import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
+import { getMemberUsers } from '../../services/userService';
 
 const statusClasses = {
     active: "bg-green-100 text-green-700",
@@ -16,6 +17,7 @@ const statusClasses = {
 export default function Index() {
     const [memberships, setMemberships] = useState([]);
     const [membershipTypes, setMembershipTypes] = useState([]);
+    const [members, setMembers] = useState([]);
     const [types, setTypes] = useState([]);
     const [statistics, setStatistics] = useState(null);
 
@@ -25,6 +27,7 @@ export default function Index() {
 
     const [showCreate, setShowCreate] = useState(false);
     const [showRenew, setShowRenew] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedMembership, setSelectedMembership] = useState(null);
 
     const [createLoading, setCreateLoading] = useState(false);
@@ -33,8 +36,10 @@ export default function Index() {
     const [createError, setCreateError] = useState("");
     const [renewError, setRenewError] = useState("");
 
+    const [loadingMembers, setLoadingMembers] = useState(false);
+
     const [form, setForm] = useState({
-        user_id: "",
+        member_id: "",
         membership_type_id: "",
         start_date: new Date()
             .toISOString()
@@ -44,7 +49,6 @@ export default function Index() {
         notes: "",
     });
 
-    
     const loadData = async () => {
         setLoading(true);
 
@@ -60,15 +64,18 @@ export default function Index() {
             }
 
             const [
+                membersUserResponse,
                 membershipsResponse,
                 typesResponse,
                 statisticsResponse,
             ] = await Promise.all([
+                getMemberUsers(),
                 getMemberships(params.toString()),
                 getMembershipTypes(),
                 getMembershipStatistics(),
             ]);
 
+            setMembers(membersUserResponse.data.data ?? membersUserResponse.data);
             setMemberships(membershipsResponse.data.data ?? []);
             setMembershipTypes(typesResponse.data.data ?? typesResponse.data);
             setStatistics(statisticsResponse.data);
@@ -109,47 +116,45 @@ export default function Index() {
         event.preventDefault();
 
         setCreateLoading(true);
-        setCreateError("");
+        setCreateError('');
 
         try {
-            const response = await fetch("/api/v1/memberships", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                body: JSON.stringify(form),
-            });
+            await createMembership(form);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                setCreateError(
-                    data.message ?? "Failed to create membership."
-                );
-                return;
-            }
-
-            setShowCreate(false);
+            setIsCreateModalOpen(false);
 
             setForm({
-                user_id: "",
-                membership_type_id: "",
-                start_date: new Date().toISOString().split("T")[0],
-                status: "active",
-                price_paid: "",
-                notes: "",
+                user_id: '',
+                membership_type_id: '',
+                start_date: new Date().toISOString().split('T')[0],
+                status: 'active',
+                price_paid: '',
+                notes: '',
             });
 
             await loadData();
         } catch (error) {
-            console.error("Create membership error:", error);
-            setCreateError("Something went wrong. Please try again.");
+            console.error('Create membership error:', error);
+
+            setCreateError(
+                error.response?.data?.message ??
+                'Failed to create membership. Please try again.'
+            );
         } finally {
             setCreateLoading(false);
         }
     };
+    const handleCreateCloseModal = () => {
+        setIsCreateModalOpen(false);
 
+        setForm({
+            user_id: '',
+            membership_type_id: '',
+            start_date: '',
+            status: 'pending',
+            price_paid: '',
+        });
+    };
     const handleRenew = async () => {
         if (!selectedMembership) return;
 
@@ -192,7 +197,6 @@ export default function Index() {
             setRenewLoading(false);
         }
     };
-
     const changeStatus = async (
         membership,
         action
@@ -232,25 +236,29 @@ export default function Index() {
             console.error(error);
         }
     };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
     return (
-        <div className="p-6">
+        <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
 
             <MembershipCreateModal
-                isOpen={showCreate}
+                isOpen={isCreateModalOpen}
                 form={form}
-                types={types}
+                types={membershipTypes}
+                members={members}
+                loadingMembers={loadingMembers}
                 loading={loading}
                 error={createError}
-                onChange={(event) => {
-                    const { name, value } = event.target;
-                    setForm((prev) => ({
-                        ...prev,
-                        [name]: value,
-                    }));
-                }}
+                onChange={handleChange}
                 onSubmit={handleCreate}
-                onClose={() => setShowCreate(false)}
+                onClose={handleCreateCloseModal}
             />
 
             <MembershipRenewModal
@@ -277,7 +285,8 @@ export default function Index() {
                 </div>
 
                 <button
-                    onClick={() => setShowCreate(true)}
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
                     className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
                     Add Membership

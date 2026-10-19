@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Link } from "react-router-dom";
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
 import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
@@ -6,6 +7,8 @@ import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, Summary
 const API = "/api/v1";
 
 export default function AdminDashboard() {
+    const navigate = useNavigate();
+
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -579,7 +582,18 @@ export default function AdminDashboard() {
                     </section>
 
                     <section className="rounded-xl bg-white shadow-sm">
-                        <SectionHeader title="Membership Statistics" />
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                            <SectionHeader title="Membership Statistics" />
+
+                            <button
+                                type="button"
+                                onClick={() => navigate('/memberships')}
+                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                                Membership
+                            </button>
+                        </div>
+                        
 
                         <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
                             <StatBox

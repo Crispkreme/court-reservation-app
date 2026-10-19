@@ -1,4 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
+import StatCard from '../../components/StatCard';
+import { formatDate, formatCurrency } from '../../utils/formatters';
+import MembershipCreateModal from "../../components/modal/MembershipCreateModal";
+import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
+import { getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
 
 const statusClasses = {
     active: "bg-green-100 text-green-700",
@@ -10,6 +15,7 @@ const statusClasses = {
 
 export default function Index() {
     const [memberships, setMemberships] = useState([]);
+    const [membershipTypes, setMembershipTypes] = useState([]);
     const [types, setTypes] = useState([]);
     const [statistics, setStatistics] = useState(null);
 
@@ -19,9 +25,13 @@ export default function Index() {
 
     const [showCreate, setShowCreate] = useState(false);
     const [showRenew, setShowRenew] = useState(false);
+    const [selectedMembership, setSelectedMembership] = useState(null);
 
-    const [selectedMembership, setSelectedMembership] =
-        useState(null);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [renewLoading, setRenewLoading] = useState(false);
+
+    const [createError, setCreateError] = useState("");
+    const [renewError, setRenewError] = useState("");
 
     const [form, setForm] = useState({
         user_id: "",
@@ -34,18 +44,19 @@ export default function Index() {
         notes: "",
     });
 
+    
     const loadData = async () => {
         setLoading(true);
 
         try {
             const params = new URLSearchParams();
 
-            if (search) {
-                params.append("search", search);
+            if (search?.trim()) {
+                params.append('search', search.trim());
             }
 
             if (status) {
-                params.append("status", status);
+                params.append('status', status);
             }
 
             const [
@@ -53,32 +64,18 @@ export default function Index() {
                 typesResponse,
                 statisticsResponse,
             ] = await Promise.all([
-                fetch(`/api/v1/memberships?${params}`),
-                fetch("/api/v1/membership-types"),
-                fetch("/api/v1/memberships/statistics"),
+                getMemberships(params.toString()),
+                getMembershipTypes(),
+                getMembershipStatistics(),
             ]);
 
-            const membershipsData =
-                await membershipsResponse.json();
+            setMemberships(membershipsResponse.data.data ?? []);
+            setMembershipTypes(typesResponse.data.data ?? typesResponse.data);
+            setStatistics(statisticsResponse.data);
 
-            const typesData =
-                await typesResponse.json();
-
-            const statisticsData =
-                await statisticsResponse.json();
-
-            setMemberships(
-                membershipsData.data ?? []
-            );
-
-            setTypes(typesData ?? []);
-
-            setStatistics(statisticsData);
         } catch (error) {
-            console.error(
-                "Failed to load memberships:",
-                error
-            );
+            console.error('Failed to load membership data:', error);
+            console.error('Response:', error.response?.data);
         } finally {
             setLoading(false);
         }
@@ -96,15 +93,9 @@ export default function Index() {
         const value = search.toLowerCase();
 
         return memberships.filter((membership) => {
-            const name =
-                membership.user?.name?.toLowerCase() ?? "";
-
-            const email =
-                membership.user?.email?.toLowerCase() ?? "";
-
-            const type =
-                membership.membership_type?.name?.toLowerCase() ??
-                "";
+            const name = membership.user?.name?.toLowerCase() ?? "";
+            const email = membership.user?.email?.toLowerCase() ?? "";
+            const type = membership.membership_type?.name?.toLowerCase() ?? "";
 
             return (
                 name.includes(value) ||
@@ -117,27 +108,25 @@ export default function Index() {
     const handleCreate = async (event) => {
         event.preventDefault();
 
+        setCreateLoading(true);
+        setCreateError("");
+
         try {
-            const response = await fetch(
-                "/api/v1/memberships",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify(form),
-                }
-            );
+            const response = await fetch("/api/v1/memberships", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify(form),
+            });
+
+            const data = await response.json();
 
             if (!response.ok) {
-                const error = await response.json();
-
-                alert(
-                    error.message ??
-                        "Failed to create membership."
+                setCreateError(
+                    data.message ?? "Failed to create membership."
                 );
-
                 return;
             }
 
@@ -146,9 +135,7 @@ export default function Index() {
             setForm({
                 user_id: "",
                 membership_type_id: "",
-                start_date: new Date()
-                    .toISOString()
-                    .split("T")[0],
+                start_date: new Date().toISOString().split("T")[0],
                 status: "active",
                 price_paid: "",
                 notes: "",
@@ -156,14 +143,18 @@ export default function Index() {
 
             await loadData();
         } catch (error) {
-            console.error(error);
+            console.error("Create membership error:", error);
+            setCreateError("Something went wrong. Please try again.");
+        } finally {
+            setCreateLoading(false);
         }
     };
 
     const handleRenew = async () => {
-        if (!selectedMembership) {
-            return;
-        }
+        if (!selectedMembership) return;
+
+        setRenewLoading(true);
+        setRenewError("");
 
         try {
             const response = await fetch(
@@ -176,20 +167,17 @@ export default function Index() {
                     },
                     body: JSON.stringify({
                         price_paid:
-                            selectedMembership.membership_type
-                                ?.price,
+                            selectedMembership.membership_type?.price,
                     }),
                 }
             );
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const error = await response.json();
-
-                alert(
-                    error.message ??
-                        "Failed to renew membership."
+                setRenewError(
+                    data.message ?? "Failed to renew membership."
                 );
-
                 return;
             }
 
@@ -198,7 +186,10 @@ export default function Index() {
 
             await loadData();
         } catch (error) {
-            console.error(error);
+            console.error("Renew membership error:", error);
+            setRenewError("Something went wrong. Please try again.");
+        } finally {
+            setRenewLoading(false);
         }
     };
 
@@ -244,6 +235,36 @@ export default function Index() {
 
     return (
         <div className="p-6">
+
+            <MembershipCreateModal
+                isOpen={showCreate}
+                form={form}
+                types={types}
+                loading={loading}
+                error={createError}
+                onChange={(event) => {
+                    const { name, value } = event.target;
+                    setForm((prev) => ({
+                        ...prev,
+                        [name]: value,
+                    }));
+                }}
+                onSubmit={handleCreate}
+                onClose={() => setShowCreate(false)}
+            />
+
+            <MembershipRenewModal
+                isOpen={showRenew}
+                selectedMembership={selectedMembership}
+                loading={loading}
+                error={renewError}
+                onClose={() => {
+                    setShowRenew(false);
+                    setSelectedMembership(null);
+                }}
+                onRenew={handleRenew}
+            />
+
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -251,9 +272,7 @@ export default function Index() {
                     </h1>
 
                     <p className="mt-1 text-sm text-gray-500">
-                        Manage membership types, member
-                        subscriptions, benefits, discounts,
-                        access rules, and renewals.
+                        Manage membership types, member subscriptions, benefits, discounts, access rules, and renewals.
                     </p>
                 </div>
 
@@ -266,42 +285,54 @@ export default function Index() {
             </div>
 
             {statistics && (
-                <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
-                    <Stat
-                        label="Total"
+                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                        label="Total Memberships"
                         value={statistics.total}
+                        type="total"
+                        description="All registered memberships"
                     />
 
-                    <Stat
+                    <StatCard
                         label="Active"
                         value={statistics.active}
+                        type="active"
+                        description="Currently active memberships"
                     />
 
-                    <Stat
+                    <StatCard
                         label="Pending"
                         value={statistics.pending}
+                        type="pending"
+                        description="Awaiting activation"
                     />
 
-                    <Stat
+                    <StatCard
                         label="Expired"
                         value={statistics.expired}
+                        type="expired"
+                        description="Memberships past expiration"
                     />
 
-                    <Stat
+                    <StatCard
                         label="Suspended"
                         value={statistics.suspended}
+                        type="suspended"
+                        description="Temporarily suspended"
                     />
 
-                    <Stat
+                    <StatCard
                         label="Cancelled"
                         value={statistics.cancelled}
+                        type="cancelled"
+                        description="Cancelled memberships"
                     />
 
-                    <Stat
-                        label="Expiring"
-                        value={
-                            statistics.expiring_7_days
-                        }
+                    <StatCard
+                        label="Expiring Soon"
+                        value={statistics.expiring_7_days}
+                        type="expiring"
+                        description="Expiring within 7 days"
                     />
                 </div>
             )}
@@ -351,37 +382,32 @@ export default function Index() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+                        <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Member
                                 </th>
-
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Membership
                                 </th>
-
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Dates
                                 </th>
-
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Status
                                 </th>
-
-                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Remaining
                                 </th>
-
-                                <th className="px-6 py-3 text-right text-xs font-semibold uppercase text-gray-500">
+                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
                                     <td
@@ -404,71 +430,42 @@ export default function Index() {
                                 filteredMemberships.map(
                                     (membership) => (
                                         <tr
-                                            key={
-                                                membership.id
-                                            }
-                                            className="hover:bg-gray-50"
+                                            key={membership.id}
+                                            className="transition-colors hover:bg-slate-50/80"
                                         >
                                             <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="font-medium text-gray-900">
-                                                    {
-                                                        membership
-                                                            .user
-                                                            ?.name
-                                                    }
+                                                <div className="font-semibold text-slate-800">
+                                                    { membership.user?.name }
                                                 </div>
 
                                                 <div className="text-sm text-gray-500">
-                                                    {
-                                                        membership
-                                                            .user
-                                                            ?.email
-                                                    }
+                                                    { membership.user?.email }
                                                 </div>
                                             </td>
 
                                             <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="font-medium text-gray-900">
-                                                    {
-                                                        membership
-                                                            .membership_type
-                                                            ?.name
-                                                    }
+                                                <div className="font-semibold text-slate-800">
+                                                    { membership.membership_type?.name }
                                                 </div>
 
                                                 <div className="text-sm text-gray-500">
-                                                    ₱
-                                                    {Number(
-                                                        membership
-                                                            .price_paid
-                                                    ).toLocaleString()}
+                                                    { formatCurrency(membership.price_paid) }
                                                 </div>
                                             </td>
 
                                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
                                                 <div>
-                                                    {
-                                                        membership
-                                                            .start_date
-                                                    }
+                                                    { formatDate(membership.start_date) }
                                                 </div>
-
                                                 <div>
-                                                    {
-                                                        membership
-                                                            .expiration_date
-                                                    }
+                                                    { formatDate(membership.expiration_date) }
                                                 </div>
                                             </td>
 
                                             <td className="whitespace-nowrap px-6 py-4">
                                                 <span
                                                     className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                        statusClasses[
-                                                            membership
-                                                                .status
-                                                        ] ??
-                                                        "bg-gray-100 text-gray-700"
+                                                        statusClasses[membership.status ] ?? "bg-gray-100 text-gray-700"
                                                     }`}
                                                 >
                                                     {membership.status
@@ -485,16 +482,10 @@ export default function Index() {
                                                 "active" ? (
                                                     <span
                                                         className={
-                                                            membership.days_remaining <=
-                                                            7
-                                                                ? "font-semibold text-red-600"
-                                                                : "text-gray-600"
+                                                            membership.days_remaining <= 7 ? "font-semibold text-red-600" : "text-gray-600"
                                                         }
                                                     >
-                                                        {
-                                                            membership.days_remaining
-                                                        }{" "}
-                                                        days
+                                                        { membership.days_remaining }{" "} days
                                                     </span>
                                                 ) : (
                                                     "-"
@@ -566,281 +557,8 @@ export default function Index() {
                     </table>
                 </div>
             </div>
-
-            {showCreate && (
-                <Modal
-                    title="Create Membership"
-                    onClose={() =>
-                        setShowCreate(false)
-                    }
-                >
-                    <form
-                        onSubmit={handleCreate}
-                        className="space-y-4"
-                    >
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">
-                                User ID
-                            </label>
-
-                            <input
-                                type="number"
-                                required
-                                value={form.user_id}
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        user_id:
-                                            event.target
-                                                .value,
-                                    })
-                                }
-                                className="w-full rounded-lg border px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">
-                                Membership Type
-                            </label>
-
-                            <select
-                                required
-                                value={
-                                    form.membership_type_id
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        membership_type_id:
-                                            event.target
-                                                .value,
-                                    })
-                                }
-                                className="w-full rounded-lg border px-3 py-2"
-                            >
-                                <option value="">
-                                    Select membership
-                                </option>
-
-                                {types.map((type) => (
-                                    <option
-                                        key={type.id}
-                                        value={type.id}
-                                    >
-                                        {type.name} - ₱
-                                        {Number(
-                                            type.price
-                                        ).toLocaleString()}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">
-                                Start Date
-                            </label>
-
-                            <input
-                                type="date"
-                                required
-                                value={
-                                    form.start_date
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        start_date:
-                                            event.target
-                                                .value,
-                                    })
-                                }
-                                className="w-full rounded-lg border px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">
-                                Status
-                            </label>
-
-                            <select
-                                value={form.status}
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        status:
-                                            event.target
-                                                .value,
-                                    })
-                                }
-                                className="w-full rounded-lg border px-3 py-2"
-                            >
-                                <option value="pending">
-                                    Pending
-                                </option>
-
-                                <option value="active">
-                                    Active
-                                </option>
-
-                                <option value="suspended">
-                                    Suspended
-                                </option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">
-                                Price Paid
-                            </label>
-
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={
-                                    form.price_paid
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        price_paid:
-                                            event.target
-                                                .value,
-                                    })
-                                }
-                                className="w-full rounded-lg border px-3 py-2"
-                            />
-                        </div>
-
-                        <div className="flex justify-end gap-2">
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowCreate(false)
-                                }
-                                className="rounded-lg border px-4 py-2 text-sm"
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
-                            >
-                                Create
-                            </button>
-                        </div>
-                    </form>
-                </Modal>
-            )}
-
-            {showRenew && selectedMembership && (
-                <Modal
-                    title="Renew Membership"
-                    onClose={() => {
-                        setShowRenew(false);
-                        setSelectedMembership(null);
-                    }}
-                >
-                    <div className="space-y-4">
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="font-medium">
-                                {
-                                    selectedMembership
-                                        .user?.name
-                                }
-                            </p>
-
-                            <p className="text-sm text-gray-500">
-                                {
-                                    selectedMembership
-                                        .membership_type
-                                        ?.name
-                                }
-                            </p>
-
-                            <p className="mt-2 text-sm">
-                                Current expiration:{" "}
-                                <strong>
-                                    {
-                                        selectedMembership
-                                            .expiration_date
-                                    }
-                                </strong>
-                            </p>
-                        </div>
-
-                        <p className="text-sm text-gray-600">
-                            A new membership period will be
-                            created using the current
-                            membership type and duration.
-                        </p>
-
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={() => {
-                                    setShowRenew(false);
-                                    setSelectedMembership(
-                                        null
-                                    );
-                                }}
-                                className="rounded-lg border px-4 py-2 text-sm"
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                onClick={handleRenew}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
-                            >
-                                Confirm Renewal
-                            </button>
-                        </div>
-                    </div>
-                </Modal>
-            )}
         </div>
+        
     );
 }
 
-function Stat({ label, value }) {
-    return (
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium uppercase text-gray-500">
-                {label}
-            </p>
-
-            <p className="mt-1 text-2xl font-bold text-gray-900">
-                {value ?? 0}
-            </p>
-        </div>
-    );
-}
-
-function Modal({ title, children, onClose }) {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
-                <div className="flex items-center justify-between border-b px-6 py-4">
-                    <h2 className="text-lg font-semibold">
-                        {title}
-                    </h2>
-
-                    <button
-                        onClick={onClose}
-                        className="text-xl text-gray-400 hover:text-gray-700"
-                    >
-                        ×
-                    </button>
-                </div>
-
-                <div className="p-6">
-                    {children}
-                </div>
-            </div>
-        </div>
-    );
-}

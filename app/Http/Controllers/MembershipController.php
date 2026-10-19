@@ -19,16 +19,9 @@ use Illuminate\Support\Facades\DB;
 
 class MembershipController extends Controller
 {
-    /**
-     * Display memberships.
-     */
     public function index(IndexMembershipRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
-        /*
-         * Automatically mark expired memberships.
-         */
         Membership::query()
             ->whereIn('status', ['active', 'pending'])
             ->whereDate('expiration_date', '<', today())
@@ -43,54 +36,41 @@ class MembershipController extends Controller
             ])
             ->latest('start_date');
 
-        /*
-         * Filter by status.
-         */
-        if (isset($validated['status'])) {
-            $query->where(
-                'status',
-                $validated['status']
-            );
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        /*
-         * Filter by membership type.
-         */
-        if (isset($validated['membership_type_id'])) {
+        if (!empty($validated['membership_type_id'])) {
             $query->where(
                 'membership_type_id',
                 $validated['membership_type_id']
             );
         }
 
-        /*
-         * Filter by member.
-         */
-        if (isset($validated['member_id'])) {
+        if (!empty($validated['member_id'])) {
             $query->where(
                 'member_id',
                 $validated['member_id']
             );
         }
 
-        /*
-         * Search member information.
-         */
-        if (isset($validated['search'])) {
-            $search = $validated['search'];
+        if (!empty($validated['search'])) {
+            $search = trim($validated['search']);
 
             $query->whereHas('member', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('member_number', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where(function ($subQuery) use ($search) {
+                    $subQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('member_number', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
             });
         }
 
+        $perPage = $validated['per_page'] ?? 20;
+
         return response()->json(
-            $query->paginate(
-                $validated['per_page'] ?? 20
-            )
+            $query->paginate($perPage)
         );
     }
 
@@ -532,9 +512,6 @@ class MembershipController extends Controller
      */
     public function statistics(): JsonResponse
     {
-        /*
-         * Automatically update expired memberships.
-         */
         Membership::query()
             ->whereIn('status', ['active', 'pending'])
             ->whereDate('expiration_date', '<', today())
@@ -544,32 +521,11 @@ class MembershipController extends Controller
 
         return response()->json([
             'total' => Membership::count(),
-
-            'active' => Membership::where(
-                'status',
-                'active'
-            )->count(),
-
-            'pending' => Membership::where(
-                'status',
-                'pending'
-            )->count(),
-
-            'expired' => Membership::where(
-                'status',
-                'expired'
-            )->count(),
-
-            'suspended' => Membership::where(
-                'status',
-                'suspended'
-            )->count(),
-
-            'cancelled' => Membership::where(
-                'status',
-                'cancelled'
-            )->count(),
-
+            'active' => Membership::where('status','active')->count(),
+            'pending' => Membership::where('status','pending')->count(),
+            'expired' => Membership::where('status','expired')->count(),
+            'suspended' => Membership::where('status','suspended')->count(),
+            'cancelled' => Membership::where('status','cancelled')->count(),
             'expiring_7_days' => Membership::query()
                 ->where('status', 'active')
                 ->whereBetween('expiration_date', [

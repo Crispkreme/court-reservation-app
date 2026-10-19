@@ -2,89 +2,144 @@
 
 namespace Database\Seeders;
 
-use App\Models\MembershipType;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+
+use App\Models\Member;
+use App\Models\Membership;
+use App\Models\MembershipType;
 
 class MembershipSeeder extends Seeder
 {
     public function run(): void
     {
-        $memberships = [
-            [
-                'code' => 'STANDARD',
-                'slug' => 'standard',
-                'name' => 'Standard',
-                'description' => 'Standard membership for regular court access.',
-                'price' => 500,
-                'discount_type' => 'percentage',
-                'discount_value' => 5,
-                'duration_days' => 30,
-                'benefits' => [
-                    '5% booking discount',
-                    'Standard court access',
-                    'Member booking history',
-                ],
-                'access_rules' => [
-                    'booking_advance_days' => 7,
-                    'priority_booking' => false,
-                    'premium_courts' => false,
-                ],
-                'is_active' => true,
-            ],
+        $members = Member::orderBy('id')->get();
+        $types = MembershipType::where('is_active', true)
+            ->orderBy('id')
+            ->get();
 
-            [
-                'code' => 'PREMIUM',
-                'slug' => 'premium',
-                'name' => 'Premium',
-                'description' => 'Premium membership with enhanced court access and discounts.',
-                'price' => 1000,
-                'discount_type' => 'percentage',
-                'discount_value' => 10,
-                'duration_days' => 30,
-                'benefits' => [
-                    '10% booking discount',
-                    'Priority court booking',
-                    'Premium court access',
-                    'Member booking history',
-                ],
-                'access_rules' => [
-                    'booking_advance_days' => 14,
-                    'priority_booking' => true,
-                    'premium_courts' => true,
-                ],
-                'is_active' => true,
-            ],
+        if ($members->isEmpty()) {
+            $this->command->error(
+                'No members found. Run MemberSeeder first.'
+            );
+            return;
+        }
 
+        if ($types->isEmpty()) {
+            $this->command->error(
+                'No active membership types found. Run MembershipTypeSeeder first.'
+            );
+            return;
+        }
+
+        $today = today();
+
+        $samples = [
             [
-                'code' => 'VIP',
-                'slug' => 'vip',
-                'name' => 'VIP',
-                'description' => 'VIP membership with maximum benefits and court access.',
-                'price' => 2000,
-                'discount_type' => 'percentage',
-                'discount_value' => 15,
-                'duration_days' => 30,
-                'benefits' => [
-                    '15% booking discount',
-                    'Priority court booking',
-                    'Premium court access',
-                    'Extended booking window',
-                    'Member booking history',
-                ],
-                'access_rules' => [
-                    'booking_advance_days' => 30,
-                    'priority_booking' => true,
-                    'premium_courts' => true,
-                ],
-                'is_active' => true,
+                'member_index' => 0,
+                'type_index' => 0,
+                'status' => 'active',
+                'start_date' => $today->copy()->subDays(10),
+                'expiration_date' => $today->copy()->addDays(3),
+                'notes' => 'Active membership expiring soon.',
+            ],
+            [
+                'member_index' => 1,
+                'type_index' => 1,
+                'status' => 'active',
+                'start_date' => $today->copy()->subDays(5),
+                'expiration_date' => $today->copy()->addDays(7),
+                'notes' => 'Active membership expiring within seven days.',
+            ],
+            [
+                'member_index' => 0,
+                'type_index' => 2,
+                'status' => 'active',
+                'start_date' => $today->copy()->subDays(10),
+                'expiration_date' => $today->copy()->addDays(30),
+                'notes' => 'Regular active VIP membership.',
+            ],
+            [
+                'member_index' => 1,
+                'type_index' => 0,
+                'status' => 'pending',
+                'start_date' => $today->copy(),
+                'expiration_date' => $today->copy()->addDays(30),
+                'notes' => 'Awaiting membership activation.',
+            ],
+            [
+                'member_index' => 0,
+                'type_index' => 1,
+                'status' => 'pending',
+                'start_date' => $today->copy(),
+                'expiration_date' => $today->copy()->addDays(30),
+                'notes' => 'Pending Premium membership.',
+            ],
+            [
+                'member_index' => 1,
+                'type_index' => 2,
+                'status' => 'expired',
+                'start_date' => $today->copy()->subDays(60),
+                'expiration_date' => $today->copy()->subDays(30),
+                'notes' => 'Expired VIP membership.',
+            ],
+            [
+                'member_index' => 0,
+                'type_index' => 0,
+                'status' => 'expired',
+                'start_date' => $today->copy()->subDays(60),
+                'expiration_date' => $today->copy()->subDays(30),
+                'notes' => 'Expired Standard membership.',
+            ],
+            [
+                'member_index' => 1,
+                'type_index' => 1,
+                'status' => 'suspended',
+                'start_date' => $today->copy()->subDays(10),
+                'expiration_date' => $today->copy()->addDays(20),
+                'notes' => 'Suspended for testing.',
+            ],
+            [
+                'member_index' => 0,
+                'type_index' => 2,
+                'status' => 'cancelled',
+                'start_date' => $today->copy()->subDays(10),
+                'expiration_date' => $today->copy()->addDays(20),
+                'notes' => 'Cancelled for testing.',
             ],
         ];
 
-        foreach ($memberships as $membership) {
-            MembershipType::updateOrCreate(
-                ['code' => $membership['code']],
-                $membership
-            );
+        foreach ($samples as $sample) {
+            $member = $members[$sample['member_index'] % $members->count()];
+            $type = $types[$sample['type_index'] % $types->count()];
+
+            $basePrice = (float) $type->price;
+
+            $discountType = $type->discount_type ?? 'none';
+            $discountValue = (float) ($type->discount_value ?? 0);
+
+            $discountAmount = match ($discountType) {
+                'percentage' => $basePrice * $discountValue / 100,
+                'fixed' => min($discountValue, $basePrice),
+                default => 0,
+            };
+
+            Membership::create([
+                'member_id' => $member->id,
+                'membership_type_id' => $type->id,
+                'start_date' => $sample['start_date']->toDateString(),
+                'expiration_date' => $sample['expiration_date']->toDateString(),
+                'status' => $sample['status'],
+                'base_price' => $basePrice,
+                'discount_type' => $discountType,
+                'discount_value' => $discountValue,
+                'final_price' => max(0, $basePrice - $discountAmount),
+                'renewed_from_id' => null,
+                'notes' => $sample['notes'],
+                'expiration_notification_sent_at' => null,
+            ]);
         }
+
+        $this->command->info('9 sample memberships created successfully.');
     }
 }

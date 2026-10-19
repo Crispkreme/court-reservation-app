@@ -132,10 +132,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/{token}', [PlayerInvitationController::class,'show']);
         });
 
-        Route::apiResource('membership-types',MembershipTypeController::class);
-        Route::get('membership-tiers',[MembershipTierController::class, 'index']);
-        Route::apiResource('memberships',MembershipController::class);
-
         Route::prefix('memberships')->group(function () {
             Route::get('/statistics', [MembershipController::class,'statistics']);
             Route::get('/expiring', [MembershipController::class,'expiring']);
@@ -143,7 +139,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/{membership}/suspend', [MembershipController::class,'suspend']);
             Route::post('/{membership}/cancel', [MembershipController::class,'cancel']);
         });
-
+        
+        Route::apiResource('membership-types',MembershipTypeController::class);
+        Route::get('membership-tiers',[MembershipTierController::class, 'index']);
+        Route::apiResource('memberships',MembershipController::class);
         Route::apiResource('membership-privileges',MembershipPrivilegeController::class);
         Route::get('membership-privileges-membership-types', [MembershipPrivilegeController::class, 'membershipTypes']);
 

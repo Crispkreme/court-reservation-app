@@ -34,8 +34,9 @@ class DatabaseSeeder extends Seeder
             CancellationPolicySeeder::class,
 
             MemberSeeder::class,
-            MembershipSeeder::class,
+            MembershipTypeSeeder::class,
             MembershipPrivilegeSeeder::class,
+            MembershipSeeder::class,
             MatchmakingSeeder::class,
 
             PaymentSeeder::class,

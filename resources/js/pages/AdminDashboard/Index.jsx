@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
 import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 
+import { getAdminDashboard, getAdminDashboardSettings, updateAdminDashboardSettings } from "../../services/adminService";
+
 const API = "/api/v1";
 
 export default function AdminDashboard() {
@@ -13,13 +15,8 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [dateFrom, setDateFrom] = useState(
-        new Date().toISOString().slice(0, 10)
-    );
-
-    const [dateTo, setDateTo] = useState(
-        new Date().toISOString().slice(0, 10)
-    );
+    const [dateFrom, setDateFrom] = useState(new Date().toISOString().slice(0, 10));
+    const [dateTo, setDateTo] = useState(new Date().toISOString().slice(0, 10));
 
     const [timeFrom, setTimeFrom] = useState("");
     const [timeTo, setTimeTo] = useState("");
@@ -36,67 +33,26 @@ export default function AdminDashboard() {
         setError("");
 
         try {
-            const params = new URLSearchParams();
+            const response = await getAdminDashboard();
 
-            if (dateFrom) {
-                params.append("date_from", dateFrom);
-            }
-
-            if (dateTo) {
-                params.append("date_to", dateTo);
-            }
-
-            if (timeFrom) {
-                params.append("time_from", timeFrom);
-            }
-
-            if (timeTo) {
-                params.append("time_to", timeTo);
-            }
-
-            if (search) {
-                params.append("search", search);
-            }
-
-            if (status) {
-                params.append("status", status);
-            }
-
-            if (sportCategoryId) {
-                params.append(
-                    "sport_category_id",
-                    sportCategoryId
-                );
-            }
-
-            if (courtId) {
-                params.append("court_id", courtId);
-            }
-
-            const response = await fetch(
-                `${API}/admin-dashboard?${params.toString()}`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(
-                    "Unable to load admin dashboard."
-                );
-            }
-
-            const data = await response.json();
-
-            setDashboard(data);
+            setDashboard(response.data);
         } catch (err) {
-            setError(
-                err.message ||
-                    "Unable to load dashboard."
+            console.error(
+                "Admin dashboard error:",
+                err.response?.status,
+                err.response?.data || err.message
             );
+
+            if (err.response?.status === 401) {
+                setError("Please log in again to access the admin dashboard.");
+            } else if (err.response?.status === 403) {
+                setError("You do not have permission to access this dashboard.");
+            } else {
+                setError(
+                    err.response?.data?.message ||
+                        "Unable to load admin dashboard."
+                );
+            }
         } finally {
             setLoading(false);
         }

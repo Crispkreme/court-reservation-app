@@ -30,10 +30,6 @@ export default function Login() {
             const response = await login(form);
             const user = response?.name;
             const role = response?.role?.toLowerCase();
- 
-            console.log('login response', response);
-            console.log('login user', user);
-            console.log('login role', role);
 
             if (role === 'admin') {
                 navigate('/admin-dashboard', { replace: true });

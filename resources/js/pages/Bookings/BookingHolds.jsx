@@ -362,17 +362,13 @@ function Index() {
 
     return (
         <Layout title="Booking Holds">
-            <div className="space-y-6 p-6">
-            <div className="mx-auto max-w-7xl space-y-6">
+            <div className="mx-auto w-full max-w-[1800px] space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-start gap-3">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                             <CalendarClock size={24} />
                         </div>
                         <div>
-                            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-                                Booking Management
-                            </p>
                             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
                                 Booking Holds
                             </h1>
@@ -891,8 +887,7 @@ function Index() {
                     )}
                 </div>
             </div>
-        </div>
-    </Layout>
+        </Layout>
     );
 }
 

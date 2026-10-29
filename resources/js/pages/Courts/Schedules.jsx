@@ -270,17 +270,18 @@ export default function Schedules() {
         <Layout>
             <div className="min-w-0 space-y-6 p-4 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
-                            <CalendarDays className="h-4 w-4" />
-                            Court Scheduling
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <CalendarDays size={24} />
                         </div>
-                        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-                            Court Schedules
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-500">
-                            Manage recurring weekly operating schedules and availability for your courts.
-                        </p>
+                        <div>
+                            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                                Court Schedules
+                            </h1>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Manage recurring weekly operating schedules and availability for your courts.
+                            </p>
+                        </div>
                     </div>
                     <button
                         type="button"

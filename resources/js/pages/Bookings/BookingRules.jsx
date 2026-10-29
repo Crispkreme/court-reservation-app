@@ -383,7 +383,7 @@ export default function BookingRulesIndex() {
     if (loading) {
         return (
             <Layout title="Booking Rules">
-                <div className="space-y-6 p-6">
+                <div className="mx-auto w-full max-w-[1800px] space-y-6">
                     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                             <ShieldCheck size={22} />

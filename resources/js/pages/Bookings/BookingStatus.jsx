@@ -229,20 +229,20 @@ export default function BookingStatus() {
 
     return (
         <Layout title="Booking Status">
-            <div className="space-y-6 bg-slate-50 p-4 sm:p-6">
-            <div className="mx-auto max-w-7xl space-y-6">
+            <div className="mx-auto w-full max-w-[1800px] space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-600">
-                            <Activity size={17} />
-                            Booking Management
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <Activity size={24} />
                         </div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                            Booking Status & Lifecycle
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-500">
-                            Manage booking statuses and review the complete lifecycle history.
-                        </p>
+                        <div>
+                            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                                Booking Status & Lifecycle
+                            </h1>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Manage booking statuses and review the complete lifecycle history.
+                            </p>
+                        </div>
                     </div>
                     <button
                         type="button"
@@ -743,7 +743,6 @@ export default function BookingStatus() {
                         </div>
                     </div>
                 )}
-            </div>
             </div>
         </Layout>
     );

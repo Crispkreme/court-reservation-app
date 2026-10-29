@@ -83,37 +83,6 @@ export default function Header({
 
       {/* Right section */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Search */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 md:flex"
-        >
-          <Search size={15} className="shrink-0 text-slate-400" />
-
-          <input
-            type="search"
-            aria-label="Search"
-            placeholder="Search..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="w-32 bg-transparent text-xs outline-none lg:w-44"
-          />
-
-          {search && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => {
-                setSearch("");
-                onSearch?.("");
-              }}
-              className="text-slate-400 hover:text-slate-700"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </form>
-
         {/* Notifications */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -156,7 +125,7 @@ export default function Header({
                   <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
                   <div>
                     <p className="text-sm font-medium text-slate-800">
-                      Welcome to CourtReserve
+                      Welcome to OnlineCourtReservation
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       Your dashboard is ready.

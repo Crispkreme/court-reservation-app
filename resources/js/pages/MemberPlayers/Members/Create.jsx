@@ -16,7 +16,7 @@ const initialForm = {
     notes: "",
 };
 
-export default function MembersCreate() {
+export default function CreateMembers() {
     const navigate = useNavigate();
 
     const [form, setForm] = useState(initialForm);

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Users, CalendarDays, Clock3, MapPin, Search, UserPlus, X, CheckCircle2, AlertCircle } from "lucide-react";
+import Layout from "../../components/layout/Layout";
 
 const initialForm = {
     booking_id: "",
@@ -301,41 +303,42 @@ export default function Matchmaking() {
     }
 
     return (
-        <div className="p-6 space-y-6">
+        <Layout>
+        <div className="min-h-full space-y-6 bg-slate-50/60 p-4 sm:p-6 lg:p-8">
             <div>
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                     Match Making / Find a Player
                 </h1>
 
-                <p className="text-gray-600 mt-1">
+                <p className="mt-1 text-sm text-slate-500">
                     Find compatible players for an
                     existing court session.
                 </p>
             </div>
 
             {message && (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">
+                <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
                     {message}
                 </div>
             )}
 
             {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                     {error}
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 <form
                     onSubmit={createRequest}
-                    className="rounded-xl border bg-white p-6 shadow-sm space-y-4"
+                    className="space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                 >
-                    <h2 className="text-lg font-semibold">
+                    <h2 className="text-lg font-semibold text-slate-900">
                         Find Additional Players
                     </h2>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Booking / Session
                         </label>
 
@@ -347,7 +350,7 @@ export default function Matchmaking() {
                                 )
                             }
                             required
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 Select booking
@@ -368,7 +371,7 @@ export default function Matchmaking() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Sport
                         </label>
 
@@ -383,7 +386,7 @@ export default function Matchmaking() {
                                 )
                             }
                             required
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 Select sport
@@ -400,9 +403,9 @@ export default function Matchmaking() {
                         </select>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium mb-1">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Preferred Date
                             </label>
 
@@ -418,12 +421,12 @@ export default function Matchmaking() {
                                     )
                                 }
                                 required
-                                className="w-full rounded-lg border px-3 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Required Players
                             </label>
 
@@ -441,14 +444,14 @@ export default function Matchmaking() {
                                     )
                                 }
                                 required
-                                className="w-full rounded-lg border px-3 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium mb-1">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Start Time
                             </label>
 
@@ -464,12 +467,12 @@ export default function Matchmaking() {
                                     )
                                 }
                                 required
-                                className="w-full rounded-lg border px-3 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 End Time
                             </label>
 
@@ -485,13 +488,13 @@ export default function Matchmaking() {
                                     )
                                 }
                                 required
-                                className="w-full rounded-lg border px-3 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Skill Level
                         </label>
 
@@ -503,7 +506,7 @@ export default function Matchmaking() {
                                     event.target.value
                                 )
                             }
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="any">
                                 Any Skill Level
@@ -524,7 +527,7 @@ export default function Matchmaking() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Location
                         </label>
 
@@ -538,12 +541,12 @@ export default function Matchmaking() {
                                 )
                             }
                             placeholder="Optional"
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Notes
                         </label>
 
@@ -556,14 +559,14 @@ export default function Matchmaking() {
                                 )
                             }
                             rows="3"
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+                        className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading
                             ? "Creating..."
@@ -571,14 +574,14 @@ export default function Matchmaking() {
                     </button>
                 </form>
 
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold mb-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <h2 className="mb-4 text-lg font-semibold text-slate-900">
                         Matchmaking Requests
                     </h2>
 
                     <div className="space-y-3">
                         {requests.length === 0 && (
-                            <p className="text-gray-500">
+                            <p className="text-slate-500">
                                 No matchmaking requests found.
                             </p>
                         )}
@@ -586,7 +589,7 @@ export default function Matchmaking() {
                         {requests.map((request) => (
                             <div
                                 key={request.id}
-                                className="rounded-lg border p-4"
+                                className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -596,7 +599,7 @@ export default function Matchmaking() {
                                                 "Sport"}
                                         </p>
 
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-slate-600">
                                             {
                                                 request.preferred_date
                                             }{" "}
@@ -620,7 +623,7 @@ export default function Matchmaking() {
                                             player(s)
                                         </p>
 
-                                        <span className="inline-block mt-2 rounded-full bg-gray-100 px-2 py-1 text-xs">
+                                        <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${String(request.status || "").toUpperCase() === "OPEN" ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200" : "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200"}`}>
                                             {request.status}
                                         </span>
                                     </div>
@@ -635,7 +638,7 @@ export default function Matchmaking() {
                                                         request
                                                     )
                                                 }
-                                                className="rounded-lg bg-black px-3 py-2 text-sm text-white"
+                                                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 Find Players
                                             </button>
@@ -647,7 +650,7 @@ export default function Matchmaking() {
                                                         request
                                                     )
                                                 }
-                                                className="rounded-lg border px-3 py-2 text-sm"
+                                                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                             >
                                                 Close
                                             </button>
@@ -661,14 +664,14 @@ export default function Matchmaking() {
             </div>
 
             {selectedRequest && (
-                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h2 className="text-lg font-semibold">
+                            <h2 className="text-lg font-semibold text-slate-900">
                                 Compatible Players
                             </h2>
 
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-slate-600">
                                 Select players to invite.
                             </p>
                         </div>
@@ -682,23 +685,23 @@ export default function Matchmaking() {
                                 setPlayers([]);
                                 setSelectedPlayers([]);
                             }}
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                             Close
                         </button>
                     </div>
 
                     {players.length === 0 ? (
-                        <p className="text-gray-500">
+                        <p className="text-slate-500">
                             No compatible players found.
                         </p>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                                 {players.map((player) => (
                                     <label
                                         key={player.id}
-                                        className="flex cursor-pointer gap-3 rounded-lg border p-4"
+                                        className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition ${selectedPlayers.includes(player.id) ? "border-blue-300 bg-blue-50/60 ring-1 ring-blue-200" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
                                     >
                                         <input
                                             type="checkbox"
@@ -723,7 +726,7 @@ export default function Matchmaking() {
                                             </p>
 
                                             {player.skill_level && (
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-slate-600">
                                                     {
                                                         player.skill_level
                                                     }
@@ -731,7 +734,7 @@ export default function Matchmaking() {
                                             )}
 
                                             {player.location && (
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-slate-600">
                                                     {
                                                         player.location
                                                     }
@@ -752,7 +755,7 @@ export default function Matchmaking() {
                                     selectedPlayers.length ===
                                         0
                                 }
-                                className="mt-4 rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+                                className="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Send Invitations (
                                 {
@@ -765,5 +768,6 @@ export default function Matchmaking() {
                 </div>
             )}
         </div>
+    </Layout>
     );
 }

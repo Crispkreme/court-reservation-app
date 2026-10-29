@@ -1,5 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   Menu,
@@ -19,6 +20,7 @@ export default function Header({
   onSettingsClick,
   onLogout,
 }) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
@@ -128,9 +130,17 @@ export default function Header({
           {activeDropdown === "notifications" && (
             <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <h3 className="text-sm font-semibold text-slate-800">
-                  Notifications
-                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveDropdown(null);
+                    navigate("/notifications");
+                  }}
+                  className="text-sm font-semibold text-slate-800 hover:text-blue-600"
+                >
+                  See Notifications
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setActiveDropdown(null)}
@@ -186,7 +196,9 @@ export default function Header({
 
               <button
                 type="button"
-                onClick={() => handleAction(onSettingsClick)}
+                onClick={() => {
+                  handleAction(() => navigate("/settings"));
+                }}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
               >
                 <Settings size={16} />

@@ -1,4 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {
+    Activity,
+    CalendarDays,
+    Download,
+    FileBarChart,
+    FileSpreadsheet,
+    FileText,
+    RefreshCw,
+    Search,
+    AlertCircle,
+} from "lucide-react";
+import Layout from "../../components/layout/Layout";
 
 const API = "/api/v1";
 
@@ -134,7 +146,7 @@ function titleCase(value) {
         );
 }
 
-export default function ReportsIndex() {
+export default function Reports() {
     const [report, setReport] =
         useState("daily_booking");
 
@@ -275,32 +287,40 @@ export default function ReportsIndex() {
         );
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="mx-auto max-w-7xl">
+        <Layout>
+        <div className="min-h-full bg-slate-50/70 p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-screen-2xl space-y-6">
 
                 {/* Header */}
 
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Reports
-                    </h1>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        Generate booking, court,
-                        financial, membership,
-                        waitlist, and operational
-                        reports.
-                    </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                            Reports
+                        </h1>
+                        <p className="mt-1 text-sm text-slate-500">
+                            Generate booking, court, financial, membership, waitlist, and operational reports.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={loadReport}
+                        disabled={loading}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                        Refresh Report
+                    </button>
                 </div>
 
                 {/* Filters */}
 
-                <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 
                         <div className="lg:col-span-2">
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Report
                             </label>
 
@@ -311,7 +331,7 @@ export default function ReportsIndex() {
                                         event.target.value
                                     )
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 {REPORTS.map(
                                     (item) => (
@@ -333,7 +353,7 @@ export default function ReportsIndex() {
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Date From
                             </label>
 
@@ -345,12 +365,12 @@ export default function ReportsIndex() {
                                         event.target.value
                                     )
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Date To
                             </label>
 
@@ -362,7 +382,7 @@ export default function ReportsIndex() {
                                         event.target.value
                                     )
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
@@ -373,25 +393,23 @@ export default function ReportsIndex() {
                         <button
                             onClick={loadReport}
                             disabled={loading}
-                            className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {loading
-                                ? "Generating..."
-                                : "Generate Report"}
+                            {loading ? <><RefreshCw size={16} className="animate-spin" /> Generating...</> : <><FileBarChart size={16} /> Generate Report</>}
                         </button>
 
                         <button
                             onClick={exportCsv}
-                            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                         >
-                            Export CSV
+                            <FileSpreadsheet size={16} /> Export CSV
                         </button>
 
                         <button
                             onClick={exportPdf}
-                            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                         >
-                            Export PDF
+                            <FileText size={16} /> Export PDF
                         </button>
 
                     </div>
@@ -400,36 +418,37 @@ export default function ReportsIndex() {
                 {/* Error */}
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
+                    <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                    <span>{error}</span>
                     </div>
                 )}
 
                 {/* Report title */}
 
-                <div className="mb-5">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-slate-900">
                         {selectedReport?.label}
                     </h2>
                 </div>
 
                 {/* Summary */}
 
-                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                     {summaryEntries.map(
                         ([key, value]) => (
                             <div
                                 key={key}
-                                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                             >
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm font-medium text-slate-500">
                                     {titleCase(
                                         key
                                     )}
                                 </div>
 
-                                <div className="mt-2 text-2xl font-bold text-gray-900">
+                                <div className="mt-3 text-2xl font-bold text-slate-900">
                                     {formatValue(
                                         value,
                                         key
@@ -443,23 +462,24 @@ export default function ReportsIndex() {
 
                 {/* Table */}
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
                     {loading ? (
-                        <div className="p-10 text-center text-gray-500">
+                        <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-sm text-slate-500">
+                            <RefreshCw size={20} className="animate-spin text-blue-600" />
                             Generating report...
                         </div>
                     ) : rows.length === 0 ? (
-                        <div className="p-10 text-center text-gray-500">
+                        <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-sm text-slate-500">
                             No records found for this
                             report.
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
 
-                            <table className="min-w-full divide-y divide-gray-200">
+                            <table className="min-w-full divide-y divide-slate-200">
 
-                                <thead className="bg-gray-50">
+                                <thead className="bg-slate-50">
                                     <tr>
                                         {Object.keys(
                                             rows[0]
@@ -469,7 +489,7 @@ export default function ReportsIndex() {
                                                     key={
                                                         column
                                                     }
-                                                    className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                                                    className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
                                                 >
                                                     {titleCase(
                                                         column
@@ -480,7 +500,7 @@ export default function ReportsIndex() {
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-slate-100">
 
                                     {rows.map(
                                         (
@@ -493,7 +513,7 @@ export default function ReportsIndex() {
                                                     row.booking_id ??
                                                     index
                                                 }
-                                                className="hover:bg-gray-50"
+                                                className="transition hover:bg-slate-50/80"
                                             >
                                                 {Object.entries(
                                                     row
@@ -506,7 +526,7 @@ export default function ReportsIndex() {
                                                             key={
                                                                 key
                                                             }
-                                                            className="whitespace-nowrap px-4 py-3 text-sm text-gray-700"
+                                                            className="whitespace-nowrap px-5 py-4 text-sm text-slate-700"
                                                         >
                                                             {formatValue(
                                                                 value,
@@ -530,5 +550,6 @@ export default function ReportsIndex() {
 
             </div>
         </div>
+        </Layout>
     );
 }

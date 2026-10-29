@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import Layout from "../../components/layout/Layout";
 
 const emptyType = {
     name: "",
@@ -31,7 +32,7 @@ const emptyMembership = {
     notes: "",
 };
 
-export default function MembershipManagement() {
+export default function Memberships() {
     const [tab, setTab] = useState("memberships");
 
     const [membershipTypes, setMembershipTypes] = useState([]);
@@ -358,10 +359,10 @@ export default function MembershipManagement() {
                 return "bg-orange-100 text-orange-700";
 
             case "cancelled":
-                return "bg-gray-100 text-gray-700";
+                return "bg-slate-100 text-slate-700";
 
             default:
-                return "bg-gray-100 text-gray-700";
+                return "bg-slate-100 text-slate-700";
         }
     };
 
@@ -392,14 +393,15 @@ export default function MembershipManagement() {
     );
 
     return (
-        <div className="p-6">
+        <Layout>
+        <div className="min-h-full bg-slate-50/60 p-4 sm:p-6 lg:p-8">
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                         Membership Management
                     </h1>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-slate-500">
                         Manage membership plans, pricing,
                         benefits, access rules, and member
                         memberships.
@@ -409,7 +411,7 @@ export default function MembershipManagement() {
                 {tab === "membership-types" ? (
                     <button
                         onClick={openCreateType}
-                        className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white"
+                        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         + Add Membership Type
                     </button>
@@ -418,22 +420,45 @@ export default function MembershipManagement() {
                         onClick={() =>
                             setMembershipModal(true)
                         }
-                        className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white"
+                        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         + Assign Membership
                     </button>
                 )}
             </div>
 
-            <div className="mb-6 flex gap-2 border-b">
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Member memberships</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{memberships.length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Matching current filters</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Active memberships</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{memberships.filter((item) => item.status === "active").length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Currently active records</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Membership types</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{membershipTypes.length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Available plans</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">Active plans</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{activeTypes.length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Plans available for assignment</p>
+                </div>
+            </div>
+
+            <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-200">
                 <button
                     onClick={() =>
                         setTab("memberships")
                     }
                     className={`border-b-2 px-4 py-3 text-sm font-medium ${
                         tab === "memberships"
-                            ? "border-black text-black"
-                            : "border-transparent text-gray-500"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                     }`}
                 >
                     Member Memberships
@@ -445,8 +470,8 @@ export default function MembershipManagement() {
                     }
                     className={`border-b-2 px-4 py-3 text-sm font-medium ${
                         tab === "membership-types"
-                            ? "border-black text-black"
-                            : "border-transparent text-gray-500"
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                     }`}
                 >
                     Membership Types
@@ -464,7 +489,7 @@ export default function MembershipManagement() {
                                 )
                             }
                             placeholder="Search member..."
-                            className="rounded-lg border px-4 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
 
                         <select
@@ -474,7 +499,7 @@ export default function MembershipManagement() {
                                     event.target.value
                                 )
                             }
-                            className="rounded-lg border px-4 py-2"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 All statuses
@@ -502,19 +527,19 @@ export default function MembershipManagement() {
                         </select>
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border bg-white">
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                         {loading ? (
-                            <div className="p-10 text-center text-gray-500">
+                            <div className="p-10 text-center text-slate-500">
                                 Loading memberships...
                             </div>
                         ) : memberships.length === 0 ? (
-                            <div className="p-10 text-center text-gray-500">
+                            <div className="p-10 text-center text-slate-500">
                                 No memberships found.
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-50">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                                         <tr>
                                             <th className="px-6 py-4 text-left">
                                                 Member
@@ -553,7 +578,7 @@ export default function MembershipManagement() {
                                                     key={
                                                         membership.id
                                                     }
-                                                    className="border-t hover:bg-gray-50"
+                                                    className="border-t border-slate-100 transition-colors hover:bg-slate-50"
                                                 >
                                                     <td className="px-6 py-4">
                                                         <div className="font-medium">
@@ -564,7 +589,7 @@ export default function MembershipManagement() {
                                                             }
                                                         </div>
 
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-slate-500">
                                                             {
                                                                 membership
                                                                     .member
@@ -615,7 +640,7 @@ export default function MembershipManagement() {
                                                         <div className="flex justify-end gap-3">
                                                             <Link
                                                                 to={`/memberships/${membership.id}`}
-                                                                className="font-medium hover:underline"
+                                                                className="font-semibold text-blue-600 transition hover:text-blue-700 hover:underline"
                                                             >
                                                                 View
                                                             </Link>
@@ -626,7 +651,7 @@ export default function MembershipManagement() {
                                                                         membership
                                                                     )
                                                                 }
-                                                                className="font-medium text-blue-600 hover:underline"
+                                                                className="font-semibold text-blue-600 transition hover:text-blue-700 hover:underline"
                                                             >
                                                                 Renew
                                                             </button>
@@ -646,18 +671,18 @@ export default function MembershipManagement() {
             {tab === "membership-types" && (
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     {loading ? (
-                        <div className="col-span-full p-10 text-center text-gray-500">
+                        <div className="col-span-full p-10 text-center text-slate-500">
                             Loading membership types...
                         </div>
                     ) : membershipTypes.length === 0 ? (
-                        <div className="col-span-full rounded-xl border bg-white p-10 text-center text-gray-500">
+                        <div className="col-span-full rounded-xl border bg-white p-10 text-center text-slate-500">
                             No membership types found.
                         </div>
                     ) : (
                         membershipTypes.map((type) => (
                             <div
                                 key={type.id}
-                                className="rounded-xl border bg-white p-6"
+                                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -665,7 +690,7 @@ export default function MembershipManagement() {
                                             {type.name}
                                         </h2>
 
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-slate-500">
                                             {type.code}
                                         </p>
                                     </div>
@@ -674,7 +699,7 @@ export default function MembershipManagement() {
                                         className={`rounded-full px-3 py-1 text-xs ${
                                             type.is_active
                                                 ? "bg-green-100 text-green-700"
-                                                : "bg-gray-100 text-gray-500"
+                                                : "bg-slate-100 text-slate-500"
                                         }`}
                                     >
                                         {type.is_active
@@ -683,14 +708,14 @@ export default function MembershipManagement() {
                                     </span>
                                 </div>
 
-                                <p className="mt-4 text-sm text-gray-600">
+                                <p className="mt-4 text-sm text-slate-600">
                                     {type.description ||
                                         "No description."}
                                 </p>
 
                                 <div className="mt-5 grid grid-cols-2 gap-3">
-                                    <div className="rounded-lg bg-gray-50 p-3">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                        <p className="text-xs text-slate-500">
                                             Price
                                         </p>
 
@@ -701,8 +726,8 @@ export default function MembershipManagement() {
                                         </p>
                                     </div>
 
-                                    <div className="rounded-lg bg-gray-50 p-3">
-                                        <p className="text-xs text-gray-500">
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                        <p className="text-xs text-slate-500">
                                             Duration
                                         </p>
 
@@ -720,7 +745,7 @@ export default function MembershipManagement() {
                                         Benefits
                                     </h3>
 
-                                    <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                                    <ul className="mt-2 space-y-1 text-sm text-slate-600">
                                         {(
                                             type.benefits ||
                                             []
@@ -749,7 +774,7 @@ export default function MembershipManagement() {
                                         Access Rules
                                     </h3>
 
-                                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                                    <div className="mt-2 space-y-1 text-sm text-slate-600">
                                         <p>
                                             Advance booking:{" "}
                                             {
@@ -790,14 +815,14 @@ export default function MembershipManagement() {
                                     </div>
                                 </div>
 
-                                <div className="mt-6 flex gap-2 border-t pt-5">
+                                <div className="mt-6 flex gap-2 border-t border-slate-200 pt-5">
                                     <button
                                         onClick={() =>
                                             openEditType(
                                                 type
                                             )
                                         }
-                                        className="flex-1 rounded-lg border px-3 py-2 text-sm"
+                                        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
                                         Edit
                                     </button>
@@ -808,7 +833,7 @@ export default function MembershipManagement() {
                                                 type
                                             )
                                         }
-                                        className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600"
+                                        className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                                     >
                                         Delete
                                     </button>
@@ -820,10 +845,10 @@ export default function MembershipManagement() {
             )}
 
             {typeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-blue-600/50 p-4">
                     <form
                         onSubmit={saveType}
-                        className="my-8 w-full max-w-3xl rounded-xl bg-white p-6"
+                        className="my-8 w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8"
                     >
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold">
@@ -837,7 +862,7 @@ export default function MembershipManagement() {
                                 onClick={() =>
                                     setTypeModal(false)
                                 }
-                                className="text-gray-500"
+                                className="text-slate-500"
                             >
                                 ✕
                             </button>
@@ -854,7 +879,7 @@ export default function MembershipManagement() {
                                         event.target.value
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
                             <input
@@ -867,7 +892,7 @@ export default function MembershipManagement() {
                                         event.target.value.toUpperCase()
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
                             <input
@@ -883,7 +908,7 @@ export default function MembershipManagement() {
                                         event.target.value
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
                             <input
@@ -900,7 +925,7 @@ export default function MembershipManagement() {
                                         event.target.value
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
                             <select
@@ -913,7 +938,7 @@ export default function MembershipManagement() {
                                         event.target.value
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="none">
                                     No discount
@@ -942,7 +967,7 @@ export default function MembershipManagement() {
                                         event.target.value
                                     )
                                 }
-                                className="rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
@@ -956,7 +981,7 @@ export default function MembershipManagement() {
                                 )
                             }
                             rows="3"
-                            className="mt-4 w-full rounded-lg border px-4 py-2"
+                            className="mt-4 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
 
                         <div className="mt-6">
@@ -999,7 +1024,7 @@ export default function MembershipManagement() {
                                                     )
                                                 }
                                                 placeholder="Membership benefit"
-                                                className="flex-1 rounded-lg border px-4 py-2"
+                                                className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                             />
 
                                             <button
@@ -1103,7 +1128,7 @@ export default function MembershipManagement() {
                                             )
                                         )
                                     }
-                                    className="rounded-lg border px-4 py-2"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
 
                                 <input
@@ -1124,7 +1149,7 @@ export default function MembershipManagement() {
                                             )
                                         )
                                     }
-                                    className="rounded-lg border px-4 py-2"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
 
                                 <input
@@ -1145,7 +1170,7 @@ export default function MembershipManagement() {
                                             )
                                         )
                                     }
-                                    className="rounded-lg border px-4 py-2"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
                         </div>
@@ -1167,13 +1192,13 @@ export default function MembershipManagement() {
                             Active membership type
                         </label>
 
-                        <div className="mt-6 flex justify-end gap-3 border-t pt-5">
+                        <div className="mt-6 flex flex-col-reverse justify-end gap-3 border-t border-slate-200 pt-5 sm:flex-row">
                             <button
                                 type="button"
                                 onClick={() =>
                                     setTypeModal(false)
                                 }
-                                className="rounded-lg border px-5 py-2"
+                                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                             >
                                 Cancel
                             </button>
@@ -1181,7 +1206,7 @@ export default function MembershipManagement() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="rounded-lg bg-black px-5 py-2 text-white disabled:opacity-50"
+                                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {saving
                                     ? "Saving..."
@@ -1195,10 +1220,10 @@ export default function MembershipManagement() {
             )}
 
             {membershipModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-600/50 p-4">
                     <form
                         onSubmit={saveMembership}
-                        className="w-full max-w-xl rounded-xl bg-white p-6"
+                        className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8"
                     >
                         <h2 className="text-xl font-bold">
                             Assign Membership
@@ -1220,7 +1245,7 @@ export default function MembershipManagement() {
                                         })
                                     )
                                 }
-                                className="w-full rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="">
                                     Select member
@@ -1254,7 +1279,7 @@ export default function MembershipManagement() {
                                         })
                                     )
                                 }
-                                className="w-full rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="">
                                     Select membership type
@@ -1274,7 +1299,7 @@ export default function MembershipManagement() {
                             </select>
 
                             <div>
-                                <label className="mb-1 block text-sm text-gray-600">
+                                <label className="mb-1 block text-sm text-slate-600">
                                     Start date
                                 </label>
 
@@ -1294,7 +1319,7 @@ export default function MembershipManagement() {
                                             })
                                         )
                                     }
-                                    className="w-full rounded-lg border px-4 py-2"
+                                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
@@ -1311,7 +1336,7 @@ export default function MembershipManagement() {
                                         })
                                     )
                                 }
-                                className="w-full rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="active">
                                     Active
@@ -1337,17 +1362,17 @@ export default function MembershipManagement() {
                                     )
                                 }
                                 rows="3"
-                                className="w-full rounded-lg border px-4 py-2"
+                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
-                        <div className="mt-6 flex justify-end gap-3">
+                        <div className="mt-6 flex flex-col-reverse justify-end gap-3 sm:flex-row">
                             <button
                                 type="button"
                                 onClick={() =>
                                     setMembershipModal(false)
                                 }
-                                className="rounded-lg border px-5 py-2"
+                                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                             >
                                 Cancel
                             </button>
@@ -1355,7 +1380,7 @@ export default function MembershipManagement() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="rounded-lg bg-black px-5 py-2 text-white"
+                                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {saving
                                     ? "Saving..."
@@ -1366,5 +1391,6 @@ export default function MembershipManagement() {
                 </div>
             )}
         </div>
+    </Layout>
     );
 }

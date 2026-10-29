@@ -15,29 +15,31 @@ import Reschedule from './pages/Bookings/Reschedule';
 import BookingHolds from './pages/Bookings/BookingHolds';
 import BookingStatus from './pages/Bookings/BookingStatus';
 import BookingParticipants from './pages/Bookings/BookingParticipants';
-import CancellationPolicies from './pages/CancellationPolicies/Index';
-import MembersIndex from './pages/MemberPlayers/Members/Index';
-import MembersCreate from './pages/MemberPlayers/Members/Create';
+import CancellationPolicies from './pages/Bookings/CancellationPolicies';
+
+import Members from './pages/Members/Members';
+import Players from './pages/Members/Players';
+import CreateMembers from './pages/Members/CreateMembers';
 import MembersShow from './pages/MemberPlayers/Members/Show';
-import PlayersIndex from './pages/MemberPlayers/Players/Index';
-import PlayersCreate from './pages/MemberPlayers/Players/Create';
+
+import PlayersCreate from './pages/Members/CreatePlayers';
 import PlayersShow from './pages/MemberPlayers/Players/Show';
-import InvitationsIndex from './pages/MemberPlayers/Invitations/Index';
+import Invitations from './pages/Members/Invitations';
 import InvitationsShow from './pages/MemberPlayers/Invitations/Show';
 import ParticipantsShow from './pages/MemberPlayers/Participants/Show';
-import Memberships from './pages/Memberships/Index';
-import MembershipPrivileges from './pages/MembershipPrivileges/Index';
-import Matchmaking from './pages/Matchmaking/Index';
-import PaymentIndex from './pages/Payments/Index';
+import Memberships from './pages/Members/Memberships';
+import Privileges from './pages/Members/Privileges';
+import Matchmaking from './pages/Members/Matchmaking';
+import Payments from './pages/Payments/Payments';
 import TransactionHistory from './pages/Transactions/Index';
-import OutstandingPayments from './pages/OutstandingPayments/Index';
+import Settings from "./pages/Settings";
 import OperationalControls from './pages/OperationalControls/Index';
 import Notifications from './pages/Notifications/Index';
 import CustomerDashboard from './pages/CustomerDashboard/Index';
 import Dashboard from './pages/Dashboard/Index';
 import MemberDashboard from './pages/MemberDashboard/Index';
 import FailureExceptionsIndex from './pages/FailureExceptions/Index';
-import ReportsIndex from './pages/Reports/Index';
+import Reports from './pages/Reports/Index';
 import AuditHistoryIndex from './pages/AuditHistory/Index';
 import Home from "./pages/Home";
 
@@ -58,6 +60,7 @@ function App() {
                 <Route path="/login" element={<Login />}/>
                 <Route path="/" element={<Home />} />
                 <Route path="/register" element={<Register />}/>
+                <Route path="/settings" element={<Settings />} />
 
                 <Route path="/courts" element={<ProtectedRoute><Court /></ProtectedRoute>}/>
                 <Route path="/courts/schedules" element={<ProtectedRoute><CourtSchedules /></ProtectedRoute>}/>
@@ -71,31 +74,30 @@ function App() {
                 <Route path="/booking-holds" element={<ProtectedRoute><BookingHolds /></ProtectedRoute>}/>
                 <Route path="/booking-status" element={<ProtectedRoute><BookingStatus /></ProtectedRoute>}/>
                 <Route path="/booking-rules" element={<ProtectedRoute><BookingRules /></ProtectedRoute>}/>
+                <Route path="/bookings/cancellation-policies" element={<ProtectedRoute><CancellationPolicies /></ProtectedRoute>}/>
                 <Route path="/booking-participants" element={<ProtectedRoute><BookingParticipants /></ProtectedRoute>}/>
 
-                <Route path="/cancellation-policies" element={<ProtectedRoute><CancellationPolicies /></ProtectedRoute>}/>
-                <Route path="/members" element={<ProtectedRoute><MembersIndex /></ProtectedRoute>}/>
-                <Route path="/members/create" element={<ProtectedRoute><MembersCreate /></ProtectedRoute>}/>
+                <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>}/>
+                <Route path="/members/create" element={<ProtectedRoute><CreateMembers /></ProtectedRoute>}/>
                 <Route path="/members/:id" element={<ProtectedRoute><MembersShow /></ProtectedRoute>}/>
-                <Route path="/players" element={<ProtectedRoute><PlayersIndex /></ProtectedRoute>}/>
+                <Route path="/member/players" element={<ProtectedRoute><Players /></ProtectedRoute>}/>
+                <Route path="/members/privileges" element={<ProtectedRoute><Privileges /></ProtectedRoute>}/>
                 <Route path="/players/create" element={<ProtectedRoute><PlayersCreate /></ProtectedRoute>}/>
                 <Route path="/players/:id" element={<ProtectedRoute><PlayersShow /></ProtectedRoute>}/>
-                <Route path="/invitations" element={<ProtectedRoute><InvitationsIndex /></ProtectedRoute>}/>
+                <Route path="/invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>}/>
                 <Route path="/invitations/:token" element={<ProtectedRoute><InvitationsShow /></ProtectedRoute>}/>
-                <Route path="/memberships" element={<ProtectedRoute><Memberships /></ProtectedRoute>}/>
-                <Route path="/membership-privileges" element={<ProtectedRoute><MembershipPrivileges /></ProtectedRoute>}/>
+                <Route path="/members/memberships" element={<ProtectedRoute><Memberships /></ProtectedRoute>}/>
                 <Route path="/matchmaking" element={<ProtectedRoute><Matchmaking /></ProtectedRoute>}/>
 
-                <Route path="/payments" element={<ProtectedRoute><PaymentIndex /></ProtectedRoute>}/>
+                <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>}/>
                 <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>}/>
-                <Route path="/outstanding-payments" element={<ProtectedRoute><OutstandingPayments /></ProtectedRoute>}/>
                 <Route path="/admin/operational-controls" element={<ProtectedRoute><OperationalControls /></ProtectedRoute>}/>
                 <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>}/>
                 <Route path="/customer-dashboard" element={<ProtectedRoute><CustomerDashboard /></ProtectedRoute>}/>
-                <Route path="/admin-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
+                <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
                 <Route path="/member-dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>}/>
                 <Route path="/failure-exceptions" element={<ProtectedRoute><FailureExceptionsIndex /></ProtectedRoute>}/>
-                <Route path="/reports" element={<ProtectedRoute><ReportsIndex /></ProtectedRoute>}/>
+                <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>}/>
                 <Route path="/audit-history" element={<ProtectedRoute><AuditHistoryIndex /></ProtectedRoute>}/>
                 <Route path="/" element={<Navigate to="/courts" replace/>}/>
                 <Route path="*" element={<Navigate to="/" replace/>}/>

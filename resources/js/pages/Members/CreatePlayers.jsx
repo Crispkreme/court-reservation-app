@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function PlayersCreate() {
+export default function CreatePlayers() {
     const navigate = useNavigate();
 
     const [form, setForm] = useState({

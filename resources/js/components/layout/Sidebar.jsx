@@ -16,6 +16,14 @@ import {
   CalendarCheck,
   CalendarClock,
   Activity,
+  UserRound,
+  FileText,
+  ReceiptText,
+  UserPlus,
+  Mail,
+  ShieldCheck,
+  CalendarX,
+  Network,
 } from "lucide-react";
 
 const navigation = [
@@ -30,41 +38,41 @@ const navigation = [
       { label: "Booking Holds", to: "/booking-holds", icon: CalendarClock },
       { label: "Booking Status", to: "/booking-status", icon: Activity },
       { label: "Booking Rules", to: "/booking-rules", icon: ClipboardList },
+      { label: "Booking Cancellations", to: "/bookings/cancellation-policies", icon: CalendarX },
     ],
   },
-  
-{
-  label: "Courts",
-  to: "/courts",
-  icon: Trophy,
-  children: [
-    {
-      label: "Court",
-      to: "/courts",
-      icon: Trophy,
-    },
-    {
-      label: "Schedules",
-      to: "/courts/schedules",
-      icon: CalendarDays,
-    },
-    {
-      label: "Schedule Overrides",
-      to: "/courts/overrides",
-      icon: ClipboardList,
-    },
-    {
-      label: "Court Calendar",
-      to: "/courts/calendar",
-      icon: Calendar,
-    },
-  ],
-},
-
-  { label: "Members", to: "/memberships", icon: Users },
+  {
+    label: "Courts",
+    to: "/courts",
+    icon: Trophy,
+    children: [
+      { label: "Court", to: "/courts", icon: Trophy },
+      { label: "Schedules", to: "/courts/schedules", icon: CalendarDays },
+      { label: "Schedule Overrides", to: "/courts/overrides", icon: ClipboardList },
+      { label: "Court Calendar", to: "/courts/calendar", icon: Calendar },
+    ],
+  },
+  {
+    label: "Members",
+    to: "/members",
+    icon: Users,
+    children: [
+      { label: "Members", to: "/members", icon: UserRound },
+      { label: "Players", to: "/members/players", icon: UserPlus },
+      { label: "Cancellation Policies", to: "/cancellation-policies", icon: FileText },
+      { label: "Invitations", to: "/invitations", icon: Mail },
+      { label: "Memberships", to: "/members/memberships", icon: CreditCard },
+      { label: "Privileges", to: "/members/privileges", icon: ShieldCheck },
+      { label: "Matchmaking", to: "/matchmaking", icon: Network },
+    ],
+  },
   { label: "Payments", to: "/payments", icon: CreditCard },
   { label: "Reports", to: "/reports", icon: BarChart3 },
+  { label: "Transactions", to: "/transactions", icon: ReceiptText },
 ];
+
+const pathMatches = (pathname, path) =>
+  pathname === path || pathname.startsWith(`${path}/`);
 
 export default function Sidebar({ collapsed, onToggle, onNavigate }) {
   const location = useLocation();
@@ -77,22 +85,59 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
     location.pathname.startsWith("/booking-rules") ||
     location.pathname.startsWith("/booking-participants");
 
-  const [bookingsOpen, setBookingsOpen] = useState(isBookingsRoute);
+  const isCourtsRoute = location.pathname === "/courts" ||
+    location.pathname.startsWith("/courts/");
+
+  const isMembersRoute =
+    location.pathname === "/members" ||
+    location.pathname.startsWith("/members/") ||
+    location.pathname === "/cancellation-policies" ||
+    location.pathname.startsWith("/cancellation-policies/") ||
+    location.pathname.startsWith("/invitations") ||
+    location.pathname.startsWith("/matchmaking");
+
+  const [openMenus, setOpenMenus] = useState({
+    Bookings: isBookingsRoute,
+    Courts: isCourtsRoute,
+    Members: isMembersRoute,
+  });
 
   useEffect(() => {
-    if (isBookingsRoute) {
-      setBookingsOpen(true);
-    }
-  }, [location.pathname]);
+    setOpenMenus((current) => ({
+      ...current,
+      Bookings: isBookingsRoute ? true : current.Bookings,
+      Courts: isCourtsRoute ? true : current.Courts,
+      Members: isMembersRoute ? true : current.Members,
+    }));
+  }, [location.pathname, isBookingsRoute, isCourtsRoute, isMembersRoute]);
 
   const isActive = (to) => {
     if (to === "/bookings") {
-      return location.pathname === "/bookings" ||
-        location.pathname.startsWith("/bookings/");
+      return location.pathname === "/bookings";
     }
+    if (to === "/courts") {
+      return location.pathname === "/courts";
+    }
+    if (to === "/members") {
+      return location.pathname === "/members";
+    }
+    return location.pathname === to;
+  };
 
-    return location.pathname === to ||
-      location.pathname.startsWith(`${to}/`);
+  const isChildActive = (to, label) => {
+    if (label === "All Bookings") return location.pathname === "/bookings";
+    if (label === "Court") return location.pathname === "/courts";
+    if (label === "Members") return location.pathname === "/members";
+    return pathMatches(location.pathname, to);
+  };
+
+  const toggleMenu = (label) => {
+    if (collapsed) {
+      onToggle?.();
+      setOpenMenus((current) => ({ ...current, [label]: true }));
+      return;
+    }
+    setOpenMenus((current) => ({ ...current, [label]: !current[label] }));
   };
 
   return (
@@ -102,22 +147,18 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
       }`}
     >
       <div
-        className={`flex h-16 items-center border-b border-slate-200 ${
+        className={`flex h-16 shrink-0 items-center border-b border-slate-200 ${
           collapsed ? "justify-center px-2" : "gap-3 px-5"
         }`}
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
           <Trophy size={19} />
         </div>
 
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900">
-              CourtEase
-            </p>
-            <p className="truncate text-xs text-slate-500">
-              Management System
-            </p>
+            <p className="truncate text-sm font-bold text-slate-900">CourtEase</p>
+            <p className="truncate text-xs text-slate-500">Management System</p>
           </div>
         )}
       </div>
@@ -130,53 +171,46 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
         )}
 
         {navigation.map(({ label, to, icon: Icon, children }) => {
-          const active = isActive(to);
+          const active = children
+            ? (label === "Bookings" ? isBookingsRoute :
+              label === "Courts" ? isCourtsRoute :
+              label === "Members" ? isMembersRoute : false)
+            : isActive(to);
 
           if (children) {
+            const expanded = Boolean(openMenus[label]);
+
             return (
               <div key={label}>
                 <button
                   type="button"
                   title={collapsed ? label : undefined}
-                  onClick={() => {
-                    if (collapsed) {
-                      onToggle();
-                      setBookingsOpen(true);
-                    } else {
-                      setBookingsOpen((open) => !open);
-                    }
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  aria-expanded={!collapsed && expanded}
+                  onClick={() => toggleMenu(label)}
+                  className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                     active
                       ? "bg-blue-50 text-blue-700"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   } ${collapsed ? "justify-center" : ""}`}
                 >
                   <Icon size={18} className="shrink-0" />
-
                   {!collapsed && (
                     <>
                       <span className="flex-1 text-left">{label}</span>
                       <ChevronDown
                         size={16}
-                        className={`transition-transform ${
-                          bookingsOpen ? "rotate-180" : ""
+                        className={`shrink-0 transition-transform duration-200 ${
+                          expanded ? "rotate-180" : ""
                         }`}
                       />
                     </>
                   )}
                 </button>
 
-                {!collapsed && bookingsOpen && (
+                {!collapsed && expanded && (
                   <div className="ml-4 mt-1 space-y-1 border-l border-slate-200 pl-3">
                     {children.map(({ label: childLabel, to: childTo, icon: ChildIcon }) => {
-                      const childActive =
-                        childTo === "/bookings"
-                          ? location.pathname === "/bookings"
-                          : childTo === "/booking-participants"
-                            ? location.pathname.startsWith("/booking-participants")
-                            : location.pathname === childTo ||
-                              location.pathname.startsWith(`${childTo}/`);
+                      const childActive = isChildActive(childTo, childLabel);
 
                       return (
                         <NavLink
@@ -192,7 +226,10 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
                           }
                         >
                           <ChildIcon size={16} className="shrink-0" />
-                          <span>{childLabel}</span>
+                          <span className="min-w-0 flex-1">{childLabel}</span>
+                          {childActive && (
+                            <span className="h-4 w-1 shrink-0 rounded-full bg-blue-600" />
+                          )}
                         </NavLink>
                       );
                     })}
@@ -208,9 +245,9 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
               to={to}
               title={collapsed ? label : undefined}
               onClick={onNavigate}
-              className={() =>
+              className={({ isActive: linkActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                  active
+                  linkActive
                     ? "bg-blue-50 text-blue-700"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 } ${collapsed ? "justify-center" : ""}`
@@ -218,25 +255,26 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
             >
               <Icon size={18} className="shrink-0" />
               {!collapsed && <span className="flex-1">{label}</span>}
-              {active && !collapsed && (
-                <span className="h-5 w-1 rounded-full bg-blue-600" />
-              )}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-3">
+      <div className="shrink-0 border-t border-slate-200 p-3">
         <NavLink
           to="/settings"
           title={collapsed ? "Settings" : undefined}
           onClick={onNavigate}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 ${
-            collapsed ? "justify-center" : ""
-          }`}
+          className={({ isActive: linkActive }) =>
+            `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              linkActive
+                ? "bg-blue-50 text-blue-700"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            } ${collapsed ? "justify-center" : ""}`
+          }
         >
           <Settings size={18} className="shrink-0" />
-          {!collapsed && "Settings"}
+          {!collapsed && <span>Settings</span>}
         </NavLink>
 
         <div
@@ -247,15 +285,10 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
             AD
           </div>
-
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-slate-800">
-                Admin User
-              </p>
-              <p className="truncate text-[11px] text-slate-500">
-                Administrator
-              </p>
+              <p className="truncate text-xs font-semibold text-slate-800">Admin User</p>
+              <p className="truncate text-[11px] text-slate-500">Administrator</p>
             </div>
           )}
         </div>
@@ -263,7 +296,7 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
         <button
           type="button"
           onClick={onToggle}
-          className="mt-3 hidden w-full items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:flex"
+          className="mt-3 hidden w-full items-center justify-center rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:flex"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}

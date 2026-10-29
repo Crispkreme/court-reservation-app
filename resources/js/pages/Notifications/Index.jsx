@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import Layout from "../../components/layout/Layout";
+import { Bell, CheckCheck, Plus, RefreshCw, Search, Trash2, X, Mail, Clock3, CheckCircle2, AlertCircle, Send, Eye } from "lucide-react";
 
 const API = "/api/v1";
 
@@ -76,7 +78,7 @@ function statusClass(status) {
             return "bg-yellow-100 text-yellow-700";
 
         default:
-            return "bg-gray-100 text-gray-700";
+            return "bg-slate-100 text-slate-700";
     }
 }
 
@@ -89,7 +91,7 @@ function priorityClass(priority) {
             return "bg-orange-100 text-orange-700";
 
         case "low":
-            return "bg-gray-100 text-gray-600";
+            return "bg-slate-100 text-slate-600";
 
         default:
             return "bg-blue-100 text-blue-700";
@@ -360,45 +362,49 @@ export default function Notifications() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <Layout>
+        <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
             <div className="mx-auto max-w-7xl">
                 <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Notifications
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700"><Bell size={22} /></div>
+                            <div><h1 className="text-2xl font-bold tracking-tight text-slate-900">Notifications</h1>
+                            <p className="mt-1 text-sm text-slate-500">Manage booking, payment, waitlist, membership, and operational notifications.</p></div>
+                        </div>
 
-                        <p className="mt-1 text-sm text-gray-500">
-                            Manage booking, payment, waitlist, membership,
-                            and operational notifications.
-                        </p>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <button
-                            onClick={markAllAsRead}
-                            className="rounded-lg border bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            type="button"
+                            onClick={() => { fetchNotifications(); fetchSummary(); }}
+                            disabled={loading}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                         >
-                            Mark All Read
+                            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                            Refresh
                         </button>
-
                         <button
-                            onClick={() => setShowCreate(true)}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            type="button"
+                            onClick={markAllAsRead}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
-                            + Create Notification
+                            <CheckCheck size={16} />
+                            Mark All Read
                         </button>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
+                    <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                        <span>{error}</span>
                     </div>
                 )}
 
                 {/* Summary */}
-                <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+                <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7">
                     <SummaryCard
                         label="Total"
                         value={summary.total}
@@ -436,8 +442,10 @@ export default function Notifications() {
                 </div>
 
                 {/* Filters */}
-                <div className="mb-6 rounded-xl border bg-white p-4 shadow-sm">
+                <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+                        <div className="relative">
+                        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Search notifications..."
@@ -448,8 +456,9 @@ export default function Notifications() {
                                     search: event.target.value,
                                 }))
                             }
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
+                        </div>
 
                         <select
                             value={filters.type}
@@ -459,7 +468,7 @@ export default function Notifications() {
                                     type: event.target.value,
                                 }))
                             }
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             {notificationTypes.map(([value, label]) => (
                                 <option key={value} value={value}>
@@ -476,7 +485,7 @@ export default function Notifications() {
                                     channel: event.target.value,
                                 }))
                             }
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             {channels.map(([value, label]) => (
                                 <option key={value} value={value}>
@@ -493,7 +502,7 @@ export default function Notifications() {
                                     status: event.target.value,
                                 }))
                             }
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             {statuses.map(([value, label]) => (
                                 <option key={value} value={value}>
@@ -502,7 +511,7 @@ export default function Notifications() {
                             ))}
                         </select>
 
-                        <label className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                        <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                             <input
                                 type="checkbox"
                                 checked={filters.unread}
@@ -520,13 +529,13 @@ export default function Notifications() {
                 </div>
 
                 {/* Notifications */}
-                <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     {loading ? (
-                        <div className="p-10 text-center text-gray-500">
+                        <div className="p-10 text-center text-slate-500">
                             Loading notifications...
                         </div>
                     ) : filteredNotifications.length === 0 ? (
-                        <div className="p-10 text-center text-gray-500">
+                        <div className="p-10 text-center text-slate-500">
                             No notifications found.
                         </div>
                     ) : (
@@ -534,7 +543,7 @@ export default function Notifications() {
                             {filteredNotifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`p-5 transition hover:bg-gray-50 ${
+                                    className={`p-5 transition hover:bg-slate-50 sm:p-6 ${
                                         !notification.read_at
                                             ? "bg-blue-50/40"
                                             : ""
@@ -542,35 +551,35 @@ export default function Notifications() {
                                 >
                                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                         <div className="flex gap-4">
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
-                                                🔔
+                                            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${!notification.read_at ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                                                <Bell size={19} />
                                             </div>
 
                                             <div>
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <h3 className="font-semibold text-gray-900">
+                                                    <h3 className="font-semibold text-slate-900">
                                                         {notification.title}
                                                     </h3>
 
                                                     {!notification.read_at && (
-                                                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
+                                                        <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
                                                             New
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <p className="mt-1 text-sm text-gray-600">
+                                                <p className="mt-1 text-sm text-slate-600">
                                                     {notification.message}
                                                 </p>
 
                                                 <div className="mt-3 flex flex-wrap gap-2">
-                                                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
                                                         {typeLabel(
                                                             notification.type
                                                         )}
                                                     </span>
 
-                                                    <span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-700">
+                                                    <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700">
                                                         {notification.channel}
                                                     </span>
 
@@ -591,7 +600,7 @@ export default function Notifications() {
                                                     </span>
                                                 </div>
 
-                                                <div className="mt-2 text-xs text-gray-400">
+                                                <div className="mt-2 text-xs text-slate-400">
                                                     {notification.created_at
                                                         ? new Date(
                                                               notification.created_at
@@ -609,7 +618,7 @@ export default function Notifications() {
                                                             notification.id
                                                         )
                                                     }
-                                                    className="rounded-lg border px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                                    className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs font-medium text-slate-700 hover:bg-slate-50"
                                                 >
                                                     Mark Unread
                                                 </button>
@@ -620,7 +629,7 @@ export default function Notifications() {
                                                             notification.id
                                                         )
                                                     }
-                                                    className="rounded-lg border px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-50"
+                                                    className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs font-medium text-blue-700 hover:bg-blue-50"
                                                 >
                                                     Mark Read
                                                 </button>
@@ -647,15 +656,15 @@ export default function Notifications() {
 
             {/* Create Modal */}
             {showCreate && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
-                        <div className="flex items-center justify-between border-b p-5">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/70 p-5">
                             <div>
                                 <h2 className="text-lg font-semibold">
                                     Create Notification
                                 </h2>
 
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-slate-500">
                                     Create an in-app, email, SMS, or push
                                     notification.
                                 </p>
@@ -663,18 +672,18 @@ export default function Notifications() {
 
                             <button
                                 onClick={() => setShowCreate(false)}
-                                className="text-xl text-gray-400 hover:text-gray-700"
+                                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                             >
-                                ×
+                                <X size={18} />
                             </button>
                         </div>
 
                         <form
                             onSubmit={createNotification}
-                            className="space-y-4 p-5"
+                            className="max-h-[75vh] space-y-4 overflow-y-auto p-5"
                         >
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                     User ID
                                 </label>
 
@@ -688,13 +697,13 @@ export default function Notifications() {
                                         )
                                     }
                                     placeholder="Optional"
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                         Notification Type
                                     </label>
 
@@ -706,7 +715,7 @@ export default function Notifications() {
                                                 event.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
                                         {notificationTypes
                                             .filter(([value]) => value)
@@ -722,7 +731,7 @@ export default function Notifications() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                         Channel
                                     </label>
 
@@ -734,7 +743,7 @@ export default function Notifications() {
                                                 event.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
                                         {channels
                                             .filter(([value]) => value)
@@ -751,7 +760,7 @@ export default function Notifications() {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                     Title
                                 </label>
 
@@ -765,12 +774,12 @@ export default function Notifications() {
                                             event.target.value
                                         )
                                     }
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                     Message
                                 </label>
 
@@ -784,13 +793,13 @@ export default function Notifications() {
                                             event.target.value
                                         )
                                     }
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                         Priority
                                     </label>
 
@@ -802,7 +811,7 @@ export default function Notifications() {
                                                 event.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
                                         <option value="low">Low</option>
                                         <option value="normal">Normal</option>
@@ -812,7 +821,7 @@ export default function Notifications() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                         Status
                                     </label>
 
@@ -824,7 +833,7 @@ export default function Notifications() {
                                                 event.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
                                         <option value="pending">
                                             Pending
@@ -838,7 +847,7 @@ export default function Notifications() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                                         Scheduled At
                                     </label>
 
@@ -851,23 +860,23 @@ export default function Notifications() {
                                                 event.target.value
                                             )
                                         }
-                                        className="w-full rounded-lg border px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-2 border-t pt-4">
+                            <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowCreate(false)}
-                                    className="rounded-lg border px-4 py-2 text-sm"
+                                    className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
                                     type="submit"
-                                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                 >
                                     Create Notification
                                 </button>
@@ -877,19 +886,19 @@ export default function Notifications() {
                 </div>
             )}
         </div>
+        </Layout>
     );
 }
 
 function SummaryCard({ label, value }) {
     return (
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-            <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {label}
             </div>
-
-            <div className="mt-1 text-2xl font-bold text-gray-900">
+            <div className="mt-2 text-2xl font-bold tabular-nums text-slate-900">
                 {value ?? 0}
             </div>
-    </div>
+        </div>
     );
 }

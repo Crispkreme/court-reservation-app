@@ -1,4 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {
+    Activity,
+    AlertCircle,
+    CalendarDays,
+    CheckCircle2,
+    ChevronLeft,
+    ChevronRight,
+    CreditCard,
+    RefreshCw,
+    Search,
+    Wallet,
+} from "lucide-react";
+import Layout from "../../components/layout/Layout";
 
 const API = "/api/v1";
 
@@ -150,21 +163,17 @@ export default function TransactionHistory() {
         switch (status) {
             case "paid":
             case "processed":
-                return "bg-green-100 text-green-700";
-
+                return "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
             case "pending":
-                return "bg-yellow-100 text-yellow-700";
-
+                return "bg-amber-50 text-amber-700 ring-amber-600/20";
             case "failed":
             case "cancelled":
-                return "bg-red-100 text-red-700";
-
+                return "bg-red-50 text-red-700 ring-red-600/20";
             case "refunded":
             case "partially_refunded":
-                return "bg-blue-100 text-blue-700";
-
+                return "bg-blue-50 text-blue-700 ring-blue-600/20";
             default:
-                return "bg-gray-100 text-gray-700";
+                return "bg-slate-100 text-slate-700 ring-slate-500/20";
         }
     };
 
@@ -190,72 +199,88 @@ export default function TransactionHistory() {
 
     if (loading && !transactions.length) {
         return (
-            <div className="p-6">
-                <div className="rounded-lg bg-white p-6 shadow">
-                    Loading transaction history...
+            <Layout>
+                <div className="min-h-full bg-slate-50/70 p-4 sm:p-6 lg:p-8">
+                    <div className="mx-auto flex max-w-screen-2xl items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-16 text-sm text-slate-500 shadow-sm">
+                        <RefreshCw size={18} className="animate-spin text-blue-600" />
+                        Loading transaction history...
+                    </div>
                 </div>
-            </div>
+            </Layout>
         );
     }
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">
-                    Transaction History
-                </h1>
-
-                <p className="mt-1 text-sm text-gray-500">
-                    {isAdmin
-                        ? "View and manage all customer transactions."
-                        : "View your court reservation transactions and refunds."}
-                </p>
+        <Layout>
+        <div className="min-h-full bg-slate-50/70 p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-screen-2xl space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                        Transaction History
+                    </h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        {isAdmin
+                            ? "View and manage all customer transactions."
+                            : "View your court reservation transactions and refunds."}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => loadTransactions(pagination?.current_page || 1)}
+                    disabled={loading}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                    Refresh
+                </button>
             </div>
 
             {error && (
-                <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-                    {error}
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                    <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                    <span>{error}</span>
                 </div>
             )}
 
             {/* Summary */}
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-lg bg-white p-5 shadow">
-                    <p className="text-sm text-gray-500">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">
                         Transactions
                     </p>
 
-                    <p className="mt-1 text-2xl font-bold">
+                    <p className="mt-3 text-2xl font-bold text-slate-900">
                         {pagination?.total ?? transactions.length}
                     </p>
                 </div>
 
-                <div className="rounded-lg bg-white p-5 shadow">
-                    <p className="text-sm text-gray-500">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">
                         Current Page Amount
                     </p>
 
-                    <p className="mt-1 text-2xl font-bold">
+                    <p className="mt-3 text-2xl font-bold text-slate-900">
                         {formatCurrency(totals.amount)}
                     </p>
                 </div>
 
-                <div className="rounded-lg bg-white p-5 shadow">
-                    <p className="text-sm text-gray-500">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm font-medium text-slate-500">
                         Current Page Refunds
                     </p>
 
-                    <p className="mt-1 text-2xl font-bold">
+                    <p className="mt-3 text-2xl font-bold text-slate-900">
                         {formatCurrency(totals.refund)}
                     </p>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="mb-6 rounded-lg bg-white p-5 shadow">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Search
                         </label>
 
@@ -265,12 +290,12 @@ export default function TransactionHistory() {
                             value={filters.search}
                             onChange={handleFilterChange}
                             placeholder="Transaction ID, gateway reference, member..."
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Payment Status
                         </label>
 
@@ -278,7 +303,7 @@ export default function TransactionHistory() {
                             name="payment_status"
                             value={filters.payment_status}
                             onChange={handleFilterChange}
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">All statuses</option>
                             <option value="pending">
@@ -303,7 +328,7 @@ export default function TransactionHistory() {
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Payment Method
                         </label>
 
@@ -311,7 +336,7 @@ export default function TransactionHistory() {
                             name="payment_method"
                             value={filters.payment_method}
                             onChange={handleFilterChange}
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">All methods</option>
                             <option value="card">Card</option>
@@ -331,7 +356,7 @@ export default function TransactionHistory() {
                     {isAdmin && (
                         <>
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     Refund Status
                                 </label>
 
@@ -339,7 +364,7 @@ export default function TransactionHistory() {
                                     name="refund_status"
                                     value={filters.refund_status}
                                     onChange={handleFilterChange}
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 >
                                     <option value="">
                                         All refund statuses
@@ -363,7 +388,7 @@ export default function TransactionHistory() {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     From Date
                                 </label>
 
@@ -372,12 +397,12 @@ export default function TransactionHistory() {
                                     name="from_date"
                                     value={filters.from_date}
                                     onChange={handleFilterChange}
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     To Date
                                 </label>
 
@@ -386,84 +411,84 @@ export default function TransactionHistory() {
                                     name="to_date"
                                     value={filters.to_date}
                                     onChange={handleFilterChange}
-                                    className="w-full rounded-lg border px-3 py-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
                         </>
                     )}
                 </div>
 
-                <div className="mt-4 flex gap-2">
+                <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
                     <button
                         onClick={applyFilters}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                     >
-                        Apply Filters
+                        <Search size={16} /> Apply Filters
                     </button>
 
                     <button
                         onClick={clearFilters}
-                        className="rounded-lg border px-4 py-2 hover:bg-gray-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
-                        Clear
+                        Clear Filters
                     </button>
                 </div>
             </div>
 
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-lg bg-white shadow md:block">
+            <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Transaction
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Booking
                                 </th>
 
                                 {isAdmin && (
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                    <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                         Member
                                     </th>
                                 )}
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Amount
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Payment
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Date
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Status
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Refund
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase">
+                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     Gateway Reference
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-slate-100">
                             {transactions.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={
                                             isAdmin ? 9 : 8
                                         }
-                                        className="px-4 py-10 text-center text-gray-500"
+                                        className="px-5 py-12 text-center text-sm text-slate-500"
                                     >
                                         No transactions found.
                                     </td>
@@ -475,16 +500,16 @@ export default function TransactionHistory() {
                                             key={
                                                 transaction.id
                                             }
-                                            className="hover:bg-gray-50"
+                                            className="transition hover:bg-slate-50/80"
                                         >
-                                            <td className="px-4 py-4">
-                                                <div className="font-semibold">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
+                                                <div className="font-semibold text-slate-900">
                                                     {
                                                         transaction.transaction_id
                                                     }
                                                 </div>
 
-                                                <div className="text-xs text-gray-500">
+                                                <div className="mt-1 text-xs text-slate-500">
                                                     ID:{" "}
                                                     {
                                                         transaction.id
@@ -492,9 +517,9 @@ export default function TransactionHistory() {
                                                 </div>
                                             </td>
 
-                                            <td className="px-4 py-4">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
                                                 {transaction.booking_id ? (
-                                                    <span className="font-medium">
+                                                    <span className="font-medium text-slate-800">
                                                         #
                                                         {
                                                             transaction.booking_id
@@ -506,8 +531,8 @@ export default function TransactionHistory() {
                                             </td>
 
                                             {isAdmin && (
-                                                <td className="px-4 py-4">
-                                                    <div className="font-medium">
+                                                <td className="px-5 py-4 text-sm text-slate-700">
+                                                    <div className="font-medium text-slate-800">
                                                         {
                                                             transaction
                                                                 .user
@@ -515,7 +540,7 @@ export default function TransactionHistory() {
                                                         }
                                                     </div>
 
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="mt-1 text-xs text-slate-500">
                                                         {
                                                             transaction
                                                                 .user
@@ -525,8 +550,8 @@ export default function TransactionHistory() {
                                                 </td>
                                             )}
 
-                                            <td className="px-4 py-4">
-                                                <div className="font-semibold">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
+                                                <div className="font-semibold text-slate-900">
                                                     {formatCurrency(
                                                         transaction.amount,
                                                         transaction.currency
@@ -547,8 +572,8 @@ export default function TransactionHistory() {
                                                 )}
                                             </td>
 
-                                            <td className="px-4 py-4">
-                                                <div className="capitalize">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
+                                                <div className="capitalize text-slate-700">
                                                     {(
                                                         transaction.payment_method ||
                                                         "-"
@@ -558,7 +583,7 @@ export default function TransactionHistory() {
                                                     )}
                                                 </div>
 
-                                                <div className="text-xs text-gray-500">
+                                                <div className="mt-1 text-xs text-slate-500">
                                                     {
                                                         transaction.gateway
                                                     }
@@ -571,9 +596,9 @@ export default function TransactionHistory() {
                                                 )}
                                             </td>
 
-                                            <td className="px-4 py-4">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
                                                 <span
-                                                    className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass(
+                                                    className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusClass(
                                                         transaction.payment_status
                                                     )}`}
                                                 >
@@ -584,9 +609,9 @@ export default function TransactionHistory() {
                                                 </span>
                                             </td>
 
-                                            <td className="px-4 py-4">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
                                                 <span
-                                                    className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass(
+                                                    className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusClass(
                                                         transaction.refund_status
                                                     )}`}
                                                 >
@@ -597,8 +622,8 @@ export default function TransactionHistory() {
                                                 </span>
                                             </td>
 
-                                            <td className="px-4 py-4">
-                                                <div className="max-w-[180px] truncate font-mono text-xs">
+                                            <td className="px-5 py-4 text-sm text-slate-700">
+                                                <div className="max-w-[180px] truncate font-mono text-xs text-slate-500">
                                                     {transaction.gateway_reference ||
                                                         "-"}
                                                 </div>
@@ -617,17 +642,17 @@ export default function TransactionHistory() {
                 {transactions.map((transaction) => (
                     <div
                         key={transaction.id}
-                        className="rounded-lg bg-white p-4 shadow"
+                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                     >
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="font-semibold">
+                                <p className="font-semibold text-slate-900">
                                     {
                                         transaction.transaction_id
                                     }
                                 </p>
 
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Booking #
                                     {transaction.booking_id ||
                                         "-"}
@@ -635,7 +660,7 @@ export default function TransactionHistory() {
                             </div>
 
                             <span
-                                className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass(
+                                className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusClass(
                                     transaction.payment_status
                                 )}`}
                             >
@@ -647,11 +672,11 @@ export default function TransactionHistory() {
 
                         {isAdmin && (
                             <div className="mt-3">
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Member
                                 </p>
 
-                                <p className="font-medium">
+                                <p className="font-medium text-slate-800">
                                     {
                                         transaction.user?.name
                                     }
@@ -661,11 +686,11 @@ export default function TransactionHistory() {
 
                         <div className="mt-3 grid grid-cols-2 gap-3">
                             <div>
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Amount
                                 </p>
 
-                                <p className="font-semibold">
+                                <p className="font-semibold text-slate-900">
                                     {formatCurrency(
                                         transaction.amount,
                                         transaction.currency
@@ -674,11 +699,11 @@ export default function TransactionHistory() {
                             </div>
 
                             <div>
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Payment
                                 </p>
 
-                                <p className="capitalize">
+                                <p className="capitalize text-slate-700">
                                     {(
                                         transaction.payment_method ||
                                         "-"
@@ -687,11 +712,11 @@ export default function TransactionHistory() {
                             </div>
 
                             <div>
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Date
                                 </p>
 
-                                <p className="text-sm">
+                                <p className="text-sm text-slate-700">
                                     {formatDate(
                                         transaction.transaction_date
                                     )}
@@ -699,11 +724,11 @@ export default function TransactionHistory() {
                             </div>
 
                             <div>
-                                <p className="text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                     Refund
                                 </p>
 
-                                <p className="text-sm">
+                                <p className="text-sm text-slate-700">
                                     {formatCurrency(
                                         transaction.refund_amount,
                                         transaction.currency
@@ -712,8 +737,8 @@ export default function TransactionHistory() {
                             </div>
                         </div>
 
-                        <div className="mt-3 border-t pt-3">
-                            <p className="text-xs text-gray-500">
+                        <div className="mt-3 border-t border-slate-100 pt-3">
+                            <p className="mt-1 text-xs text-slate-500">
                                 Gateway Reference
                             </p>
 
@@ -728,7 +753,7 @@ export default function TransactionHistory() {
 
             {/* Pagination */}
             {pagination && pagination.last_page > 1 && (
-                <div className="mt-6 flex items-center justify-between rounded-lg bg-white p-4 shadow">
+                <div className="mt-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                     <button
                         disabled={
                             !pagination.prev_page_url
@@ -738,12 +763,12 @@ export default function TransactionHistory() {
                                 pagination.current_page - 1
                             )
                         }
-                        className="rounded-lg border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        Previous
+                        <ChevronLeft size={16} /> Previous
                     </button>
 
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-slate-500">
                         Page {pagination.current_page} of{" "}
                         {pagination.last_page}
                     </span>
@@ -757,12 +782,14 @@ export default function TransactionHistory() {
                                 pagination.current_page + 1
                             )
                         }
-                        className="rounded-lg border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        Next
+                        Next <ChevronRight size={16} />
                     </button>
                 </div>
             )}
+            </div>
         </div>
+        </Layout>
     );
 }

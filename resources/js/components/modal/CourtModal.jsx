@@ -1,7 +1,9 @@
+import { X, Building2, MapPin, Users, Clock3, CircleDollarSign, CalendarClock, Activity, Save, Plus, Info, AlertCircle } from "lucide-react";
 
-const inputClass = "w-full min-w-0 border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+const inputClass = "w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50";
+
+const labelClass = "mb-1.5 block text-sm font-semibold text-slate-700";
 
 function FormField({ label, children }) {
     return (
@@ -27,7 +29,7 @@ export default function CourtModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:p-6"
             onMouseDown={(event) => {
                 if (
                     event.target === event.currentTarget &&
@@ -41,19 +43,23 @@ export default function CourtModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="court-modal-title"
-                className="flex max-h-[92vh] w-full max-w-4xl flex-col border border-slate-200 bg-white shadow-2xl"
+                className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+                <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
                     <div>
+                        <div className="mb-1 flex items-center gap-2 text-blue-700">
+                            <Building2 size={17} />
+                            <span className="text-xs font-semibold uppercase tracking-wider">Court management</span>
+                        </div>
                         <h2
                             id="court-modal-title"
-                            className="text-lg font-bold text-slate-900"
+                            className="text-lg font-bold tracking-tight text-slate-900"
                         >
                             {editingId ? "Edit Court" : "Add New Court"}
                         </h2>
                         <p className="mt-1 text-sm text-slate-500">
-                            Enter the court details below.
+                            {editingId ? "Update the court details and booking configuration." : "Add a court and configure its availability and booking rules."}
                         </p>
                     </div>
 
@@ -62,18 +68,9 @@ export default function CourtModal({
                         onClick={onClose}
                         disabled={loading}
                         aria-label="Close modal"
-                        className="p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50"
+                        className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className="h-5 w-5"
-                        >
-                            <path d="m18 6-12 12M6 6l12 12" />
-                        </svg>
+                        <X size={19} />
                     </button>
                 </div>
 
@@ -82,17 +79,18 @@ export default function CourtModal({
                     onSubmit={onSubmit}
                     className="flex min-h-0 flex-1 flex-col"
                 >
-                    <div className="overflow-y-auto p-5 sm:p-6">
+                    <div className="overflow-y-auto bg-slate-50/60 p-5 sm:p-6">
                         {error && (
                             <div
                                 role="alert"
-                                className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                                className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                             >
-                                {error}
+                                <AlertCircle size={17} className="mt-0.5 shrink-0" />
+                                <span>{error}</span>
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3"><Info size={17} className="text-blue-600" /><h3 className="text-sm font-semibold text-slate-800">Court details</h3></div><div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             <FormField label="Sport Category">
                                 <select
                                     name="sport_category_id"
@@ -281,14 +279,14 @@ export default function CourtModal({
                                 </select>
                             </FormField>
 
-                            <div className="flex items-center pt-6">
+                            <div className="flex items-center pt-1 sm:pt-6">
                                 <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                                     <input
                                         type="checkbox"
                                         name="is_active"
                                         checked={Boolean(form.is_active)}
                                         onChange={onChange}
-                                        className="h-4 w-4 accent-emerald-600"
+                                        className="h-4 w-4 rounded border-slate-300 accent-blue-600 focus:ring-blue-500"
                                     />
                                     Active court
                                 </label>
@@ -308,14 +306,15 @@ export default function CourtModal({
                             </div>
                         </div>
                     </div>
+                    </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+                    <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Cancel
                         </button>
@@ -323,11 +322,12 @@ export default function CourtModal({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center gap-2 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {loading && (
                                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             )}
+                            {!loading && (editingId ? <Save size={16} /> : <Plus size={17} />)}
                             {loading
                                 ? "Saving..."
                                 : editingId

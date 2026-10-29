@@ -17,7 +17,7 @@ const sections = [
   { id: "profile", label: "Profile", description: "Your account information", icon: UserRound },
   { id: "security", label: "Security", description: "Password and account security", icon: ShieldCheck },
   { id: "notifications", label: "Notifications", description: "Choose what updates you receive", icon: Bell },
-  { id: "preferences", label: "Preferences", description: "Customize your CourtEase experience", icon: SlidersHorizontal },
+  { id: "preferences", label: "Preferences", description: "Customize your OnlineCourtReservation experience", icon: SlidersHorizontal },
 ];
 
 const initialProfile = {

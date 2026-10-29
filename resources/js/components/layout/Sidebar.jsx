@@ -157,7 +157,7 @@ export default function Sidebar({ collapsed, onToggle, onNavigate }) {
 
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900">CourtEase</p>
+            <p className="truncate text-sm font-bold text-slate-900">OnlineCourtReservation</p>
             <p className="truncate text-xs text-slate-500">Management System</p>
           </div>
         )}

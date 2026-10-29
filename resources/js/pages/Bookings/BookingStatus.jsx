@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Layout from "../../components/layout/Layout";
+import { Activity, CalendarDays, Filter, History, RefreshCw, ShieldCheck } from "lucide-react";
 
 const API = "/api/v1";
 
@@ -17,7 +19,7 @@ const STATUS_OPTIONS = [
 ];
 
 const statusClasses = {
-    DRAFT: "bg-gray-100 text-gray-700",
+    DRAFT: "bg-slate-100 text-slate-700",
     PENDING_PAYMENT: "bg-yellow-100 text-yellow-700",
     CONFIRMED: "bg-green-100 text-green-700",
     CHECKED_IN: "bg-blue-100 text-blue-700",
@@ -26,7 +28,7 @@ const statusClasses = {
     CANCELLED: "bg-red-100 text-red-700",
     RESCHEDULED: "bg-purple-100 text-purple-700",
     NO_SHOW: "bg-orange-100 text-orange-700",
-    EXPIRED: "bg-gray-200 text-gray-700",
+    EXPIRED: "bg-slate-200 text-slate-700",
     FAILED: "bg-red-100 text-red-800",
 };
 
@@ -35,7 +37,7 @@ function StatusBadge({ status }) {
         <span
             className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                 statusClasses[status] ??
-                "bg-gray-100 text-gray-700"
+                "bg-slate-100 text-slate-700"
             }`}
         >
             {status?.replaceAll("_", " ")}
@@ -226,18 +228,30 @@ export default function BookingStatus() {
     }, [filters.status, filters.date]);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Booking Status & Lifecycle
-                    </h1>
-
-                    <p className="mt-2 text-gray-600">
-                        Manage booking statuses and view
-                        the complete lifecycle history of
-                        every booking.
-                    </p>
+        <Layout title="Booking Status">
+            <div className="space-y-6 bg-slate-50 p-4 sm:p-6">
+            <div className="mx-auto max-w-7xl space-y-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-600">
+                            <Activity size={17} />
+                            Booking Management
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                            Booking Status & Lifecycle
+                        </h1>
+                        <p className="mt-1 text-sm text-slate-500">
+                            Manage booking statuses and review the complete lifecycle history.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={loadBookings}
+                        className="inline-flex items-center justify-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:self-auto"
+                    >
+                        <RefreshCw size={16} />
+                        Refresh
+                    </button>
                 </div>
 
                 {error && (
@@ -247,22 +261,22 @@ export default function BookingStatus() {
                 )}
 
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Total Bookings
                         </p>
 
-                        <p className="mt-2 text-3xl font-bold text-gray-900">
+                        <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
                             {pagination?.total ?? 0}
                         </p>
                     </div>
 
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Current Filter
                         </p>
 
-                        <p className="mt-2 text-lg font-semibold text-gray-900">
+                        <p className="mt-2 text-lg font-semibold text-slate-900">
                             {filters.status
                                 ? filters.status.replaceAll(
                                       "_",
@@ -272,21 +286,21 @@ export default function BookingStatus() {
                         </p>
                     </div>
 
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Lifecycle States
                         </p>
 
-                        <p className="mt-2 text-3xl font-bold text-gray-900">
+                        <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
                             {STATUS_OPTIONS.length}
                         </p>
                     </div>
                 </div>
 
-                <div className="mb-6 rounded-xl bg-white p-5 shadow-sm">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
                                 Status
                             </label>
 
@@ -295,34 +309,23 @@ export default function BookingStatus() {
                                 onChange={(event) =>
                                     setFilters({
                                         ...filters,
-                                        status: event.target
-                                            .value,
+                                        status: event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
-                                <option value="">
-                                    All Statuses
-                                </option>
+                                <option value="">All Statuses</option>
 
-                                {STATUS_OPTIONS.map(
-                                    (status) => (
-                                        <option
-                                            key={status}
-                                            value={status}
-                                        >
-                                            {status.replaceAll(
-                                                "_",
-                                                " "
-                                            )}
-                                        </option>
-                                    )
-                                )}
+                                {STATUS_OPTIONS.map((status) => (
+                                    <option key={status} value={status}>
+                                        {status.replaceAll("_", " ")}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
                                 Booking Date
                             </label>
 
@@ -332,11 +335,10 @@ export default function BookingStatus() {
                                 onChange={(event) =>
                                     setFilters({
                                         ...filters,
-                                        date: event.target
-                                            .value,
+                                        date: event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
@@ -349,81 +351,85 @@ export default function BookingStatus() {
                                         date: "",
                                     })
                                 }
-                                className="w-full rounded-lg bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-800"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                             >
+                                <Filter size={16} />
                                 Clear Filters
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-                    <div className="border-b border-gray-200 px-5 py-4">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Bookings
-                        </h2>
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-200 px-5 py-4">
+                        <div className="flex items-center gap-2">
+                            <CalendarDays size={18} className="text-blue-600" />
+                            <h2 className="text-lg font-semibold text-slate-900">
+                                Bookings
+                            </h2>
+                        </div>
                     </div>
 
                     {loading ? (
-                        <div className="p-8 text-center text-gray-500">
+                        <div className="p-8 text-center text-slate-500">
                             Loading bookings...
                         </div>
                     ) : bookings.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
+                        <div className="p-8 text-center text-slate-500">
                             No bookings found.
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-slate-50">
                                     <tr>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Reference
                                         </th>
 
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Customer
                                         </th>
 
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Court
                                         </th>
 
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Date
                                         </th>
 
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Time
                                         </th>
 
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                             Status
                                         </th>
 
-                                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase text-gray-500">
+                                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase text-slate-500">
                                             Action
                                         </th>
                                     </tr>
                                 </thead>
 
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-slate-200">
                                     {bookings.map(
                                         (booking) => (
                                             <tr
                                                 key={
                                                     booking.id
                                                 }
-                                                className="hover:bg-gray-50"
+                                                className="transition-colors hover:bg-slate-50"
                                             >
                                                 <td className="px-5 py-4">
-                                                    <div className="font-semibold text-gray-900">
+                                                    <div className="font-semibold text-slate-900">
                                                         {
                                                             booking.booking_reference
                                                         }
                                                     </div>
 
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-slate-500">
                                                         #
                                                         {
                                                             booking.id
@@ -432,33 +438,33 @@ export default function BookingStatus() {
                                                 </td>
 
                                                 <td className="px-5 py-4">
-                                                    <div className="font-medium text-gray-900">
+                                                    <div className="font-medium text-slate-900">
                                                         {
                                                             booking.customer_name
                                                         }
                                                     </div>
 
-                                                    <div className="text-sm text-gray-500">
+                                                    <div className="text-sm text-slate-500">
                                                         {
                                                             booking.customer_email
                                                         }
                                                     </div>
                                                 </td>
 
-                                                <td className="px-5 py-4 text-gray-700">
+                                                <td className="px-5 py-4 text-slate-700">
                                                     {booking
                                                         .court
                                                         ?.name ??
                                                         `Court #${booking.court_id}`}
                                                 </td>
 
-                                                <td className="px-5 py-4 text-gray-700">
+                                                <td className="px-5 py-4 text-slate-700">
                                                     {
                                                         booking.booking_date
                                                     }
                                                 </td>
 
-                                                <td className="px-5 py-4 text-gray-700">
+                                                <td className="px-5 py-4 text-slate-700">
                                                     {booking.start_time?.slice(
                                                         0,
                                                         5
@@ -486,7 +492,7 @@ export default function BookingStatus() {
                                                                 booking
                                                             )
                                                         }
-                                                        className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                                                        className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                                     >
                                                         View
                                                         Lifecycle
@@ -503,21 +509,24 @@ export default function BookingStatus() {
 
                 {selectedBooking && (
                     <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <div className="rounded-xl bg-white p-6 shadow-sm">
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                             <div className="mb-5">
-                                <h2 className="text-xl font-bold text-gray-900">
-                                    Update Status
-                                </h2>
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck size={19} className="text-blue-600" />
+                                    <h2 className="text-lg font-bold text-slate-900">
+                                        Update Status
+                                    </h2>
+                                </div>
 
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                     {
                                         selectedBooking.booking_reference
                                     }
                                 </p>
                             </div>
 
-                            <div className="mb-5 rounded-lg bg-gray-50 p-4">
-                                <div className="text-sm text-gray-500">
+                            <div className="mb-5 rounded-lg bg-slate-50 p-4">
+                                <div className="text-sm text-slate-500">
                                     Current Status
                                 </div>
 
@@ -537,7 +546,7 @@ export default function BookingStatus() {
                                 className="space-y-4"
                             >
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
                                         New Status
                                     </label>
 
@@ -555,7 +564,7 @@ export default function BookingStatus() {
                                                     .value,
                                             })
                                         }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
                                         <option value="">
                                             Select status
@@ -582,7 +591,7 @@ export default function BookingStatus() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
                                         Reason
                                     </label>
 
@@ -601,13 +610,13 @@ export default function BookingStatus() {
                                                     .value,
                                             })
                                         }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         placeholder="Reason for status change"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
                                         Notes
                                     </label>
 
@@ -626,7 +635,7 @@ export default function BookingStatus() {
                                             })
                                         }
                                         rows="4"
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         placeholder="Additional notes"
                                     />
                                 </div>
@@ -634,7 +643,7 @@ export default function BookingStatus() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {saving
                                         ? "Updating..."
@@ -643,13 +652,16 @@ export default function BookingStatus() {
                             </form>
                         </div>
 
-                        <div className="rounded-xl bg-white p-6 shadow-sm">
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                             <div className="mb-5">
-                                <h2 className="text-xl font-bold text-gray-900">
-                                    Status History
-                                </h2>
+                                <div className="flex items-center gap-2">
+                                    <History size={19} className="text-blue-600" />
+                                    <h2 className="text-lg font-bold text-slate-900">
+                                        Status History
+                                    </h2>
+                                </div>
 
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                     Complete lifecycle for{" "}
                                     {
                                         selectedBooking.booking_reference
@@ -658,11 +670,11 @@ export default function BookingStatus() {
                             </div>
 
                             {historyLoading ? (
-                                <div className="py-8 text-center text-gray-500">
+                                <div className="py-8 text-center text-slate-500">
                                     Loading history...
                                 </div>
                             ) : history.length === 0 ? (
-                                <div className="rounded-lg bg-gray-50 p-6 text-center text-gray-500">
+                                <div className="rounded-lg bg-slate-50 p-6 text-center text-slate-500">
                                     No status history
                                     found.
                                 </div>
@@ -674,7 +686,7 @@ export default function BookingStatus() {
                                                 key={
                                                     item.id
                                                 }
-                                                className="relative border-l-2 border-gray-200 pl-5"
+                                                className="relative border-l-2 border-slate-200 pl-5"
                                             >
                                                 <div className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-gray-400" />
 
@@ -687,7 +699,7 @@ export default function BookingStatus() {
                                                                 }
                                                             />
 
-                                                            <span className="text-gray-400">
+                                                            <span className="text-slate-400">
                                                                 →
                                                             </span>
                                                         </>
@@ -700,7 +712,7 @@ export default function BookingStatus() {
                                                     />
                                                 </div>
 
-                                                <div className="mt-2 text-xs text-gray-500">
+                                                <div className="mt-2 text-xs text-slate-500">
                                                     {item.changed_at
                                                         ? new Date(
                                                               item.changed_at
@@ -709,7 +721,7 @@ export default function BookingStatus() {
                                                 </div>
 
                                                 {item.reason && (
-                                                    <div className="mt-2 text-sm font-medium text-gray-800">
+                                                    <div className="mt-2 text-sm font-medium text-slate-800">
                                                         {
                                                             item.reason
                                                         }
@@ -717,7 +729,7 @@ export default function BookingStatus() {
                                                 )}
 
                                                 {item.notes && (
-                                                    <div className="mt-1 text-sm text-gray-600">
+                                                    <div className="mt-1 text-sm text-slate-600">
                                                         {
                                                             item.notes
                                                         }
@@ -732,6 +744,7 @@ export default function BookingStatus() {
                     </div>
                 )}
             </div>
-        </div>
+            </div>
+        </Layout>
     );
 }

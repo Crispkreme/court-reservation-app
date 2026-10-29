@@ -1,4 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+    CalendarClock,
+    Clock3,
+    RefreshCw,
+    ShieldCheck,
+    CheckCircle2,
+    AlertCircle,
+} from "lucide-react";
+import Layout from "../../components/layout/Layout";
 
 const API = "/api/v1";
 
@@ -352,45 +361,64 @@ function Index() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 px-4 py-8">
-            <div className="mx-auto max-w-7xl">
-                <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Booking Holds
-                        </h1>
-
-                        <p className="mt-2 text-gray-600">
-                            Temporarily reserve a court while
-                            the customer completes checkout.
-                        </p>
+        <Layout title="Booking Holds">
+            <div className="space-y-6 p-6">
+            <div className="mx-auto max-w-7xl space-y-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <CalendarClock size={24} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+                                Booking Management
+                            </p>
+                            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                                Booking Holds
+                            </h1>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Temporarily reserve a court while a customer completes checkout.
+                            </p>
+                        </div>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={releaseExpired}
-                        disabled={processing}
-                        className="rounded-lg bg-gray-900 px-5 py-2.5 font-semibold text-white hover:bg-gray-800 disabled:bg-gray-400"
-                    >
-                        Release Expired Holds
-                    </button>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={loadHolds}
+                            disabled={loading || processing}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                            Refresh
+                        </button>
+                        <button
+                            type="button"
+                            onClick={releaseExpired}
+                            disabled={processing}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <Clock3 size={16} />
+                            Release Expired Holds
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+                    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={18} className="mt-0.5 shrink-0" />
                         {error}
                     </div>
                 )}
 
                 {success && (
-                    <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">
+                    <div className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700"><CheckCircle2 size={18} className="mt-0.5 shrink-0" />
                         {success}
                     </div>
                 )}
 
-                <div className="mb-8 grid gap-4 md:grid-cols-4">
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Active Holds
                         </p>
 
@@ -399,8 +427,8 @@ function Index() {
                         </p>
                     </div>
 
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Converted
                         </p>
 
@@ -409,18 +437,18 @@ function Index() {
                         </p>
                     </div>
 
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Expired
                         </p>
 
-                        <p className="mt-2 text-3xl font-bold text-gray-600">
+                        <p className="mt-2 text-3xl font-bold text-slate-600">
                             {stats.expired}
                         </p>
                     </div>
 
-                    <div className="rounded-xl bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
                             Failed
                         </p>
 
@@ -430,12 +458,12 @@ function Index() {
                     </div>
                 </div>
 
-                <div className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-                    <h2 className="mb-2 text-xl font-semibold">
+                <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-slate-900">
                         Test Booking Hold
                     </h2>
 
-                    <p className="mb-6 text-sm text-gray-500">
+                    <p className="mb-5 mt-1 text-sm text-slate-500">
                         This form is useful for testing the
                         concurrency and hold functionality.
                     </p>
@@ -461,7 +489,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 placeholder="1"
                                 required
                             />
@@ -484,7 +512,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 placeholder="1"
                                 required
                             />
@@ -512,7 +540,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 required
                             />
                         </div>
@@ -534,7 +562,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 required
                             />
                         </div>
@@ -555,7 +583,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="30">
                                     30 minutes
@@ -587,7 +615,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
                                 <option value="5">
                                     5 minutes
@@ -625,7 +653,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 required
                             />
                         </div>
@@ -647,7 +675,7 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
@@ -668,17 +696,17 @@ function Index() {
                                             event.target.value,
                                     })
                                 }
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
-                        <div className="md:col-span-2 lg:col-span-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2 xl:col-span-3 border-t border-slate-100 pt-4">
                             <button
                                 type="submit"
                                 disabled={
                                     processing
                                 }
-                                className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:bg-gray-400"
+                                className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {processing
                                     ? "Processing..."
@@ -688,23 +716,23 @@ function Index() {
                     </form>
                 </div>
 
-                <div className="rounded-xl bg-white shadow-sm">
-                    <div className="border-b border-gray-200 p-6">
-                        <h2 className="text-xl font-semibold">
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-200 px-5 py-4">
+                        <h2 className="text-lg font-semibold text-slate-900">
                             Hold History
                         </h2>
                     </div>
 
                     {loading ? (
-                        <div className="p-8 text-center text-gray-500">
+                        <div className="p-8 text-center text-slate-500">
                             Loading booking holds...
                         </div>
                     ) : holds.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
+                        <div className="p-8 text-center text-slate-500">
                             No booking holds found.
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-200">
+                        <div className="divide-y divide-slate-100">
                             {holds.map((hold) => (
                                 <div
                                     key={hold.id}
@@ -713,7 +741,7 @@ function Index() {
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-3">
-                                                <h3 className="font-semibold text-gray-900">
+                                                <h3 className="font-semibold text-slate-900">
                                                     Hold #
                                                     {
                                                         hold.id
@@ -738,7 +766,7 @@ function Index() {
                                                 }
                                             </p>
 
-                                            <div className="mt-2 grid gap-1 text-sm text-gray-500 md:grid-cols-2">
+                                            <div className="mt-2 grid gap-1 text-sm text-slate-500 md:grid-cols-2">
                                                 <span>
                                                     Date:{" "}
                                                     {formatDate(
@@ -835,7 +863,7 @@ function Index() {
                                                             hold.id
                                                         )
                                                     }
-                                                    className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:bg-gray-400"
+                                                    className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
                                                     Convert to Booking
                                                 </button>
@@ -850,7 +878,7 @@ function Index() {
                                                             hold.id
                                                         )
                                                     }
-                                                    className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:bg-gray-400"
+                                                    className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
                                                     Payment Failed
                                                 </button>
@@ -864,6 +892,7 @@ function Index() {
                 </div>
             </div>
         </div>
+    </Layout>
     );
 }
 

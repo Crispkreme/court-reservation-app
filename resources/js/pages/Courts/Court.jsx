@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUserRole } from "../../services/authService";
 import CourtModal from "../../components/modal/CourtModal";
-import PageHeader from '../../components/PageHeader';
+import PageHeader from "../../components/PageHeader";
+import Layout from "../../components/layout/Layout";
+import { Search, Plus, ChevronLeft, ChevronRight, Trophy, Users, Activity } from "lucide-react";
 import {
     getCourts,
     getSportCategories,
@@ -31,7 +31,7 @@ const initialForm = {
     is_active: true,
 };
 
-export default function CourtManagement() {
+export default function Court() {
     const [courts, setCourts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [form, setForm] = useState(initialForm);
@@ -96,7 +96,6 @@ export default function CourtManagement() {
         loadData();
     }, []);
     
-    const navigate = useNavigate();
     const loadData = async () => {
         try {
             setLoading(true);
@@ -215,7 +214,8 @@ export default function CourtManagement() {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <Layout>
+        <div className="min-w-0 space-y-6 p-4 sm:p-6">
 
             {error && (
                 <div className="rounded-lg bg-red-50 p-4 text-red-700">
@@ -235,7 +235,42 @@ export default function CourtManagement() {
                 onClose={cancelEdit}
             />
 
-            <div className="min-w-0 overflow-hidden border border-slate-200 bg-white shadow-sm rounded-sm">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-500">Total Courts</p>
+                        <span className="rounded-lg bg-blue-50 p-2 text-blue-700"><Trophy className="h-5 w-5" /></span>
+                    </div>
+                    <p className="mt-3 text-2xl font-bold text-slate-900">{courts.length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Registered courts</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-500">Available</p>
+                        <span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><Activity className="h-5 w-5" /></span>
+                    </div>
+                    <p className="mt-3 text-2xl font-bold text-slate-900">{courts.filter((court) => ["available", "active"].includes(String(court.status || "").toLowerCase())).length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Ready for booking</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-500">Maintenance</p>
+                        <span className="rounded-lg bg-amber-50 p-2 text-amber-700"><Activity className="h-5 w-5" /></span>
+                    </div>
+                    <p className="mt-3 text-2xl font-bold text-slate-900">{courts.filter((court) => String(court.status || "").toLowerCase() === "maintenance").length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Courts needing attention</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-500">Sport Categories</p>
+                        <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><Users className="h-5 w-5" /></span>
+                    </div>
+                    <p className="mt-3 text-2xl font-bold text-slate-900">{categories.length}</p>
+                    <p className="mt-1 text-xs text-slate-500">Available sport types</p>
+                </div>
+            </div>
+
+            <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <PageHeader
                     title="Court Management"
                     description="Manage sports courts, schedules, pricing, capacity and availability."
@@ -243,24 +278,14 @@ export default function CourtManagement() {
                     countLabel="courts total"
                 />
 
-                <div className="grid grid-cols-1 gap-3 border-b border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 border-b border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="sm:col-span-2 xl:col-span-1">
                         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                             Search Courts
                         </label>
 
                         <div className="relative">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                            >
-                                <circle cx="11" cy="11" r="7" />
-                                <path d="m20 20-4-4" />
-                            </svg>
+<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
                             <input
                                 type="text"
@@ -270,7 +295,7 @@ export default function CourtManagement() {
                                     setCurrentPage(1);
                                 }}
                                 placeholder="Search name, sport, branch..."
-                                className="w-full min-w-0 border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                className="w-full min-w-0 rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
                     </div>
@@ -286,7 +311,7 @@ export default function CourtManagement() {
                                 setStatusFilter(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="w-full min-w-0 border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="all">All Statuses</option>
 
@@ -309,7 +334,7 @@ export default function CourtManagement() {
                                 setSportFilter(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="w-full min-w-0 border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                            className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="all">All Sports</option>
 
@@ -325,18 +350,9 @@ export default function CourtManagement() {
                         <button
                             type="button"
                             onClick={handleCreate}
-                            className="inline-flex w-full items-center justify-center gap-2 bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 sm:w-auto xl:w-full"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:w-auto xl:w-full"
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                className="h-4 w-4"
-                            >
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
+<Plus className="h-4 w-4" />
                             Add Court
                         </button>
                     </div>
@@ -431,7 +447,7 @@ export default function CourtManagement() {
                                         </td>
                                         <td className="px-5 py-4">
                                             <span
-                                                className={`inline-flex items-center gap-2 whitespace-nowrap px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClass}`}
+                                                className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClass}`}
                                             >
                                                 <span className="h-1.5 w-1.5 bg-current" />
                                                 {status}
@@ -448,7 +464,7 @@ export default function CourtManagement() {
                                                     onClick={() => handleEdit(court)}
                                                     title="Edit court"
                                                     aria-label={`Edit ${court.name}`}
-                                                    className="inline-flex h-9 w-9 items-center justify-center border border-slate-200 bg-white text-slate-600 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                                                 >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -471,7 +487,7 @@ export default function CourtManagement() {
                                                     onClick={() => handleDelete(court.id)}
                                                     title="Delete court"
                                                     aria-label={`Delete ${court.name}`}
-                                                    className="inline-flex h-9 w-9 items-center justify-center border border-red-200 bg-white text-red-500 transition hover:border-red-500 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
+                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-500 transition hover:border-red-500 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-200"
                                                 >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -522,7 +538,7 @@ export default function CourtManagement() {
                                                     setSportFilter("all");
                                                     setCurrentPage(1);
                                                 }}
-                                                className="mt-4 border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                                                className="mt-4 rounded-lg border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
                                             >
                                                 Clear Filters
                                             </button>
@@ -536,18 +552,53 @@ export default function CourtManagement() {
 
                 {/* Footer */}
                 {courts.length > 0 && (
-                    <div className="border-t border-slate-200 bg-slate-50/70 px-5 py-3">
-                        <p className="text-xs text-slate-500">
-                            Showing{" "}
-                            <span className="font-semibold text-slate-700">
-                                {courts.length}
-                            </span>{" "}
-                            {courts.length === 1 ? "court" : "courts"}
-                        </p>
+                    <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            <span>
+                                Showing <span className="font-semibold text-slate-700">{startEntry}–{endEntry}</span> of{" "}
+                                <span className="font-semibold text-slate-700">{filteredCourts.length}</span> courts
+                            </span>
+                            <label className="flex items-center gap-2">
+                                Rows
+                                <select
+                                    value={perPage}
+                                    onChange={(event) => {
+                                        setPerPage(Number(event.target.value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={25}>25</option>
+                                    <option value={50}>50</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                disabled={safePage <= 1}
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                <ChevronLeft className="h-4 w-4" /> Previous
+                            </button>
+                            <span className="text-xs font-medium text-slate-600">Page {safePage} of {totalPages}</span>
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                disabled={safePage >= totalPages}
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Next <ChevronRight className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
 
             </div>
         </div>
+    </Layout>
     );
 }

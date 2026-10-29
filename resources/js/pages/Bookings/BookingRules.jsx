@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { ShieldCheck, Plus, Pencil, Trash2, CheckCircle2, XCircle, Save, RotateCcw } from "lucide-react";
+import Layout from "../../components/layout/Layout";
 
 const emptyForm = {
     name: "",
@@ -380,42 +382,61 @@ export default function BookingRulesIndex() {
 
     if (loading) {
         return (
-            <div className="p-6">
-                <div className="rounded-lg border bg-white p-6">
-                    Loading booking rules...
+            <Layout title="Booking Rules">
+                <div className="space-y-6 p-6">
+                    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <ShieldCheck size={22} />
+                        </div>
+                        <div>
+                            <p className="font-semibold text-slate-900">Loading booking rules</p>
+                            <p className="mt-1 text-sm text-slate-500">Please wait while your rules are loaded.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </Layout>
         );
     }
 
     return (
+        <Layout title="Booking Rules">
         <div className="space-y-6 p-6">
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                    Booking Rules
-                </h1>
-
-                <p className="mt-1 text-sm text-gray-500">
-                    Configure booking limits and
-                    restrictions for members.
-                </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                        <ShieldCheck size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Booking Rules</h1>
+                        <p className="mt-1 max-w-2xl text-sm text-slate-500">
+                            Configure booking limits, time restrictions, and special event rules for your courts.
+                        </p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={resetForm}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                >
+                    <Plus size={17} />
+                    New Rule
+                </button>
             </div>
 
             {/* Form */}
             <form
                 onSubmit={submit}
-                className="rounded-lg border bg-white p-6 shadow-sm"
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
-                <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-6">
                     <div>
-                        <h2 className="text-lg font-semibold">
+                        <h2 className="text-lg font-semibold text-slate-900">
                             {editingRule
                                 ? "Edit Booking Rule"
                                 : "Create Booking Rule"}
                         </h2>
 
-                        <p className="text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-slate-500">
                             Configure the conditions under
                             which this rule applies.
                         </p>
@@ -425,17 +446,18 @@ export default function BookingRulesIndex() {
                         <button
                             type="button"
                             onClick={resetForm}
-                            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                         >
                             Cancel Edit
                         </button>
                     )}
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-6 p-5 sm:p-6">
+                <div className="grid gap-5 md:grid-cols-2">
                     {/* Rule name */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Rule Name
                         </label>
 
@@ -448,7 +470,7 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             placeholder="Standard Member Limits"
                             required
                         />
@@ -462,7 +484,7 @@ export default function BookingRulesIndex() {
 
                     {/* Rule type */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Rule Type
                         </label>
 
@@ -474,7 +496,7 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="general">
                                 General
@@ -492,7 +514,7 @@ export default function BookingRulesIndex() {
 
                     {/* Membership */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Membership Tier
                         </label>
 
@@ -506,7 +528,7 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 All Membership Tiers
@@ -527,7 +549,7 @@ export default function BookingRulesIndex() {
 
                     {/* Sport */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Sport
                         </label>
 
@@ -541,7 +563,7 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 All Sports
@@ -562,7 +584,7 @@ export default function BookingRulesIndex() {
 
                     {/* Court */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Court
                         </label>
 
@@ -574,7 +596,7 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                             <option value="">
                                 All Courts
@@ -593,7 +615,7 @@ export default function BookingRulesIndex() {
 
                     {/* Max bookings */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Maximum Bookings / Day
                         </label>
 
@@ -609,14 +631,14 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             placeholder="3"
                         />
                     </div>
 
                     {/* Max minutes */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Maximum Minutes / Day
                         </label>
 
@@ -632,14 +654,14 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             placeholder="180"
                         />
                     </div>
 
                     {/* Future bookings */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Maximum Future Bookings
                         </label>
 
@@ -655,14 +677,14 @@ export default function BookingRulesIndex() {
                                     e.target.value
                                 )
                             }
-                            className="mt-1 w-full rounded-md border p-2"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             placeholder="5"
                         />
                     </div>
 
                     {/* Advance */}
                     <div>
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Advance Booking Window
                         </label>
 
@@ -679,11 +701,11 @@ export default function BookingRulesIndex() {
                                         e.target.value
                                     )
                                 }
-                                className="w-full rounded-l-md border p-2"
+                                className="w-full rounded-l-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 placeholder="30"
                             />
 
-                            <span className="flex items-center rounded-r-md border border-l-0 bg-gray-50 px-3 text-sm text-gray-500">
+                            <span className="flex items-center rounded-r-lg border border-l-0 border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">
                                 days
                             </span>
                         </div>
@@ -691,14 +713,14 @@ export default function BookingRulesIndex() {
                 </div>
 
                 {/* Time restrictions */}
-                <div className="mt-6 border-t pt-6">
-                    <h3 className="mb-4 font-semibold">
+                <div className="mt-6 border-t border-slate-100 pt-6">
+                    <h3 className="mb-4 text-base font-semibold text-slate-900">
                         Time Restrictions
                     </h3>
 
                     <div className="grid gap-6 md:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Allowed Start Time
                             </label>
 
@@ -713,12 +735,12 @@ export default function BookingRulesIndex() {
                                         e.target.value
                                     )
                                 }
-                                className="mt-1 w-full rounded-md border p-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Allowed End Time
                             </label>
 
@@ -733,17 +755,17 @@ export default function BookingRulesIndex() {
                                         e.target.value
                                     )
                                 }
-                                className="mt-1 w-full rounded-md border p-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
                     </div>
 
                     <div className="mt-4">
-                        <label className="block text-sm font-medium">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
                             Allowed Days
                         </label>
 
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
                             {days.map((day) => {
                                 const selected =
                                     form.allowed_days.includes(
@@ -759,10 +781,10 @@ export default function BookingRulesIndex() {
                                                 day.value
                                             )
                                         }
-                                        className={`rounded-md border px-3 py-2 text-sm ${
+                                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                                             selected
-                                                ? "bg-gray-900 text-white"
-                                                : "bg-white hover:bg-gray-50"
+                                                ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                                                : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
                                         }`}
                                     >
                                         {day.label}
@@ -777,14 +799,14 @@ export default function BookingRulesIndex() {
                 {(form.rule_type === "event" ||
                     form.rule_type ===
                         "tournament") && (
-                    <div className="mt-6 border-t pt-6">
-                        <h3 className="mb-4 font-semibold">
+                    <div className="mt-6 border-t border-slate-100 pt-6">
+                        <h3 className="mb-4 text-base font-semibold text-slate-900">
                             Event / Tournament
                         </h3>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     Event Name
                                 </label>
 
@@ -797,13 +819,13 @@ export default function BookingRulesIndex() {
                                             e.target.value
                                         )
                                     }
-                                    className="mt-1 w-full rounded-md border p-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
                             <div className="grid gap-6 md:grid-cols-2">
                                 <div>
-                                    <label className="block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                         Starts At
                                     </label>
 
@@ -816,12 +838,12 @@ export default function BookingRulesIndex() {
                                                 e.target.value
                                             )
                                         }
-                                        className="mt-1 w-full rounded-md border p-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium">
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                         Ends At
                                     </label>
 
@@ -834,13 +856,13 @@ export default function BookingRulesIndex() {
                                                 e.target.value
                                             )
                                         }
-                                        className="mt-1 w-full rounded-md border p-2"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                     Description
                                 </label>
 
@@ -855,11 +877,11 @@ export default function BookingRulesIndex() {
                                         )
                                     }
                                     rows="3"
-                                    className="mt-1 w-full rounded-md border p-2"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
                             </div>
 
-                            <label className="flex items-center gap-2">
+                            <label className="flex items-center gap-2.5 text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={
@@ -873,7 +895,7 @@ export default function BookingRulesIndex() {
                                     }
                                 />
 
-                                <span className="text-sm">
+                                <span className="text-sm text-slate-700">
                                     Block bookings during
                                     this event
                                 </span>
@@ -883,10 +905,10 @@ export default function BookingRulesIndex() {
                 )}
 
                 {/* Priority / active */}
-                <div className="mt-6 border-t pt-6">
+                <div className="mt-6 border-t border-slate-100 pt-6">
                     <div className="grid gap-6 md:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Priority
                             </label>
 
@@ -900,17 +922,17 @@ export default function BookingRulesIndex() {
                                         e.target.value
                                     )
                                 }
-                                className="mt-1 w-full rounded-md border p-2"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-slate-500">
                                 Higher priority rules are
                                 evaluated first.
                             </p>
                         </div>
 
                         <div className="flex items-center">
-                            <label className="flex items-center gap-2">
+                            <label className="flex items-center gap-2.5 text-slate-700">
                                 <input
                                     type="checkbox"
                                     checked={
@@ -924,7 +946,7 @@ export default function BookingRulesIndex() {
                                     }
                                 />
 
-                                <span className="text-sm">
+                                <span className="text-sm text-slate-700">
                                     Rule is active
                                 </span>
                             </label>
@@ -933,95 +955,96 @@ export default function BookingRulesIndex() {
                 </div>
 
                 {/* Buttons */}
-                <div className="mt-6 flex gap-3">
+                <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-slate-500">Changes apply to bookings that match these rule conditions.</p>
+                    <div className="flex flex-col-reverse gap-3 sm:flex-row">
                     <button
                         type="submit"
                         disabled={saving}
-                        className="rounded-md bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {saving
-                            ? "Saving..."
-                            : editingRule
-                              ? "Update Rule"
-                              : "Create Rule"}
+                        {saving ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> Saving...</> : <><Save size={16} /> {editingRule ? "Update Rule" : "Create Rule"}</>}
                     </button>
 
                     {editingRule && (
                         <button
                             type="button"
                             onClick={resetForm}
-                            className="rounded-md border px-5 py-2 text-sm hover:bg-gray-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                         >
-                            Cancel
+                            <RotateCcw size={15} /> Cancel
                         </button>
                     )}
+                    </div>
+                </div>
                 </div>
             </form>
 
             {/* Rules table */}
-            <div className="rounded-lg border bg-white shadow-sm">
-                <div className="border-b p-5">
-                    <h2 className="font-semibold">
-                        Configured Booking Rules
-                    </h2>
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="font-semibold text-slate-900">Configured Booking Rules</h2>
+                        <p className="mt-1 text-sm text-slate-500">{rules.length} rule{rules.length === 1 ? "" : "s"} configured</p>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50">
+                    <table className="w-full min-w-[900px] text-left text-sm">
+                        <thead className="bg-slate-50">
                             <tr>
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Rule
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Type
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Membership
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Sport
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Court
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Daily Limit
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Minutes
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Advance
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Priority
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Status
                                 </th>
 
-                                <th className="px-4 py-3">
+                                <th className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody className="divide-y">
+                        <tbody className="divide-y divide-slate-100">
                             {rules.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan="11"
-                                        className="px-4 py-8 text-center text-gray-500"
+                                        className="px-4 py-12 text-center text-slate-500"
                                     >
                                         No booking rules
                                         configured.
@@ -1031,71 +1054,71 @@ export default function BookingRulesIndex() {
                                 rules.map((rule) => (
                                     <tr
                                         key={rule.id}
-                                        className="hover:bg-gray-50"
+                                        className="transition hover:bg-slate-50/80"
                                     >
-                                        <td className="px-4 py-3 font-medium">
+                                        <td className="px-4 py-3 font-semibold text-slate-900">
                                             {rule.name}
                                         </td>
 
-                                        <td className="px-4 py-3 capitalize">
+                                        <td className="px-4 py-3 capitalize text-slate-600">
                                             {rule.rule_type}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule
                                                 .membership_tier
                                                 ?.name ||
                                                 "All"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule
                                                 .sport_category
                                                 ?.name ||
                                                 "All"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.court
                                                 ?.name ||
                                                 "All"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.max_bookings_per_day ??
                                                 "—"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.max_minutes_per_day ??
                                                 "—"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.advance_booking_days !==
                                             null
                                                 ? `${rule.advance_booking_days} days`
                                                 : "—"}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.priority}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                                             {rule.is_active ? (
-                                                <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
-                                                    Active
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                                    <CheckCircle2 size={12} /> Active
                                                 </span>
                                             ) : (
-                                                <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                                                    Inactive
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                    <XCircle size={12} /> Inactive
                                                 </span>
                                             )}
                                         </td>
 
-                                        <td className="px-4 py-3">
-                                            <div className="flex gap-2">
+                                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                                            <div className="flex items-center gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() =>
@@ -1103,9 +1126,9 @@ export default function BookingRulesIndex() {
                                                             rule
                                                         )
                                                     }
-                                                    className="rounded border px-3 py-1 hover:bg-gray-50"
+                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
                                                 >
-                                                    Edit
+                                                    <Pencil size={13} /> Edit
                                                 </button>
 
                                                 <button
@@ -1115,9 +1138,9 @@ export default function BookingRulesIndex() {
                                                             rule
                                                         )
                                                     }
-                                                    className="rounded border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50"
+                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
                                                 >
-                                                    Delete
+                                                    <Trash2 size={13} /> Delete
                                                 </button>
                                             </div>
                                         </td>
@@ -1129,5 +1152,6 @@ export default function BookingRulesIndex() {
                 </div>
             </div>
         </div>
+        </Layout>
     );
 }

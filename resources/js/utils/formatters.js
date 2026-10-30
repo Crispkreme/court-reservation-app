@@ -1,7 +1,3 @@
-
-/**
- * Format a number as Philippine Peso.
- */
 export const formatCurrency = (value) => {
     return new Intl.NumberFormat("en-PH", {
         style: "currency",
@@ -9,10 +5,6 @@ export const formatCurrency = (value) => {
     }).format(Number(value || 0));
 };
 
-/**
- * Format a date in a readable Philippine format.
- * Example: October 19, 2026
- */
 export const formatDate = (value) => {
     if (!value) {
         return "-";
@@ -32,9 +24,6 @@ export const formatDate = (value) => {
     });
 };
 
-/**
- * Format a 24-hour time as a 12-hour Philippine time.
- */
 export const formatTime = (value) => {
     if (!value) {
         return "-";
@@ -50,4 +39,34 @@ export const formatTime = (value) => {
         hour: "numeric",
         minute: "2-digit",
     });
+};
+
+export const calculateDuration = (start, end) => {
+    if (!start || !end) {
+        return 0;
+    }
+
+    const [startHour, startMinute] = start.split(":").map(Number);
+    const [endHour, endMinute] = end.split(":").map(Number);
+
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    return endMinutes > startMinutes
+        ? endMinutes - startMinutes
+        : 0;
+};
+
+export const calculateTotalAmount = (duration, unitPrice) => {
+    return (Number(duration || 0) / 60) * Number(unitPrice || 0);
+};
+
+export const getTodayDate = () => {
+    const today = new Date();
+
+    return [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
 };

@@ -1,17 +1,31 @@
-
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
+  CheckCircle2,
   Clock,
-  UserRound,
-  Trophy,
   CreditCard,
   FileText,
-  CheckCircle2,
+  Trophy,
+  UserRound,
 } from "lucide-react";
+
 import Layout from "../../components/layout/Layout";
+import ErrorText from "../../components/ErrorText";
+import Section from "../../components/Section";
+import Field from "../../components/Field";
+
+import api from "../../services/api";
+import { getSportCategories } from "../../services/sportCategoryService";
+import { getCourts } from "../../services/courtService";
+
+import {
+  calculateDuration,
+  calculateTotalAmount,
+  formatCurrency,
+  getTodayDate,
+} from "../../utils/formatters";
 
 const initialForm = {
   user_id: "",
@@ -33,58 +47,109 @@ const initialForm = {
   notes: "",
 };
 
-function calculateDuration(start, end) {
-  if (!start || !end) return 0;
-
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
-
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
-
-  return endMinutes > startMinutes ? endMinutes - startMinutes : 0;
-}
-
-function Section({ icon: Icon, title, description, children }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-start gap-3 border-b border-slate-100 p-5 sm:p-6">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-          <Icon size={20} />
-        </div>
-        <div>
-          <h2 className="font-semibold text-slate-900">{title}</h2>
-          <p className="mt-1 text-sm text-slate-500">{description}</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Field({ label, required, children, className = "" }) {
-  return (
-    <div className={className}>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">
-        {label}
-        {required && <span className="ml-1 text-rose-500">*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
 const inputClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
+const getCollection = (response) => {
+  const candidates = [
+    response?.data?.data?.data,
+    response?.data?.data,
+    response?.data,
+    response?.data?.data?.items,
+    response?.data?.items,
+    response?.data?.results,
+    response?.data?.data?.results,
+    response,
+  ];
+
+  return candidates.find(Array.isArray) || [];
+};
+
+const getCourtCategoryId = (court) =>
+  court?.sport_category_id ??
+  court?.sport_category?.id ??
+  court?.sportCategory?.id ??
+  court?.category_id ??
+  court?.category?.id ??
+  null;
+
+const isCourtActive = (court) => {
+  const status = String(court?.status ?? "").toLowerCase();
+
+  return (
+    court?.is_active !== false &&
+    court?.is_active !== 0 &&
+    court?.is_available !== false &&
+    court?.is_available !== 0 &&
+    status !== "inactive" &&
+    status !== "disabled"
+  );
+};
+
+const getErrorMessage = (error) =>
+  error?.response?.data?.message ||
+  error?.message ||
+  "Something went wrong. Please try again.";
+
 export default function CreateBooking() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const [courts, setCourts] = useState([]);
+  const [sportCategories, setSportCategories] = useState([]);
+  const [loadingCourts, setLoadingCourts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const minimumDate = getTodayDate();
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchBookingData = async () => {
+      try {
+        setLoadingCategories(true);
+        setLoadingCourts(true);
+        setSubmitError("");
+
+        const [categoriesResponse, courtsResponse] = await Promise.all([
+          getSportCategories(),
+          getCourts({ per_page: 100 }),
+        ]);
+
+        console.log("Sport Categories Response:", categoriesResponse.data);
+        console.log("Courts Response:", courtsResponse.data);
+
+        if (active) {
+          setSportCategories(getCollection(categoriesResponse));
+          setCourts(getCollection(courtsResponse));
+        }
+      } catch (error) {
+        console.error("Failed to load booking data:", error);
+
+        if (active) {
+          setSubmitError(
+            error?.response?.data?.message ||
+              "Unable to load booking data. Please refresh the page."
+          );
+        }
+      } finally {
+        if (active) {
+          setLoadingCategories(false);
+          setLoadingCourts(false);
+        }
+      }
+    };
+
+    fetchBookingData();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const duration = useMemo(
     () => calculateDuration(form.start_time, form.end_time),
@@ -92,13 +157,36 @@ export default function CreateBooking() {
   );
 
   const totalAmount = useMemo(
-    () => (duration / 60) * (Number(form.unit_price) || 0),
+    () => calculateTotalAmount(duration, form.unit_price),
     [duration, form.unit_price]
   );
 
+  const availableCourts = useMemo(() => {
+    if (!form.sport_category_id) return [];
+
+    return courts.filter((court) => {
+      const categoryId =
+        court.sport_category_id ??
+        court.sport_category?.id ??
+        court.sportCategory?.id;
+
+      return Number(categoryId) === Number(form.sport_category_id);
+    });
+  }, [courts, form.sport_category_id]);
+
   const updateField = (name, value) => {
-    setForm((previous) => ({ ...previous, [name]: value }));
-    setErrors((previous) => ({ ...previous, [name]: "" }));
+    setForm((previous) => ({
+      ...previous,
+      [name]: value,
+      ...(name === "sport_category_id" ? { court_id: "" } : {}),
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      [name]: "",
+      ...(name === "sport_category_id" ? { court_id: "" } : {}),
+    }));
+
     setSubmitError("");
   };
 
@@ -110,8 +198,8 @@ export default function CreateBooking() {
     }
 
     if (
-      form.customer_email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customer_email)
+      form.customer_email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customer_email.trim())
     ) {
       nextErrors.customer_email = "Enter a valid email address.";
     }
@@ -122,35 +210,41 @@ export default function CreateBooking() {
 
     if (!form.court_id) {
       nextErrors.court_id = "Select a court.";
+    } else if (
+      !availableCourts.some(
+        (court) => Number(court.id) === Number(form.court_id)
+      )
+    ) {
+      nextErrors.court_id =
+        "The selected court is not available for this sport category.";
     }
 
     if (!form.booking_date) {
       nextErrors.booking_date = "Select a booking date.";
-    } else {
-      const today = new Date();
-      const minimumDate = [
-        today.getFullYear(),
-        String(today.getMonth() + 1).padStart(2, "0"),
-        String(today.getDate()).padStart(2, "0"),
-      ].join("-");
-
-      if (form.booking_date < minimumDate) {
-        nextErrors.booking_date = "Booking date cannot be in the past.";
-      }
+    } else if (form.booking_date < minimumDate) {
+      nextErrors.booking_date = "Booking date cannot be in the past.";
     }
 
     if (!form.start_time || !form.end_time || duration <= 0) {
       nextErrors.end_time = "End time must be later than start time.";
     }
 
-    if (!Number.isInteger(Number(form.players_count)) ||
-        Number(form.players_count) < 1) {
-      nextErrors.players_count = "Enter at least one player.";
+    const playersCount = Number(form.players_count);
+    if (!Number.isInteger(playersCount) || playersCount < 1) {
+      nextErrors.players_count = "Enter a valid number of players (at least 1).";
     }
 
-    if (!Number.isFinite(Number(form.unit_price)) ||
-        Number(form.unit_price) < 0) {
+    const unitPrice = Number(form.unit_price);
+    if (
+      form.unit_price === "" ||
+      !Number.isFinite(unitPrice) ||
+      unitPrice < 0
+    ) {
       nextErrors.unit_price = "Enter a valid price.";
+    }
+
+    if (form.user_id && (!Number.isInteger(Number(form.user_id)) || Number(form.user_id) < 1)) {
+      nextErrors.user_id = "Enter a valid user ID.";
     }
 
     setErrors(nextErrors);
@@ -159,22 +253,28 @@ export default function CreateBooking() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!validate()) return;
+
+    if (submitting || !validate()) return;
 
     setSubmitting(true);
     setSubmitError("");
 
+    // Send the booking fields expected by the bookings API.
+    // Time values are normalized to HH:mm:ss for Laravel.
     const payload = {
-      ...form,
       user_id: form.user_id ? Number(form.user_id) : null,
       sport_category_id: Number(form.sport_category_id),
       court_id: Number(form.court_id),
+      booking_reference: form.booking_reference.trim() || null,
+      booking_date: form.booking_date,
+      start_time: `${form.start_time}:00`,
+      end_time: `${form.end_time}:00`,
       duration_minutes: duration,
       players_count: Number(form.players_count),
       unit_price: Number(form.unit_price),
       total_amount: Number(totalAmount.toFixed(2)),
-      membership_required: form.membership_required,
-      booking_reference: form.booking_reference.trim() || null,
+      booking_source: form.booking_source,
+      status: form.status,
       customer_name: form.customer_name.trim(),
       customer_email: form.customer_email.trim() || null,
       customer_phone: form.customer_phone.trim() || null,
@@ -182,57 +282,33 @@ export default function CreateBooking() {
     };
 
     try {
-      // Replace this with your Laravel API endpoint.
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          // Add your Laravel API authentication token if required.
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        if (response.status === 422 && result.errors) {
-          setErrors(result.errors);
-          throw new Error("Please correct the highlighted fields.");
-        }
-
-        throw new Error(result.message || "Unable to create the booking.");
-      }
+      await api.post("/bookings", payload);
 
       navigate("/bookings", {
         state: { successMessage: "Booking created successfully." },
       });
     } catch (error) {
-      setSubmitError(
-        error.message || "Something went wrong while creating the booking."
-      );
+      const responseErrors = error?.response?.data?.errors;
+
+      if (error?.response?.status === 422 && responseErrors) {
+        const normalizedErrors = Object.fromEntries(
+          Object.entries(responseErrors).map(([key, value]) => [
+            key,
+            Array.isArray(value) ? value[0] : value,
+          ])
+        );
+
+        setErrors((previous) => ({ ...previous, ...normalizedErrors }));
+        setSubmitError("Please correct the highlighted fields.");
+      } else {
+        setSubmitError(getErrorMessage(error));
+      }
+
+      console.error("Failed to create booking:", error);
     } finally {
       setSubmitting(false);
     }
   };
-
-  const errorText = (name) => {
-    const error = errors[name];
-    if (!error) return null;
-
-    return (
-      <p className="mt-1.5 text-xs text-rose-600">
-        {Array.isArray(error) ? error[0] : error}
-      </p>
-    );
-  };
-
-  const today = new Date();
-  const minimumDate = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
-  ].join("-");
 
   return (
     <Layout title="Create Booking">
@@ -265,11 +341,14 @@ export default function CreateBooking() {
               <input
                 className={inputClass}
                 value={form.customer_name}
-                onChange={(e) => updateField("customer_name", e.target.value)}
+                onChange={(event) =>
+                  updateField("customer_name", event.target.value)
+                }
                 placeholder="Enter customer name"
+                autoComplete="name"
                 required
               />
-              {errorText("customer_name")}
+              <ErrorText error={errors.customer_name} />
             </Field>
 
             <Field label="Customer Email">
@@ -277,10 +356,13 @@ export default function CreateBooking() {
                 type="email"
                 className={inputClass}
                 value={form.customer_email}
-                onChange={(e) => updateField("customer_email", e.target.value)}
+                onChange={(event) =>
+                  updateField("customer_email", event.target.value)
+                }
                 placeholder="customer@example.com"
+                autoComplete="email"
               />
-              {errorText("customer_email")}
+              <ErrorText error={errors.customer_email} />
             </Field>
 
             <Field label="Phone Number">
@@ -288,20 +370,28 @@ export default function CreateBooking() {
                 type="tel"
                 className={inputClass}
                 value={form.customer_phone}
-                onChange={(e) => updateField("customer_phone", e.target.value)}
+                onChange={(event) =>
+                  updateField("customer_phone", event.target.value)
+                }
                 placeholder="Enter phone number"
+                autoComplete="tel"
               />
+              <ErrorText error={errors.customer_phone} />
             </Field>
 
             <Field label="Existing User ID">
               <input
                 type="number"
                 min="1"
+                step="1"
                 className={inputClass}
                 value={form.user_id}
-                onChange={(e) => updateField("user_id", e.target.value)}
+                onChange={(event) =>
+                  updateField("user_id", event.target.value)
+                }
                 placeholder="Optional user ID"
               />
+              <ErrorText error={errors.user_id} />
               <p className="mt-1 text-xs text-slate-400">
                 Leave blank for a guest booking, if supported by your backend.
               </p>
@@ -313,38 +403,66 @@ export default function CreateBooking() {
             title="Booking Details"
             description="Choose the sport, court, date, and reservation time."
           >
-            <Field label="Sport Category ID" required>
-              <input
-                type="number"
-                min="1"
+            <Field label="Sport Category" required>
+              <select
                 className={inputClass}
                 value={form.sport_category_id}
-                onChange={(e) =>
-                  updateField("sport_category_id", e.target.value)
+                onChange={(event) =>
+                  updateField("sport_category_id", event.target.value)
                 }
-                placeholder="Enter sport category ID"
                 required
-              />
-              {errorText("sport_category_id")}
-              <p className="mt-1 text-xs text-slate-400">
-                Replace with a dropdown populated from your sport categories API.
-              </p>
+                disabled={loadingCategories}
+              >
+                <option value="">
+                  {loadingCategories
+                    ? "Loading sport categories..."
+                    : "Select a sport category"}
+                </option>
+
+                {sportCategories
+                  .filter((category) => category.is_active !== false)
+                  .map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+              </select>
+              <ErrorText error={errors.sport_category_id} />
+              {!loadingCategories && sportCategories.length === 0 && (
+                <p className="mt-1 text-xs text-amber-600">
+                  No sport categories were returned by the server.
+                </p>
+              )}
             </Field>
 
-            <Field label="Court ID" required>
-              <input
-                type="number"
-                min="1"
+            <Field label="Court" required>
+              <select
                 className={inputClass}
                 value={form.court_id}
-                onChange={(e) => updateField("court_id", e.target.value)}
-                placeholder="Enter court ID"
+                onChange={(event) =>
+                  updateField("court_id", event.target.value)
+                }
+                disabled={!form.sport_category_id || loadingCourts}
                 required
-              />
-              {errorText("court_id")}
-              <p className="mt-1 text-xs text-slate-400">
-                Replace with a court dropdown filtered by sport category.
-              </p>
+              >
+                <option value="">
+                  {!form.sport_category_id
+                    ? "Select a sport category first"
+                    : loadingCourts
+                      ? "Loading courts..."
+                      : availableCourts.length === 0
+                        ? "No courts available"
+                        : "Select a court"}
+                </option>
+
+                {availableCourts.map((court) => (
+                  <option key={court.id} value={court.id}>
+                    {court.name}
+                  </option>
+                ))}
+              </select>
+
+              <ErrorText error={errors.court_id} />
             </Field>
 
             <Field label="Booking Date" required>
@@ -358,23 +476,28 @@ export default function CreateBooking() {
                   min={minimumDate}
                   className={`${inputClass} pl-10`}
                   value={form.booking_date}
-                  onChange={(e) => updateField("booking_date", e.target.value)}
+                  onChange={(event) =>
+                    updateField("booking_date", event.target.value)
+                  }
                   required
                 />
               </div>
-              {errorText("booking_date")}
+              <ErrorText error={errors.booking_date} />
             </Field>
 
             <Field label="Number of Players" required>
               <input
                 type="number"
                 min="1"
+                step="1"
                 className={inputClass}
                 value={form.players_count}
-                onChange={(e) => updateField("players_count", e.target.value)}
+                onChange={(event) =>
+                  updateField("players_count", event.target.value)
+                }
                 required
               />
-              {errorText("players_count")}
+              <ErrorText error={errors.players_count} />
             </Field>
 
             <Field label="Start Time" required>
@@ -387,7 +510,9 @@ export default function CreateBooking() {
                   type="time"
                   className={`${inputClass} pl-10`}
                   value={form.start_time}
-                  onChange={(e) => updateField("start_time", e.target.value)}
+                  onChange={(event) =>
+                    updateField("start_time", event.target.value)
+                  }
                   required
                 />
               </div>
@@ -403,11 +528,13 @@ export default function CreateBooking() {
                   type="time"
                   className={`${inputClass} pl-10`}
                   value={form.end_time}
-                  onChange={(e) => updateField("end_time", e.target.value)}
+                  onChange={(event) =>
+                    updateField("end_time", event.target.value)
+                  }
                   required
                 />
               </div>
-              {errorText("end_time")}
+              <ErrorText error={errors.end_time} />
             </Field>
 
             <div className="rounded-lg bg-blue-50 p-4 sm:col-span-2">
@@ -419,16 +546,14 @@ export default function CreateBooking() {
                   ? `${Math.floor(duration / 60)}h ${duration % 60}m`
                   : "Select a valid time range"}
               </p>
-              <p className="mt-1 text-xs text-blue-700">
-                {duration} minutes
-              </p>
+              <p className="mt-1 text-xs text-blue-700">{duration} minutes</p>
             </div>
           </Section>
 
           <Section
             icon={CreditCard}
             title="Pricing and Membership"
-            description="Set the price and membership requirements."
+            description="Set the hourly price and review the estimated booking total."
           >
             <Field label="Unit Price per Hour" required>
               <input
@@ -437,12 +562,14 @@ export default function CreateBooking() {
                 step="0.01"
                 className={inputClass}
                 value={form.unit_price}
-                onChange={(e) => updateField("unit_price", e.target.value)}
+                onChange={(event) =>
+                  updateField("unit_price", event.target.value)
+                }
                 required
               />
-              {errorText("unit_price")}
+              <ErrorText error={errors.unit_price} />
               <p className="mt-1 text-xs text-slate-400">
-                Confirm the currency and pricing rules used by your system.
+                Enter the hourly rate in the currency configured for your system.
               </p>
             </Field>
 
@@ -450,7 +577,9 @@ export default function CreateBooking() {
               <select
                 className={inputClass}
                 value={form.membership_type}
-                onChange={(e) => updateField("membership_type", e.target.value)}
+                onChange={(event) =>
+                  updateField("membership_type", event.target.value)
+                }
               >
                 <option value="none">No Membership</option>
                 <option value="basic">Basic</option>
@@ -458,7 +587,8 @@ export default function CreateBooking() {
                 <option value="vip">VIP</option>
               </select>
               <p className="mt-1 text-xs text-slate-400">
-                Update these options to match your database values.
+                This is currently a form-only field until your booking API
+                supports membership types.
               </p>
             </Field>
 
@@ -467,8 +597,8 @@ export default function CreateBooking() {
                 <input
                   type="checkbox"
                   checked={form.membership_required}
-                  onChange={(e) =>
-                    updateField("membership_required", e.target.checked)
+                  onChange={(event) =>
+                    updateField("membership_required", event.target.checked)
                   }
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -476,15 +606,16 @@ export default function CreateBooking() {
                   Customer must have a membership
                 </span>
               </label>
+              <p className="mt-1 text-xs text-slate-400">
+                This setting is displayed here but is not submitted unless the
+                Laravel booking endpoint is configured to accept it.
+              </p>
             </Field>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm text-slate-500">Estimated Total</p>
               <p className="mt-1 text-2xl font-bold text-slate-900">
-                {totalAmount.toLocaleString("en-PH", {
-                  style: "currency",
-                  currency: "PHP",
-                })}
+                {formatCurrency(totalAmount)}
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 {duration} minutes × hourly rate, before any discounts or fees.
@@ -501,36 +632,44 @@ export default function CreateBooking() {
               <input
                 className={inputClass}
                 value={form.booking_reference}
-                onChange={(e) =>
-                  updateField("booking_reference", e.target.value)
+                onChange={(event) =>
+                  updateField("booking_reference", event.target.value)
                 }
                 placeholder="Leave blank to generate on the server"
               />
+              <ErrorText error={errors.booking_reference} />
             </Field>
 
             <Field label="Booking Source" required>
               <select
                 className={inputClass}
                 value={form.booking_source}
-                onChange={(e) => updateField("booking_source", e.target.value)}
+                onChange={(event) =>
+                  updateField("booking_source", event.target.value)
+                }
+                required
               >
                 <option value="admin">Admin</option>
                 <option value="website">Website</option>
                 <option value="mobile">Mobile App</option>
               </select>
+              <ErrorText error={errors.booking_source} />
             </Field>
 
             <Field label="Initial Status" required>
               <select
                 className={inputClass}
                 value={form.status}
-                onChange={(e) => updateField("status", e.target.value)}
+                onChange={(event) => updateField("status", event.target.value)}
+                required
               >
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
               </select>
+              <ErrorText error={errors.status} />
               <p className="mt-1 text-xs text-slate-400">
-                Only use status values allowed by your Laravel validation.
+                Make sure these values match the status rules in your Laravel
+                validation.
               </p>
             </Field>
 
@@ -540,9 +679,10 @@ export default function CreateBooking() {
                 maxLength={2000}
                 className={inputClass}
                 value={form.notes}
-                onChange={(e) => updateField("notes", e.target.value)}
+                onChange={(event) => updateField("notes", event.target.value)}
                 placeholder="Additional booking notes or customer requests..."
               />
+              <ErrorText error={errors.notes} />
             </Field>
           </Section>
 
@@ -565,13 +705,19 @@ export default function CreateBooking() {
                 type="button"
                 onClick={() => navigate("/bookings")}
                 className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                disabled={submitting}
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  loadingCategories ||
+                  loadingCourts ||
+                  !sportCategories.length
+                }
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <CheckCircle2 size={17} />

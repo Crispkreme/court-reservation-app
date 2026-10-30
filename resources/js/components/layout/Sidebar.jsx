@@ -22,6 +22,7 @@ import {
   UserPlus,
   Mail,
   ShieldCheck,
+  Bike,
   CalendarX,
   Network,
 } from "lucide-react";
@@ -40,6 +41,11 @@ const navigation = [
       { label: "Booking Rules", to: "/booking-rules", icon: ClipboardList },
       { label: "Booking Cancellations", to: "/bookings/cancellation-policies", icon: CalendarX },
     ],
+  },
+  {
+    label: "Sports",
+    to: "/sport/categories",
+    icon: Bike,
   },
   {
     label: "Courts",

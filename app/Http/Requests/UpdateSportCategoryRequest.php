@@ -14,7 +14,7 @@ class UpdateSportCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        $sportCategory = $this->route('sportCategory');
+        $sportCategory = $this->route('sport_category');
 
         return [
             'name' => [

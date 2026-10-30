@@ -43,6 +43,7 @@ import FailureExceptionsIndex from './pages/FailureExceptions/Index';
 import Reports from './pages/Reports/Index';
 import AuditHistoryIndex from './pages/AuditHistory/Index';
 import Home from "./pages/Home";
+import SportCategories from './pages/SportCategories/Index';
 
 function ProtectedRoute({ children }) {
     const token = localStorage.getItem('auth_token');
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/courts/schedules" element={<ProtectedRoute><CourtSchedules /></ProtectedRoute>}/>
                 <Route path="/courts/overrides" element={<ProtectedRoute><CourtScheduleOverrides /></ProtectedRoute>}/>
                 <Route path="/courts/calendar" element={<ProtectedRoute><CourtCalendar /></ProtectedRoute>}/>
+                <Route path="/sport/categories" element={<ProtectedRoute><SportCategories /></ProtectedRoute>}/>
 
                 <Route path="/bookings" element={<ProtectedRoute><Booking /></ProtectedRoute>}/>
                 <Route path="/bookings/create" element={<ProtectedRoute><CreateBooking /></ProtectedRoute>}/>

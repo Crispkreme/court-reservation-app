@@ -132,10 +132,8 @@ export default function Bookings() {
           {/* Summary cards */}
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <SummaryCard
-              title="Total Bookings"
+              title="Total Booking"
               value={bookings.length}
-              icon="calendar"
-              accentColor="bg-blue-500"
             />
 
             <SummaryCard
@@ -143,8 +141,6 @@ export default function Bookings() {
               value={bookings.filter(
                 (b) => b.status?.toLowerCase() === "confirmed"
               ).length}
-              icon="calendar"
-              accentColor="bg-emerald-500"
             />
 
             <SummaryCard
@@ -152,8 +148,6 @@ export default function Bookings() {
               value={bookings.filter(
                 (b) => b.status?.toLowerCase() === "pending"
               ).length}
-              icon="calendar"
-              accentColor="bg-amber-500"
             />
 
             <SummaryCard
@@ -161,10 +155,8 @@ export default function Bookings() {
               value={bookings.filter(
                 (b) => b.status?.toLowerCase() === "cancelled"
               ).length}
-              icon="calendar"
-              accentColor="bg-rose-500"
             />
-          </div>
+        </div>
 
           {/* Search and filters */}
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">

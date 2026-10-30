@@ -16,9 +16,10 @@ import ErrorText from "../../components/ErrorText";
 import Section from "../../components/Section";
 import Field from "../../components/Field";
 
-import api from "../../services/api";
+import { createBooking } from "../../services/bookingService";
 import { getSportCategories } from "../../services/sportCategoryService";
 import { getCourts } from "../../services/courtService";
+import { getMembers } from "../../services/memberService";
 
 import {
   calculateDuration,
@@ -37,7 +38,7 @@ const initialForm = {
   end_time: "10:00",
   players_count: "1",
   unit_price: "0",
-  booking_source: "admin",
+  booking_source: "PUBLIC",
   status: "pending",
   membership_type: "none",
   membership_required: false,
@@ -47,8 +48,7 @@ const initialForm = {
   notes: "",
 };
 
-const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+const inputClass = "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
 const getCollection = (response) => {
   const candidates = [
@@ -103,6 +103,8 @@ export default function CreateBooking() {
   const [sportCategories, setSportCategories] = useState([]);
   const [loadingCourts, setLoadingCourts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [members, setMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   const minimumDate = getTodayDate();
 
@@ -113,19 +115,20 @@ export default function CreateBooking() {
       try {
         setLoadingCategories(true);
         setLoadingCourts(true);
+        setLoadingMembers(true);
         setSubmitError("");
 
-        const [categoriesResponse, courtsResponse] = await Promise.all([
-          getSportCategories(),
-          getCourts({ per_page: 100 }),
-        ]);
-
-        console.log("Sport Categories Response:", categoriesResponse.data);
-        console.log("Courts Response:", courtsResponse.data);
+        const [categoriesResponse, courtsResponse, membersResponse] =
+          await Promise.all([
+            getSportCategories(),
+            getCourts({ per_page: 100 }),
+            getMembers({ per_page: 100 }),
+          ]);
 
         if (active) {
           setSportCategories(getCollection(categoriesResponse));
           setCourts(getCollection(courtsResponse));
+          setMembers(getCollection(membersResponse));
         }
       } catch (error) {
         console.error("Failed to load booking data:", error);
@@ -140,6 +143,7 @@ export default function CreateBooking() {
         if (active) {
           setLoadingCategories(false);
           setLoadingCourts(false);
+          setLoadingMembers(false);
         }
       }
     };
@@ -156,10 +160,14 @@ export default function CreateBooking() {
     [form.start_time, form.end_time]
   );
 
+  console.log('duration: ', duration);
+
   const totalAmount = useMemo(
     () => calculateTotalAmount(duration, form.unit_price),
     [duration, form.unit_price]
   );
+
+  console.log('totalAmount: ', totalAmount);
 
   const availableCourts = useMemo(() => {
     if (!form.sport_category_id) return [];
@@ -210,44 +218,29 @@ export default function CreateBooking() {
 
     if (!form.court_id) {
       nextErrors.court_id = "Select a court.";
-    } else if (
-      !availableCourts.some(
-        (court) => Number(court.id) === Number(form.court_id)
-      )
-    ) {
-      nextErrors.court_id =
-        "The selected court is not available for this sport category.";
     }
 
     if (!form.booking_date) {
       nextErrors.booking_date = "Select a booking date.";
-    } else if (form.booking_date < minimumDate) {
-      nextErrors.booking_date = "Booking date cannot be in the past.";
     }
 
     if (!form.start_time || !form.end_time || duration <= 0) {
-      nextErrors.end_time = "End time must be later than start time.";
+      nextErrors.end_time = "Please select a valid booking time.";
     }
 
-    const playersCount = Number(form.players_count);
-    if (!Number.isInteger(playersCount) || playersCount < 1) {
-      nextErrors.players_count = "Enter a valid number of players (at least 1).";
-    }
-
-    const unitPrice = Number(form.unit_price);
     if (
-      form.unit_price === "" ||
-      !Number.isFinite(unitPrice) ||
-      unitPrice < 0
+      !Number.isInteger(Number(form.players_count)) ||
+      Number(form.players_count) < 1
     ) {
-      nextErrors.unit_price = "Enter a valid price.";
+      nextErrors.players_count = "Enter at least one player.";
     }
 
-    if (form.user_id && (!Number.isInteger(Number(form.user_id)) || Number(form.user_id) < 1)) {
-      nextErrors.user_id = "Enter a valid user ID.";
+    if (![30, 60, 90].includes(duration)) {
+      nextErrors.end_time = "Booking duration must be 30, 60, or 90 minutes.";
     }
 
     setErrors(nextErrors);
+
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -258,9 +251,8 @@ export default function CreateBooking() {
 
     setSubmitting(true);
     setSubmitError("");
+    setErrors({});
 
-    // Send the booking fields expected by the bookings API.
-    // Time values are normalized to HH:mm:ss for Laravel.
     const payload = {
       user_id: form.user_id ? Number(form.user_id) : null,
       sport_category_id: Number(form.sport_category_id),
@@ -269,7 +261,7 @@ export default function CreateBooking() {
       booking_date: form.booking_date,
       start_time: `${form.start_time}:00`,
       end_time: `${form.end_time}:00`,
-      duration_minutes: duration,
+      duration_minutes: Number(duration),
       players_count: Number(form.players_count),
       unit_price: Number(form.unit_price),
       total_amount: Number(totalAmount.toFixed(2)),
@@ -281,33 +273,86 @@ export default function CreateBooking() {
       notes: form.notes.trim() || null,
     };
 
+    console.log('payload: ', payload);
+
     try {
-      await api.post("/bookings", payload);
+      await createBooking(payload);
 
       navigate("/bookings", {
-        state: { successMessage: "Booking created successfully." },
+        state: {
+          successMessage: "Booking created successfully.",
+        },
       });
-    } catch (error) {
-      const responseErrors = error?.response?.data?.errors;
 
-      if (error?.response?.status === 422 && responseErrors) {
+    } catch (error) {
+      console.error("Failed to create booking:", error);
+      if (error.response?.status === 422) {
+        const responseErrors = error.response.data.errors || {};
         const normalizedErrors = Object.fromEntries(
           Object.entries(responseErrors).map(([key, value]) => [
             key,
-            Array.isArray(value) ? value[0] : value,
+            Array.isArray(value) ? value[0] : String(value),
           ])
         );
 
-        setErrors((previous) => ({ ...previous, ...normalizedErrors }));
-        setSubmitError("Please correct the highlighted fields.");
+        setErrors(normalizedErrors);
+        setSubmitError(
+          error.response.data.message ||
+          "Please correct the highlighted fields."
+        );
       } else {
-        setSubmitError(getErrorMessage(error));
+        setSubmitError(
+          error.response?.data?.message ||
+          "Unable to create booking. Please try again."
+        );
       }
-
-      console.error("Failed to create booking:", error);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleMemberChange = (event) => {
+    const selectedId = event.target.value;
+
+    if (!selectedId) {
+      setForm((previous) => ({
+        ...previous,
+        user_id: "",
+        customer_name: "",
+        customer_email: "",
+        customer_phone: "",
+      }));
+
+      return;
+    }
+
+    const member = members.find(
+      (item) => String(item.id) === String(selectedId)
+    );
+
+    if (!member) return;
+
+    const memberName =
+      member.name ||
+      [member.first_name, member.last_name].filter(Boolean).join(" ");
+
+    setForm((previous) => ({
+      ...previous,
+      user_id: String(member.id),
+      customer_name: memberName,
+      customer_email: member.email || "",
+      customer_phone: member.phone || member.phone_number || "",
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      user_id: "",
+      customer_name: "",
+      customer_email: "",
+      customer_phone: "",
+    }));
+
+    setSubmitError("");
   };
 
   return (
@@ -335,8 +380,38 @@ export default function CreateBooking() {
           <Section
             icon={UserRound}
             title="Customer Information"
-            description="Enter the customer's contact and account details."
+            description="Select an existing member to automatically fill in their details."
           >
+            <Field label="Select Member">
+              <select
+                className={inputClass}
+                value={form.user_id}
+                onChange={handleMemberChange}
+                disabled={loadingMembers}
+              >
+                <option value="">
+                  {loadingMembers ? "Loading members..." : "Select a member"}
+                </option>
+
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name ||
+                      [member.first_name, member.last_name]
+                        .filter(Boolean)
+                        .join(" ")}
+                    {member.email ? ` - ${member.email}` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <ErrorText error={errors.user_id} />
+
+              <p className="mt-1 text-xs text-slate-400">
+                Select a member to automatically populate their customer information.
+                Leave blank for a guest booking.
+              </p>
+            </Field>
+
             <Field label="Customer Name" required>
               <input
                 className={inputClass}
@@ -377,24 +452,6 @@ export default function CreateBooking() {
                 autoComplete="tel"
               />
               <ErrorText error={errors.customer_phone} />
-            </Field>
-
-            <Field label="Existing User ID">
-              <input
-                type="number"
-                min="1"
-                step="1"
-                className={inputClass}
-                value={form.user_id}
-                onChange={(event) =>
-                  updateField("user_id", event.target.value)
-                }
-                placeholder="Optional user ID"
-              />
-              <ErrorText error={errors.user_id} />
-              <p className="mt-1 text-xs text-slate-400">
-                Leave blank for a guest booking, if supported by your backend.
-              </p>
             </Field>
           </Section>
 
@@ -649,9 +706,10 @@ export default function CreateBooking() {
                 }
                 required
               >
-                <option value="admin">Admin</option>
-                <option value="website">Website</option>
-                <option value="mobile">Mobile App</option>
+                <option value="PUBLIC">Public</option>
+                <option value="ADMIN">Admin</option>
+                <option value="WEBSITE">Website</option>
+                <option value="MOBILE">Mobile App</option>
               </select>
               <ErrorText error={errors.booking_source} />
             </Field>

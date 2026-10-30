@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Services\AuditLogService;
 use App\Models\Court;
+use App\Models\User;
 use App\Models\BookingStatusHistory;
 use App\Models\Membership;
 
@@ -119,60 +120,90 @@ class BookingController extends Controller
     /**
      * Create a booking.
      */
-    public function store(StoreBookingRequest $request): JsonResponse {
+    public function store(StoreBookingRequest $request): JsonResponse
+    {
         $validated = $request->validated();
 
-        $user = auth()->user();
+        $authenticatedUser = $request->user();
+
+        // Get selected member or fall back to authenticated user.
+        $bookingUser = !empty($validated['user_id'])
+            ? User::findOrFail($validated['user_id'])
+            : $authenticatedUser;
+
+        $userId = $bookingUser?->id;
+
+        // Validate booking date.
         $date = Carbon::parse($validated['booking_date']);
 
-        /*
-         * Prevent past bookings.
-         */
-        if ($date->startOfDay()->isBefore(now()->startOfDay())) {
+        if ($date->copy()->startOfDay()->isBefore(now()->startOfDay())) {
             throw ValidationException::withMessages([
-                'booking_date' =>
-                    'The booking date cannot be in the past.',
+                'booking_date' => 'The booking date cannot be in the past.',
             ]);
         }
 
-        /*
-         * Get the authenticated user's active membership.
-         *
-         * Adjust this query if your Membership model uses
-         * a different status/date structure.
-         */
+        // Calculate booking start and end.
+        $start = Carbon::parse(
+            $validated['booking_date'] . ' ' . $validated['start_time']
+        );
+
+        $end = Carbon::parse(
+            $validated['booking_date'] . ' ' . $validated['end_time']
+        );
+
+        $calculatedDuration = $start->diffInMinutes($end);
+
+        if ($calculatedDuration != (int) $validated['duration_minutes']) {
+            throw ValidationException::withMessages([
+                'duration_minutes' => 'The selected duration does not match the booking times.',
+            ]);
+        }
+
+        // Verify selected court belongs to selected sport category.
+        $court = Court::query()
+            ->where('id', $validated['court_id'])
+            ->where('sport_category_id', $validated['sport_category_id'])
+            ->first();
+
+        if (!$court) {
+            throw ValidationException::withMessages([
+                'court_id' => 'The selected court does not belong to the selected sport.',
+            ]);
+        }
+
+        // Get selected member's active membership.
         $membership = null;
 
-        if ($user) {
+        if ($bookingUser) {
             $membership = Membership::query()
                 ->with('membershipType')
-                ->where('user_id', $user->id)
+                ->where('user_id', $bookingUser->id)
                 ->where('status', 'ACTIVE')
-                ->whereDate('start_date','<=',$date)
-                ->whereDate('expiration_date','>=',$date)
+                ->whereDate('start_date', '<=', $date)
+                ->whereDate('expiration_date', '>=', $date)
                 ->latest('expiration_date')
                 ->first();
         }
 
-        /*
-         * Membership access rules.
-         */
+        // Membership access rules.
         $accessRules = $membership?->membershipType?->access_rules ?? [];
 
-        $bookingAdvanceDays = (int) ($accessRules['booking_advance_days'] ?? self::ADVANCE_BOOKING_DAYS);
-        $priorityBooking = (bool) ($accessRules['priority_booking'] ?? false);
-        $premiumCourts = (bool) ($accessRules['premium_courts']?? false);
+        $bookingAdvanceDays = (int) (
+            $accessRules['booking_advance_days'] ?? self::ADVANCE_BOOKING_DAYS
+        );
 
-        /*
-         * Advance booking window.
-         *
-         * Membership-specific access rules override
-         * the default 30-day booking window.
-         */
+        $priorityBooking = (bool) (
+            $accessRules['priority_booking'] ?? false
+        );
+
+        $premiumCourts = (bool) (
+            $accessRules['premium_courts'] ?? false
+        );
+
+        // Validate advance booking period.
         if (
-            $date->startOfDay()->greaterThan(
-                now()->addDays($bookingAdvanceDays)
-                     ->startOfDay()
+            $date->copy()->startOfDay()->greaterThan(
+                now()->addDays($bookingAdvanceDays)->startOfDay()
             )
         ) {
             throw ValidationException::withMessages([
@@ -183,82 +214,58 @@ class BookingController extends Controller
             ]);
         }
 
-        /*
-         * Calculate booking start and end time.
-         */
-        $start = Carbon::parse($validated['booking_date']. ' '. $validated['start_time']);
-        $end = $start->copy()->addMinutes($validated['duration_minutes']);
-
-        /*
-         * Make sure the court belongs to the selected sport.
-         */
-        $court = Court::query()
-            ->where('id',$validated['court_id'])
-            ->where('sport_category_id',$validated['sport_category_id'])
-            ->first();
-
-        if (! $court) {
-            throw ValidationException::withMessages([
-                'court_id' => 'The selected court does not belong to the selected sport.',
-            ]);
-        }
-
-        /*
-         * Premium court validation.
-         *
-         * This assumes your courts table has an
-         * `is_premium` boolean column.
-         */
-        if (($court->is_premium ?? false)&& ! $premiumCourts) {
+        // Premium court validation.
+        if (($court->is_premium ?? false) && !$premiumCourts) {
             throw ValidationException::withMessages([
                 'court_id' => 'Your current membership does not allow access to premium courts.',
             ]);
         }
 
-        /*
-         * Capacity validation.
-         */
-        if (isset($court->minimum_capacity)&& $validated['players_count'] < $court->minimum_capacity) {
+        // Capacity validation.
+        if (
+            isset($court->minimum_capacity) &&
+            $validated['players_count'] < $court->minimum_capacity
+        ) {
             throw ValidationException::withMessages([
                 'players_count' => 'The number of players is below the minimum court capacity.',
             ]);
         }
 
-        if (isset($court->maximum_capacity) && $validated['players_count'] > $court->maximum_capacity) {
+        if (
+            isset($court->maximum_capacity) &&
+            $validated['players_count'] > $court->maximum_capacity
+        ) {
             throw ValidationException::withMessages([
                 'players_count' => 'The number of players exceeds the maximum court capacity.',
             ]);
         }
 
-        /*
-         * User booking limit.
-         */
-        $userId = $user?->id;
-
+        // Daily booking limit for selected member.
         if ($userId) {
             $dailyBookings = Booking::query()
-                ->where('user_id',$userId)
-                ->whereDate('booking_date',$date)
+                ->where('user_id', $userId)
+                ->whereDate('booking_date', $date)
                 ->active()
                 ->count();
 
-            if ($dailyBookings>= self::MAX_BOOKINGS_PER_DAY) {
+            if ($dailyBookings >= self::MAX_BOOKINGS_PER_DAY) {
                 throw ValidationException::withMessages([
                     'booking_date' => 'You have reached the maximum number of bookings allowed for this day.',
                 ]);
             }
         }
 
-        /*
-         * Calculate base price.
-         */
+        // Calculate court pricing.
         $pricePerHour = (float) ($court->price_per_hour ?? 0);
-        $unitPrice = $pricePerHour;
-        $baseAmount = round(($pricePerHour / 60)* $validated['duration_minutes'],2);
 
-        /*
-         * Membership discount.
-         */
+        $unitPrice = $pricePerHour;
+
+        $baseAmount = round(
+            ($pricePerHour / 60) * $validated['duration_minutes'],
+            2
+        );
+
+        // Membership discount.
         $discountType = null;
         $discountValue = 0;
         $discountAmount = 0;
@@ -270,20 +277,25 @@ class BookingController extends Controller
             $discountValue = (float) ($membershipType->discount_value ?? 0);
 
             if ($discountType === 'percentage') {
-                $discountAmount = round($baseAmount* ($discountValue / 100),2);
+                $discountAmount = round(
+                    $baseAmount * ($discountValue / 100),
+                    2
+                );
             } elseif ($discountType === 'fixed') {
-                $discountAmount = min($discountValue,$baseAmount);
+                $discountAmount = min($discountValue, $baseAmount);
             }
         }
 
-        /*
-         * Final amount after membership discount.
-         */
-        $totalAmount = round(max(0,$baseAmount - $discountAmount),2);
+        $totalAmount = round(
+            max(0, $baseAmount - $discountAmount),
+            2
+        );
 
-        /*
-         * Critical section.
-         */
+        // Normalize booking source and status.
+        $bookingSource = strtoupper($validated['booking_source'] ?? 'ONLINE');
+        $status = strtoupper($validated['status'] ?? 'CONFIRMED');
+
+        // Create booking inside transaction.
         $booking = DB::transaction(function () use (
             $validated,
             $court,
@@ -297,23 +309,24 @@ class BookingController extends Controller
             $discountAmount,
             $totalAmount,
             $userId,
+            $bookingUser,
             $membership,
-            $priorityBooking
+            $priorityBooking,
+            $bookingSource,
+            $status
         ) {
             $lockedCourt = Court::query()
                 ->whereKey($court->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            /*
-             * Double-booking detection.
-             */
+            // Double-booking detection.
             $conflict = Booking::query()
-                ->where('court_id',$lockedCourt->id)
-                ->whereDate('booking_date',$date)
+                ->where('court_id', $lockedCourt->id)
+                ->whereDate('booking_date', $date)
                 ->active()
-                ->where('start_time','<',$end->format('H:i:s'))
-                ->where('end_time','>',$start->format('H:i:s'))
+                ->where('start_time', '<', $end->format('H:i:s'))
+                ->where('end_time', '>', $start->format('H:i:s'))
                 ->lockForUpdate()
                 ->exists();
 
@@ -323,59 +336,48 @@ class BookingController extends Controller
                 ]);
             }
 
-            /*
-             * Create booking.
-             */
+            // Create booking.
             $booking = Booking::create([
                 'user_id' => $userId,
                 'sport_category_id' => $validated['sport_category_id'],
                 'court_id' => $lockedCourt->id,
+
                 'booking_reference' => $this->generateBookingReference(),
+
                 'booking_date' => $date->format('Y-m-d'),
                 'start_time' => $start->format('H:i:s'),
                 'end_time' => $end->format('H:i:s'),
                 'duration_minutes' => $validated['duration_minutes'],
+
                 'players_count' => $validated['players_count'],
+
                 'unit_price' => $unitPrice,
                 'total_amount' => $totalAmount,
-                'booking_source' => $validated['booking_source']?? 'ONLINE',
-                'status' =>'CONFIRMED',
 
-                /*
-                 * Store the actual membership used for
-                 * this booking rather than trusting the request.
-                 */
+                'booking_source' => $bookingSource,
+                'status' => $status,
+
                 'membership_type' => $membership?->membershipType?->code,
-                'customer_name' => $validated['customer_name'] ?? $user?->name,
-                'customer_email' => $validated['customer_email'] ?? $user?->email,
-                'customer_phone' => $validated['customer_phone'] ?? null,
+
+                'customer_name' => $validated['customer_name']
+                    ?? $bookingUser?->name,
+
+                'customer_email' => $validated['customer_email']
+                    ?? $bookingUser?->email,
+
+                'customer_phone' => $validated['customer_phone']
+                    ?? $bookingUser?->phone,
+
                 'notes' => $validated['notes'] ?? null,
-                'confirmed_at' => now(),
+
+                'confirmed_at' => $status === 'CONFIRMED' ? now() : null,
             ]);
 
-            /*
-             * If your bookings table contains these columns,
-             * store the membership pricing information.
-             *
-             * Uncomment these fields after adding the columns.
-             */
-            /*
-            $booking->update([
-                'base_amount' => $baseAmount,
-                'discount_type' => $discountType,
-                'discount_value' => $discountValue,
-                'discount_amount' => $discountAmount,
-                'membership_id' => $membership?->id,
-            ]);
-            */
-
-            /*
-             * Create initial booking status history.
-             */
+            // Initial booking status history.
             BookingStatusHistory::create([
                 'booking_id' => $booking->id,
                 'from_status' => null,
-                'to_status' => BookingStatusHistory::STATUS_CONFIRMED,
+                'to_status' => $status,
                 'changed_by' => auth()->id(),
                 'reason' => 'Booking created.',
                 'notes' => 'Initial booking status.',
@@ -390,13 +392,10 @@ class BookingController extends Controller
                     'discount_amount' => $discountAmount,
                     'final_amount' => $totalAmount,
                 ],
-
                 'changed_at' => now(),
             ]);
 
-            /*
-            * Create centralized audit log.
-            */
+            // Audit log.
             AuditLogService::record(
                 module: 'booking',
                 action: 'created',
@@ -425,9 +424,7 @@ class BookingController extends Controller
             return $booking;
         });
 
-        /*
-         * Load relationships for API response.
-         */
+        // Load relationships.
         $booking->load([
             'court',
             'sportCategory',

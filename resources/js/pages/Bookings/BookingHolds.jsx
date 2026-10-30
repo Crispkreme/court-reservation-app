@@ -8,6 +8,10 @@ import {
     AlertCircle,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import { formatDate, formatTime, getStatusClass } from "../../utils/formatters";
+import { getBookingHolds } from "../../services/bookingHoldService";
+import SuccessAlert from "../../components/SuccessAlert";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -40,18 +44,7 @@ function Index() {
             setLoading(true);
             setError("");
 
-            const response = await fetch(
-                `${API}/booking-holds`
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to load booking holds."
-                );
-            }
+            const result = await getBookingHolds();
 
             setHolds(
                 result.data?.data ??
@@ -59,7 +52,11 @@ function Index() {
                 []
             );
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to load booking holds."
+            );
         } finally {
             setLoading(false);
         }
@@ -301,64 +298,12 @@ function Index() {
 
     const stats = useMemo(() => {
         return {
-            active: holds.filter(
-                (hold) =>
-                    hold.status === "ACTIVE"
-            ).length,
-
-            converted: holds.filter(
-                (hold) =>
-                    hold.status === "CONVERTED"
-            ).length,
-
-            expired: holds.filter(
-                (hold) =>
-                    hold.status === "EXPIRED"
-            ).length,
-
-            failed: holds.filter(
-                (hold) =>
-                    hold.status === "FAILED"
-            ).length,
+            active: holds.filter((hold) => hold.status === "ACTIVE").length,
+            converted: holds.filter((hold) => hold.status === "CONVERTED").length,
+            expired: holds.filter((hold) => hold.status === "EXPIRED").length,
+            failed: holds.filter((hold) => hold.status === "FAILED").length,
         };
     }, [holds]);
-
-    function formatDate(date) {
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(
-            `${date}T00:00:00`
-        ).toLocaleDateString();
-    }
-
-    function formatTime(time) {
-        if (!time) {
-            return "-";
-        }
-
-        return time.slice(0, 5);
-    }
-
-    function getStatusClass(status) {
-        switch (status) {
-            case "ACTIVE":
-                return "bg-green-100 text-green-700";
-
-            case "CONVERTED":
-                return "bg-blue-100 text-blue-700";
-
-            case "EXPIRED":
-                return "bg-gray-100 text-gray-700";
-
-            case "FAILED":
-                return "bg-red-100 text-red-700";
-
-            default:
-                return "bg-gray-100 text-gray-700";
-        }
-    }
 
     return (
         <Layout title="Booking Holds">
@@ -400,17 +345,8 @@ function Index() {
                     </div>
                 </div>
 
-                {error && (
-                    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={18} className="mt-0.5 shrink-0" />
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700"><CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-                        {success}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
+                <SuccessAlert message={success} />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -540,22 +476,15 @@ function Index() {
                                 required
                             />
                         </div>
-
                         <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Start Time
-                            </label>
-
+                            <label className="mb-2 block text-sm font-medium">Start Time</label>
                             <input
                                 type="time"
-                                value={
-                                    form.start_time
-                                }
+                                value={form.start_time}
                                 onChange={(event) =>
                                     setForm({
                                         ...form,
-                                        start_time:
-                                            event.target.value,
+                                        start_time: event.target.value,
                                     })
                                 }
                                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -564,70 +493,39 @@ function Index() {
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Duration
-                            </label>
-
+                            <label className="mb-2 block text-sm font-medium">Duration</label>
                             <select
-                                value={
-                                    form.duration_minutes
-                                }
+                                value={form.duration_minutes}
                                 onChange={(event) =>
                                     setForm({
                                         ...form,
-                                        duration_minutes:
-                                            event.target.value,
+                                        duration_minutes: event.target.value,
                                     })
                                 }
                                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
-                                <option value="30">
-                                    30 minutes
-                                </option>
-
-                                <option value="60">
-                                    60 minutes
-                                </option>
-
-                                <option value="90">
-                                    90 minutes
-                                </option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">60 minutes</option>
+                                <option value="90">90 minutes</option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Hold Duration
-                            </label>
-
+                            <label className="mb-2 block text-sm font-medium">Hold Duration</label>
                             <select
-                                value={
-                                    form.hold_duration_minutes
-                                }
+                                value={form.hold_duration_minutes}
                                 onChange={(event) =>
                                     setForm({
                                         ...form,
-                                        hold_duration_minutes:
-                                            event.target.value,
+                                        hold_duration_minutes: event.target.value,
                                     })
                                 }
                                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
-                                <option value="5">
-                                    5 minutes
-                                </option>
-
-                                <option value="10">
-                                    10 minutes
-                                </option>
-
-                                <option value="15">
-                                    15 minutes
-                                </option>
-
-                                <option value="30">
-                                    30 minutes
-                                </option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
                             </select>
                         </div>
 
@@ -737,128 +635,42 @@ function Index() {
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-3">
-                                                <h3 className="font-semibold text-slate-900">
-                                                    Hold #
-                                                    {
-                                                        hold.id
-                                                    }
-                                                </h3>
-
-                                                <span
-                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(
-                                                        hold.status
-                                                    )}`}
-                                                >
-                                                    {
-                                                        hold.status
-                                                    }
-                                                </span>
+                                                <h3 className="font-semibold text-slate-900">Hold # {hold.id}</h3>
+                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(hold.status)}`}>{hold.status}</span>
                                             </div>
-
-                                            <p className="mt-2 text-lg font-medium">
-                                                {
-                                                    hold.court
-                                                        ?.name
-                                                }
-                                            </p>
-
+                                            <p className="mt-2 text-lg font-medium">{hold.court?.name}</p>
                                             <div className="mt-2 grid gap-1 text-sm text-slate-500 md:grid-cols-2">
-                                                <span>
-                                                    Date:{" "}
-                                                    {formatDate(
-                                                        hold.booking_date
-                                                    )}
-                                                </span>
-
-                                                <span>
-                                                    Time:{" "}
-                                                    {formatTime(
-                                                        hold.start_time
-                                                    )}{" "}
-                                                    -{" "}
-                                                    {formatTime(
-                                                        hold.end_time
-                                                    )}
-                                                </span>
-
-                                                <span>
-                                                    Duration:{" "}
-                                                    {
-                                                        hold.duration_minutes
-                                                    }{" "}
-                                                    minutes
-                                                </span>
-
-                                                <span>
-                                                    Players:{" "}
-                                                    {
-                                                        hold.players_count
-                                                    }
-                                                </span>
-
-                                                <span>
-                                                    Customer:{" "}
-                                                    {
-                                                        hold.customer_name ||
-                                                        "-"
-                                                    }
-                                                </span>
-
-                                                <span>
-                                                    Email:{" "}
-                                                    {
-                                                        hold.customer_email ||
-                                                        "-"
-                                                    }
-                                                </span>
+                                                <span>Date: {formatDate(hold.booking_date)}</span>
+                                                <span>Time: {formatTime(hold.start_time)}-{formatTime(hold.end_time)}</span>
+                                                <span>Duration: {hold.duration_minutes} minutes</span>
+                                                <span>Players: {hold.players_count}</span>
+                                                <span>Customer: {hold.customer_name || "-"}</span>
+                                                <span>Email: {hold.customer_email || "-"}</span>
                                             </div>
 
-                                            {hold.status ===
-                                                "ACTIVE" && (
+                                            {hold.status === "ACTIVE" && (
                                                 <p className="mt-3 font-medium text-orange-600">
-                                                    Expires:{" "}
-                                                    {hold.expires_at
-                                                        ? new Date(
-                                                              hold.expires_at
-                                                          ).toLocaleString()
-                                                        : "-"}
+                                                    Expires: {hold.expires_at ? new Date(hold.expires_at).toLocaleString(): "-"}
                                                 </p>
                                             )}
-
                                             {hold.failure_reason && (
                                                 <p className="mt-3 text-sm text-red-600">
-                                                    Failure:{" "}
-                                                    {
-                                                        hold.failure_reason
-                                                    }
+                                                    Failure: {hold.failure_reason}
                                                 </p>
                                             )}
-
                                             {hold.booking && (
                                                 <p className="mt-3 text-sm text-blue-600">
-                                                    Booking:{" "}
-                                                    {
-                                                        hold
-                                                            .booking
-                                                            .booking_reference
-                                                    }
+                                                    Booking: {hold.booking.booking_reference}
                                                 </p>
                                             )}
                                         </div>
 
-                                        {hold.status ===
-                                            "ACTIVE" && (
+                                        {hold.status === "ACTIVE" && (
                                             <div className="flex flex-col gap-2 sm:flex-row">
                                                 <button
                                                     type="button"
-                                                    disabled={
-                                                        processing
-                                                    }
-                                                    onClick={() =>
-                                                        convertHold(
-                                                            hold.id
-                                                        )
-                                                    }
+                                                    disabled={processing}
+                                                    onClick={() => convertHold(hold.id)}
                                                     className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
                                                     Convert to Booking
@@ -866,14 +678,8 @@ function Index() {
 
                                                 <button
                                                     type="button"
-                                                    disabled={
-                                                        processing
-                                                    }
-                                                    onClick={() =>
-                                                        failHold(
-                                                            hold.id
-                                                        )
-                                                    }
+                                                    disabled={processing}
+                                                    onClick={() => failHold(hold.id)}
                                                     className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
                                                     Payment Failed

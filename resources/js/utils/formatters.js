@@ -82,3 +82,44 @@ export const readErrorMessage = (data, fallback = "Something went wrong. Please 
 
     return data?.message || fallback;
 };
+
+export const formatDateInput = (date) => {
+    if (!date) {
+        return "-";
+    }
+
+    const parsedDate = new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return "-";
+    }
+
+    return parsedDate.toLocaleDateString();
+};
+
+export const formatTimeInput = (time) => {
+    if (!time) {
+        return "-";
+    }
+
+    return time.slice(0, 5);
+};
+
+export const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+        case "ACTIVE":
+            return "bg-green-100 text-green-700";
+
+        case "CONVERTED":
+            return "bg-blue-100 text-blue-700";
+
+        case "EXPIRED":
+            return "bg-gray-100 text-gray-700";
+
+        case "FAILED":
+            return "bg-red-100 text-red-700";
+
+        default:
+            return "bg-gray-100 text-gray-700";
+    }
+};

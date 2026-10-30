@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -108,6 +109,8 @@ function App() {
 
 createRoot(document.getElementById('app')).render(
     <React.StrictMode>
-        <App />
+        <AuthProvider>
+            <App />
+        </AuthProvider>
     </React.StrictMode>
 );

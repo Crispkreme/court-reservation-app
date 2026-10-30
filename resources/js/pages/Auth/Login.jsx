@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
     const navigate = useNavigate();
-
+    const { login } = useAuth();
     const [form, setForm] = useState({
         email: '',
         password: '',
@@ -19,7 +20,7 @@ export default function Login() {
             [e.target.name]: e.target.value,
         });
     };
-    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -27,17 +28,23 @@ export default function Login() {
         setError('');
 
         try {
-            const response = await login(form);
-            const user = response?.name;
-            const role = response?.role?.toLowerCase();
+            // Login through AuthContext
+            const user = await login(form);
+
+            const role = user?.role?.toLowerCase();
 
             if (role === 'admin') {
-                navigate('/admin-dashboard', { replace: true });
+                navigate('/admin/dashboard', {
+                    replace: true
+                });
             } else if (role === 'member') {
-                navigate('/member-dashboard', { replace: true });
+                navigate('/member-dashboard', {
+                    replace: true
+                });
             } else {
                 setError('Your account role is not recognized.');
             }
+
         } catch (err) {
             console.error(err);
 
@@ -62,23 +69,16 @@ export default function Login() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-
-                {/* Header */}
                 <div className="mb-8 text-center">
-
                     <h1 className="text-3xl font-bold text-gray-900">
                         Welcome Back
                     </h1>
-
                     <p className="mt-2 text-gray-500">
                         Sign in to your court reservation account
                     </p>
-
                 </div>
 
-                {/* Error */}
                 {error && (
                     <div className="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700">
                         {error}
@@ -86,20 +86,9 @@ export default function Login() {
                 )}
 
                 {/* Form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-5"
-                >
-
-                    {/* Email */}
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label
-                            htmlFor="email"
-                            className="mb-2 block text-sm font-medium text-gray-700"
-                        >
-                            Email Address
-                        </label>
-
+                        <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">Email Address</label>
                         <input
                             id="email"
                             name="email"
@@ -112,16 +101,8 @@ export default function Login() {
                             className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         />
                     </div>
-
-                    {/* Password */}
                     <div>
-                        <label
-                            htmlFor="password"
-                            className="mb-2 block text-sm font-medium text-gray-700"
-                        >
-                            Password
-                        </label>
-
+                        <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">Password</label>
                         <input
                             id="password"
                             name="password"
@@ -134,8 +115,6 @@ export default function Login() {
                             className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         />
                     </div>
-
-                    {/* Login */}
                     <button
                         type="submit"
                         disabled={loading}
@@ -143,21 +122,13 @@ export default function Login() {
                     >
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
-
                 </form>
 
-                {/* Register */}
                 <div className="mt-6 text-center text-sm text-gray-600">
-
                     Don't have an account?
-
-                    <Link
-                        to="/register"
-                        className="ml-1 font-semibold text-blue-600 hover:text-blue-700"
-                    >
+                    <Link to="/register" className="ml-1 font-semibold text-blue-600 hover:text-blue-700">
                         Create an account
                     </Link>
-
                 </div>
 
             </div>

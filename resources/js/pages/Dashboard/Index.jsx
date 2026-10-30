@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
+import { useAuth } from "../../context/AuthContext";
 import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
-
 import { getAdminDashboard } from "../../services/adminService";
 
 
 export default function Dashboard() {
+
     const navigate = useNavigate();
+    const { user, role, isAdmin, isAuthenticated } = useAuth();
 
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -25,14 +27,23 @@ export default function Dashboard() {
     const [sportCategoryId, setSportCategoryId] = useState("");
     const [courtId, setCourtId] = useState("");
 
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate("/login", { replace: true });
+        } else if (!isAdmin) {
+            navigate("/member-dashboard", { replace: true });
+        }
+    }, [isAuthenticated, isAdmin, navigate]);
+
     const fetchDashboard = async () => {
         setLoading(true);
         setError("");
 
         try {
             const response = await getAdminDashboard();
-
+            console.log("Dashboard response:", response);
             setDashboard(response.data);
+
         } catch (err) {
             console.error(
                 "Admin dashboard error:",
@@ -47,7 +58,7 @@ export default function Dashboard() {
             } else {
                 setError(
                     err.response?.data?.message ||
-                        "Unable to load admin dashboard."
+                    "Unable to load admin dashboard."
                 );
             }
         } finally {
@@ -56,13 +67,13 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        fetchDashboard();
-    }, []);
+        if (isAuthenticated && isAdmin) {
+            fetchDashboard();
+        }
+    }, [isAuthenticated, isAdmin]);
 
     const clearFilters = () => {
-        const today = new Date()
-            .toISOString()
-            .slice(0, 10);
+        const today = new Date().toISOString().slice(0, 10);
 
         setDateFrom(today);
         setDateTo(today);
@@ -126,36 +137,16 @@ export default function Dashboard() {
 
     return (
         <Layout title="Dashboard">
-        <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-            <div className="mx-auto max-w-7xl space-y-6">
-
-                {/* Header */}
+            <div className="mx-auto w-full max-w-[1800px] space-y-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">
-                            Admin Dashboard
+                            Welcome, {user?.name || "Administrator"}!
                         </h1>
 
                         <p className="mt-1 text-slate-500">
-                            Court reservation system overview
-                            and operational reporting.
+                            Court reservation system overview and operational reporting.
                         </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Link
-                            to="/bookings"
-                            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                            Bookings
-                        </Link>
-
-                        <Link
-                            to="/courts"
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                        >
-                            Courts
-                        </Link>
                     </div>
                 </div>
 
@@ -703,9 +694,7 @@ export default function Dashboard() {
                         )}
                     </div>
                 </section>
-
             </div>
-        </div>
         </Layout>
     );
 }

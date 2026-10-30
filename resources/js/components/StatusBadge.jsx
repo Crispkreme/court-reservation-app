@@ -1,6 +1,13 @@
+export default function StatusBadge({ status, active }) {
+    // Support boolean active prop or the existing status prop.
+    const resolvedStatus =
+        typeof active === "boolean"
+            ? active
+                ? "active"
+                : "inactive"
+            : status;
 
-export default function StatusBadge({ status }) {
-    const normalized = String(status || "unknown").toLowerCase();
+    const normalized = String(resolvedStatus || "unknown").toLowerCase();
 
     const statusStyles = {
         confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
@@ -23,13 +30,14 @@ export default function StatusBadge({ status }) {
         closed: "bg-rose-50 text-rose-700 ring-rose-600/20",
         maintenance: "bg-rose-50 text-rose-700 ring-rose-600/20",
         no_show: "bg-rose-50 text-rose-700 ring-rose-600/20",
+        inactive: "bg-slate-100 text-slate-600 ring-slate-500/20",
     };
 
     const classes =
         statusStyles[normalized] ||
         "bg-slate-100 text-slate-600 ring-slate-500/20";
 
-    const label = String(status || "Unknown")
+    const label = String(resolvedStatus || "Unknown")
         .replaceAll("_", " ");
 
     return (

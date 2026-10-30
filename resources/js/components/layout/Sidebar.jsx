@@ -35,7 +35,7 @@ const navigation = [
     icon: CalendarDays,
     children: [
       { label: "All Bookings", to: "/bookings", icon: CalendarCheck },
-      { label: "Participants", to: "/booking-participants", icon: Users },
+      { label: "Participants", to: "/bookings/participants", icon: Users },
       { label: "Booking Holds", to: "/booking-holds", icon: CalendarClock },
       { label: "Booking Status", to: "/booking-status", icon: Activity },
       { label: "Booking Rules", to: "/booking-rules", icon: ClipboardList },

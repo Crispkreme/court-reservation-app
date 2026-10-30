@@ -86,6 +86,7 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::apiResource('court-schedules', CourtScheduleController::class);
+        Route::apiResource('participants', CourtScheduleController::class);
         Route::put('court-pricings/{courtPricing}', [CourtPricingController::class, 'update']);
         Route::delete('court-pricings/{courtPricing}', [CourtPricingController::class, 'destroy']);
         Route::put('maintenance-periods/{maintenancePeriod}',[CourtMaintenancePeriodController::class, 'update']);
@@ -101,6 +102,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/{booking}/reschedule', [BookingRescheduleController::class,'store']);
             Route::get('/{booking}/reschedules', [BookingRescheduleController::class,'history']);
             Route::post('/{booking}/players', [PlayerController::class,'addToBooking']);
+            Route::get('/participants', [PlayerController::class,'index']);
             Route::patch('/{booking}/players/{bookingPlayer}', [PlayerController::class, 'updateParticipant']);
             Route::delete('/{booking}/players/{bookingPlayer}', [PlayerController::class, 'removeFromBooking']);
             Route::post('/{booking}/player-invitations', [PlayerInvitationController::class, 'store']);

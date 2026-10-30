@@ -78,7 +78,7 @@ function App() {
                 <Route path="/booking-status" element={<ProtectedRoute><BookingStatus /></ProtectedRoute>}/>
                 <Route path="/booking-rules" element={<ProtectedRoute><BookingRules /></ProtectedRoute>}/>
                 <Route path="/bookings/cancellation-policies" element={<ProtectedRoute><CancellationPolicies /></ProtectedRoute>}/>
-                <Route path="/booking-participants" element={<ProtectedRoute><BookingParticipants /></ProtectedRoute>}/>
+                <Route path="/bookings/participants" element={<ProtectedRoute><BookingParticipants /></ProtectedRoute>}/>
 
                 <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>}/>
                 <Route path="/members/create" element={<ProtectedRoute><CreateMembers /></ProtectedRoute>}/>

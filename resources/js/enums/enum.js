@@ -1,0 +1,12 @@
+export const PLAYER_TYPES = Object.freeze({
+    RECREATIONAL: "RECREATIONAL",
+    COMPETITIVE: "COMPETITIVE",
+    PROFESSIONAL: "PROFESSIONAL",
+});
+
+export const SKILL_LEVELS = Object.freeze({
+    BEGINNER: "BEGINNER",
+    INTERMEDIATE: "INTERMEDIATE",
+    ADVANCED: "ADVANCED",
+    EXPERT: "EXPERT",
+});

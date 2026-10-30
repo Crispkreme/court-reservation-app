@@ -16,6 +16,14 @@ import {
     SlidersHorizontal,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import StatusBadge from "../../components/StatusBadge";
+import FilterSelect from "../../components/FilterSelect";
+import LoadingState from "../../components/LoadingState";
+import EmptyState from "../../components/EmptyState";
+import ErrorAlert from "../../components/ErrorAlert";
+import SuccessAlert from "../../components/SuccessAlert";
+import { readErrorMessage } from "../../utils/formatters";
+import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
 
 const API = "/api/v1";
 
@@ -25,53 +33,12 @@ const emptyForm = {
     last_name: "",
     email: "",
     phone: "",
-    player_type: "RECREATIONAL",
+    player_type: PLAYER_TYPES.RECREATIONAL,
     is_active: true,
-    skill_level: "BEGINNER",
+    skill_level: SKILL_LEVELS.BEGINNER,
     location: "",
     availability: "",
 };
-
-const PLAYER_TYPES = [
-    "RECREATIONAL",
-    "COMPETITIVE",
-    "PROFESSIONAL",
-];
-
-const SKILL_LEVELS = [
-    "BEGINNER",
-    "INTERMEDIATE",
-    "ADVANCED",
-    "EXPERT",
-];
-
-function readErrorMessage(data, fallback) {
-    if (data?.errors) {
-        const firstError = Object.values(data.errors).flat()[0];
-        if (firstError) return firstError;
-    }
-
-    return data?.message || fallback;
-}
-
-function ParticipantStatus({ active }) {
-    return (
-        <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                active
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-slate-100 text-slate-600"
-            }`}
-        >
-            <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                    active ? "bg-emerald-500" : "bg-slate-400"
-                }`}
-            />
-            {active ? "Active" : "Inactive"}
-        </span>
-    );
-}
 
 export default function BookingParticipants() {
     const [participants, setParticipants] = useState([]);
@@ -196,9 +163,9 @@ export default function BookingParticipants() {
             last_name: participant.last_name ?? "",
             email: participant.email ?? "",
             phone: participant.phone ?? "",
-            player_type: participant.player_type ?? "RECREATIONAL",
+            player_type: participant.player_type ?? PLAYER_TYPES.RECREATIONAL,
             is_active: Boolean(participant.is_active),
-            skill_level: participant.skill_level ?? "BEGINNER",
+            skill_level: participant.skill_level ?? SKILL_LEVELS.BEGINNER,
             location: participant.location ?? "",
             availability: participant.availability ?? "",
         });
@@ -280,8 +247,7 @@ export default function BookingParticipants() {
         return formErrors[field]?.[0] || "";
     }
 
-    const inputClass =
-        "mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+    const inputClass = "mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
     const labelClass = "block text-sm font-medium text-slate-700";
 
     return (
@@ -323,19 +289,9 @@ export default function BookingParticipants() {
                     </div>
                 </div>
 
-                {error && (
-                    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                        <span>{error}</span>
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
-                {success && (
-                    <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-                        <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-                        <span>{success}</span>
-                    </div>
-                )}
+                <SuccessAlert message={success} />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -413,18 +369,13 @@ export default function BookingParticipants() {
                     </div>
 
                     {loading ? (
-                        <div className="p-10 text-center text-sm text-slate-500">
-                            <RefreshCw size={22} className="mx-auto mb-3 animate-spin text-blue-600" />
-                            Loading participants...
-                        </div>
+                        <LoadingState message="Loading participants..." />
                     ) : filteredParticipants.length === 0 ? (
-                        <div className="p-10 text-center">
-                            <UsersRound size={28} className="mx-auto mb-3 text-slate-300" />
-                            <p className="font-medium text-slate-800">No participants found</p>
-                            <p className="mt-1 text-sm text-slate-500">
-                                Try changing your filters or add a participant.
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={UsersRound}
+                            title="No participants found"
+                            description="Try changing your filters or add a participant."
+                        />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-sm">
@@ -472,7 +423,7 @@ export default function BookingParticipants() {
                                                 </span>
                                             </td>
                                             <td className="whitespace-nowrap px-5 py-4">
-                                                <ParticipantStatus active={Boolean(participant.is_active)} />
+                                                <StatusBadge active={Boolean(participant.is_active)} />
                                             </td>
                                             <td className="whitespace-nowrap px-5 py-4">
                                                 <div className="flex items-center gap-2">
@@ -603,7 +554,11 @@ export default function BookingParticipants() {
                                             onChange={(event) => updateField("player_type", event.target.value)}
                                             className={inputClass}
                                         >
-                                            {PLAYER_TYPES.map((type) => <option key={type} value={type}>{type.charAt(0) + type.slice(1).toLowerCase()}</option>)}
+                                            {Object.values(PLAYER_TYPES).map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type.charAt(0) + type.slice(1).toLowerCase()}
+                                                </option>
+                                            ))}
                                         </select>
                                         {fieldError("player_type") && <p className="mt-1 text-xs text-red-600">{fieldError("player_type")}</p>}
                                     </div>
@@ -614,7 +569,11 @@ export default function BookingParticipants() {
                                             onChange={(event) => updateField("skill_level", event.target.value)}
                                             className={inputClass}
                                         >
-                                            {SKILL_LEVELS.map((level) => <option key={level} value={level}>{level.charAt(0) + level.slice(1).toLowerCase()}</option>)}
+                                            {Object.values(SKILL_LEVELS).map((level) => (
+                                                <option key={level} value={level}>
+                                                    {level.charAt(0) + level.slice(1).toLowerCase()}
+                                                </option>
+                                            ))}
                                         </select>
                                         {fieldError("skill_level") && <p className="mt-1 text-xs text-red-600">{fieldError("skill_level")}</p>}
                                     </div>

@@ -70,3 +70,15 @@ export const getTodayDate = () => {
         String(today.getDate()).padStart(2, "0"),
     ].join("-");
 };
+
+export const readErrorMessage = (data, fallback = "Something went wrong. Please try again.") => {
+    if (data?.errors) {
+        const firstError = Object.values(data.errors).flat()[0];
+
+        if (firstError) {
+            return firstError;
+        }
+    }
+
+    return data?.message || fallback;
+};

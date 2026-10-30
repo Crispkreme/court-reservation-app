@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
 import { useAuth } from "../../context/AuthContext";
+import PageState from "../../components/PageState";
 import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 import { getAdminDashboard } from "../../services/adminService";
-
 
 export default function Dashboard() {
 
@@ -89,44 +89,15 @@ export default function Dashboard() {
         }, 0);
     };
 
-    if (loading) {
+    if (loading || error) {
         return (
-            <Layout title="Dashboard">
-            <div className="min-h-screen bg-slate-50 p-6">
-                <div className="mx-auto max-w-7xl">
-                    <div className="rounded-xl bg-white p-8 shadow">
-                        Loading admin dashboard...
-                    </div>
-                </div>
-            </div>
-            </Layout>
-        );
-    }
-
-    if (error) {
-        return (
-            <Layout title="Dashboard">
-            <div className="min-h-screen bg-slate-50 p-6">
-                <div className="mx-auto max-w-7xl">
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700">
-                        <h2 className="text-lg font-semibold">
-                            Dashboard Error
-                        </h2>
-
-                        <p className="mt-2">
-                            {error}
-                        </p>
-
-                        <button
-                            onClick={fetchDashboard}
-                            className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-white"
-                        >
-                            Retry
-                        </button>
-                    </div>
-                </div>
-            </div>
-            </Layout>
+            <PageState
+                title="Dashboard"
+                loading={loading}
+                error={error}
+                loadingMessage="Loading admin dashboard..."
+                onRetry={fetchDashboard}
+            />
         );
     }
 

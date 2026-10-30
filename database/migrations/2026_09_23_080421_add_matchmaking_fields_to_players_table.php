@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -8,40 +9,43 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('players', function (Blueprint $table) {
-            $table->string('skill_level')
-                ->nullable()
-                ->after('email');
+        if (!Schema::hasColumn('players', 'skill_level')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->string('skill_level')->nullable();
+                $table->index('skill_level');
+            });
+        }
 
-            $table->string('location')
-                ->nullable()
-                ->after('skill_level');
+        if (!Schema::hasColumn('players', 'location')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->string('location')->nullable();
+                $table->index('location');
+            });
+        }
 
-            $table->json('availability')
-                ->nullable()
-                ->after('location');
-
-            $table->index('skill_level');
-            $table->index('location');
-        });
+        if (!Schema::hasColumn('players', 'availability')) {
+            Schema::table('players', function (Blueprint $table) {
+                $table->json('availability')->nullable();
+            });
+        }
     }
 
     public function down(): void
     {
         Schema::table('players', function (Blueprint $table) {
-            $table->dropIndex([
-                'skill_level',
-            ]);
+            if (Schema::hasColumn('players', 'availability')) {
+                $table->dropColumn('availability');
+            }
 
-            $table->dropIndex([
-                'location',
-            ]);
+            if (Schema::hasColumn('players', 'location')) {
+                $table->dropIndex(['location']);
+                $table->dropColumn('location');
+            }
 
-            $table->dropColumn([
-                'skill_level',
-                'location',
-                'availability',
-            ]);
+            if (Schema::hasColumn('players', 'skill_level')) {
+                $table->dropIndex(['skill_level']);
+                $table->dropColumn('skill_level');
+            }
         });
     }
 };

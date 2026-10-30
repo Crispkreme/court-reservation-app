@@ -42,7 +42,8 @@ class MemberSeeder extends Seeder
                 'last_name' => $member->last_name,
                 'email' => $member->email,
                 'phone' => $member->phone,
-                'player_type' => 'member',
+                'player_type' => 'RECREATIONAL',
+                'skill_level' => 'INTERMEDIATE',
                 'is_active' => true,
             ]);
         }

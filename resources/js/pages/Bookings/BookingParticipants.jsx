@@ -18,15 +18,16 @@ import {
 import Layout from "../../components/layout/Layout";
 import StatusBadge from "../../components/StatusBadge";
 import FilterSelect from "../../components/FilterSelect";
+import ParticipantModal from "../../components/modal/ParticipantModal";
 import LoadingState from "../../components/LoadingState";
 import EmptyState from "../../components/EmptyState";
 import ErrorAlert from "../../components/ErrorAlert";
 import SuccessAlert from "../../components/SuccessAlert";
 import { readErrorMessage } from "../../utils/formatters";
 import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
+import { getParticipants, createParticipant, updateParticipant } from "../../services/playerService";
 
 const API = "/api/v1";
-
 const emptyForm = {
     member_id: "",
     first_name: "",
@@ -54,57 +55,15 @@ export default function BookingParticipants() {
     const [form, setForm] = useState(emptyForm);
     const [formErrors, setFormErrors] = useState({});
 
-    async function requestJson(url, options = {}) {
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                Accept: "application/json",
-                ...(options.body ? { "Content-Type": "application/json" } : {}),
-                ...options.headers,
-            },
-            credentials: "include",
-        });
-
-        const contentType = response.headers.get("content-type") || "";
-        const rawBody = await response.text();
-        let result = {};
-
-        if (rawBody && contentType.includes("application/json")) {
-            try {
-                result = JSON.parse(rawBody);
-            } catch {
-                throw new Error("The server returned invalid JSON.");
-            }
-        } else if (!response.ok) {
-            const error = new Error(
-                `The server returned an unexpected response (${response.status}). Check the API route and authentication.`
-            );
-            throw error;
-        } else if (rawBody) {
-            throw new Error(
-                "The API returned HTML instead of JSON. Check the API route and Laravel response."
-            );
-        }
-
-        if (!response.ok) {
-            const error = new Error(readErrorMessage(result, "The request failed."));
-            error.validationErrors = result.errors || null;
-            throw error;
-        }
-
-        return result;
-    }
-
     async function loadParticipants() {
         setLoading(true);
         setError("");
 
         try {
-            const result = await requestJson(`${API}/participants`);
-            const records = result.data?.data ?? result.data ?? [];
-            setParticipants(Array.isArray(records) ? records : []);
+            const result = await getParticipants();
+            setParticipants(result.data ?? []);
         } catch (err) {
-            setError(err.message || "Unable to load participants.");
+            setError(err.response?.data?.message || err.message || "Unable to load participants.");
         } finally {
             setLoading(false);
         }
@@ -181,24 +140,26 @@ export default function BookingParticipants() {
 
     async function saveParticipant(event) {
         event.preventDefault();
+
+        if (saving) return;
+
         setSaving(true);
         setError("");
         setSuccess("");
         setFormErrors({});
 
-        const url = editingParticipant
-            ? `${API}/participants/${editingParticipant.id}`
-            : `${API}/participants`;
+        const payload = {
+            ...form,
+            member_id: form.member_id || null,
+            is_active: Boolean(form.is_active),
+        };
+
+        console.log('payload: ', payload)
 
         try {
-            const result = await requestJson(url, {
-                method: editingParticipant ? "PUT" : "POST",
-                body: JSON.stringify({
-                    ...form,
-                    member_id: form.member_id || null,
-                    is_active: Boolean(form.is_active),
-                }),
-            });
+            const result = editingParticipant
+                ? await updateParticipant(editingParticipant.id, payload)
+                : await createParticipant(payload);
 
             setSuccess(
                 result.message ||
@@ -206,18 +167,30 @@ export default function BookingParticipants() {
                         ? "Participant updated successfully."
                         : "Participant created successfully.")
             );
+
             setModalOpen(false);
             setEditingParticipant(null);
             setForm(emptyForm);
+            setFormErrors({});
+
             await loadParticipants();
+
         } catch (err) {
-            setError(err.message || "Unable to save participant.");
-            if (err.validationErrors) setFormErrors(err.validationErrors);
+            const validationErrors = err.response?.data?.errors;
+
+            if (validationErrors) {
+                setFormErrors(validationErrors);
+            } else {
+                setError(
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Unable to save participant."
+                );
+            }
         } finally {
             setSaving(false);
         }
     }
-
     async function deleteParticipant(participant) {
         const confirmed = window.confirm(
             `Delete ${participant.first_name} ${participant.last_name}? This action cannot be undone.`
@@ -381,7 +354,7 @@ export default function BookingParticipants() {
                             <table className="min-w-full text-left text-sm">
                                 <thead className="bg-slate-50">
                                     <tr>
-                                        {["Participant", "Member ID", "Contact", "Player Type", "Skill Level", "Location", "Status", "Actions"].map((heading) => (
+                                        {["Participant", "Contact", "Player Type", "Skill Level", "Location", "Status", "Actions"].map((heading) => (
                                             <th key={heading} className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                 {heading}
                                             </th>
@@ -396,9 +369,6 @@ export default function BookingParticipants() {
                                                     {participant.first_name} {participant.last_name}
                                                 </div>
                                                 <div className="mt-0.5 text-xs text-slate-500">{participant.availability || "Availability not set"}</div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-5 py-4 text-slate-600">
-                                                {participant.member_id ?? "—"}
                                             </td>
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-2 text-slate-700">
@@ -455,188 +425,20 @@ export default function BookingParticipants() {
                         </div>
                     )}
                 </div>
-
-                {modalOpen && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm"
-                        onMouseDown={(event) => {
-                            if (event.target === event.currentTarget && !saving) setModalOpen(false);
-                        }}
-                    >
-                        <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl">
-                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-                                <div>
-                                    <h2 className="text-lg font-semibold text-slate-900">
-                                        {editingParticipant ? "Edit Participant" : "Add Participant"}
-                                    </h2>
-                                    <p className="mt-1 text-sm text-slate-500">
-                                        Enter the participant's profile and player details.
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => !saving && setModalOpen(false)}
-                                    disabled={saving}
-                                    className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
-                                    aria-label="Close form"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={saveParticipant} className="space-y-6 p-6">
-                                {Object.keys(formErrors).length > 0 && (
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                                        Please correct the highlighted fields and try again.
-                                    </div>
-                                )}
-
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label className={labelClass}>First Name *</label>
-                                        <input
-                                            value={form.first_name}
-                                            onChange={(event) => updateField("first_name", event.target.value)}
-                                            className={inputClass}
-                                            autoComplete="given-name"
-                                            required
-                                        />
-                                        {fieldError("first_name") && <p className="mt-1 text-xs text-red-600">{fieldError("first_name")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Last Name *</label>
-                                        <input
-                                            value={form.last_name}
-                                            onChange={(event) => updateField("last_name", event.target.value)}
-                                            className={inputClass}
-                                            autoComplete="family-name"
-                                            required
-                                        />
-                                        {fieldError("last_name") && <p className="mt-1 text-xs text-red-600">{fieldError("last_name")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Member ID</label>
-                                        <input
-                                            value={form.member_id}
-                                            onChange={(event) => updateField("member_id", event.target.value)}
-                                            className={inputClass}
-                                            placeholder="Optional member ID"
-                                        />
-                                        {fieldError("member_id") && <p className="mt-1 text-xs text-red-600">{fieldError("member_id")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Email *</label>
-                                        <input
-                                            type="email"
-                                            value={form.email}
-                                            onChange={(event) => updateField("email", event.target.value)}
-                                            className={inputClass}
-                                            autoComplete="email"
-                                            required
-                                        />
-                                        {fieldError("email") && <p className="mt-1 text-xs text-red-600">{fieldError("email")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={form.phone}
-                                            onChange={(event) => updateField("phone", event.target.value)}
-                                            className={inputClass}
-                                            autoComplete="tel"
-                                        />
-                                        {fieldError("phone") && <p className="mt-1 text-xs text-red-600">{fieldError("phone")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Player Type</label>
-                                        <select
-                                            value={form.player_type}
-                                            onChange={(event) => updateField("player_type", event.target.value)}
-                                            className={inputClass}
-                                        >
-                                            {Object.values(PLAYER_TYPES).map((type) => (
-                                                <option key={type} value={type}>
-                                                    {type.charAt(0) + type.slice(1).toLowerCase()}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {fieldError("player_type") && <p className="mt-1 text-xs text-red-600">{fieldError("player_type")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Skill Level</label>
-                                        <select
-                                            value={form.skill_level}
-                                            onChange={(event) => updateField("skill_level", event.target.value)}
-                                            className={inputClass}
-                                        >
-                                            {Object.values(SKILL_LEVELS).map((level) => (
-                                                <option key={level} value={level}>
-                                                    {level.charAt(0) + level.slice(1).toLowerCase()}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {fieldError("skill_level") && <p className="mt-1 text-xs text-red-600">{fieldError("skill_level")}</p>}
-                                    </div>
-                                    <div>
-                                        <label className={labelClass}>Location</label>
-                                        <input
-                                            value={form.location}
-                                            onChange={(event) => updateField("location", event.target.value)}
-                                            className={inputClass}
-                                            placeholder="City or area"
-                                        />
-                                        {fieldError("location") && <p className="mt-1 text-xs text-red-600">{fieldError("location")}</p>}
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <label className={labelClass}>Availability</label>
-                                        <textarea
-                                            value={form.availability}
-                                            onChange={(event) => updateField("availability", event.target.value)}
-                                            className={inputClass}
-                                            rows={3}
-                                            placeholder="e.g. Weekdays after 6 PM, weekends"
-                                        />
-                                        {fieldError("availability") && <p className="mt-1 text-xs text-red-600">{fieldError("availability")}</p>}
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <label className="inline-flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
-                                            <input
-                                                type="checkbox"
-                                                checked={form.is_active}
-                                                onChange={(event) => updateField("is_active", event.target.checked)}
-                                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span>
-                                                <span className="block text-sm font-medium text-slate-800">Active participant</span>
-                                                <span className="block text-xs text-slate-500">Inactive participants remain in the directory but are marked unavailable.</span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={() => setModalOpen(false)}
-                                        disabled={saving}
-                                        className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={saving}
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                        {saving ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                                        {saving ? "Saving..." : editingParticipant ? "Update Participant" : "Create Participant"}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
             </div>
+
+            <ParticipantModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                saving={saving}
+                editingParticipant={editingParticipant}
+                form={form}
+                formErrors={formErrors}
+                onSubmit={saveParticipant}
+                updateField={updateField}
+                fieldError={fieldError}
+            />
+
         </Layout>
     );
 }

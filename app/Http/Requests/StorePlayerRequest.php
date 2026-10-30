@@ -46,7 +46,12 @@ class StorePlayerRequest extends FormRequest
 
             'player_type' => [
                 'required',
-                'in:member,guest',
+                'in:RECREATIONAL,COMPETITIVE,PROFESSIONAL',
+            ],
+
+            'skill_level' => [
+                'required',
+                'in:BEGINNER,INTERMEDIATE,ADVANCED,EXPERT',
             ],
         ];
     }

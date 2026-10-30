@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -17,22 +18,29 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('first_name', 100);
+            $table->string('last_name', 100);
 
-            $table->string('email')
-                ->nullable();
-
-            $table->string('phone')
-                ->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone', 50)->nullable();
 
             $table->enum('player_type', [
-                'member',
-                'guest',
-            ])->default('guest');
+                'RECREATIONAL',
+                'COMPETITIVE',
+                'PROFESSIONAL',
+            ])->default('RECREATIONAL');
 
-            $table->boolean('is_active')
-                ->default(true);
+            $table->enum('skill_level', [
+                'BEGINNER',
+                'INTERMEDIATE',
+                'ADVANCED',
+                'EXPERT',
+            ])->nullable();
+
+            $table->boolean('is_active')->default(true);
+
+            $table->string('location')->nullable();
+            $table->json('availability')->nullable();
 
             $table->timestamps();
 

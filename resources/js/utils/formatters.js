@@ -123,3 +123,47 @@ export const getStatusClass = (status) => {
             return "bg-gray-100 text-gray-700";
     }
 };
+
+export const updateFormField = (setForm, field, value) => {
+    setForm((previous) => ({
+        ...previous,
+        [field]: value,
+    }));
+};
+
+export const toggleFormArrayItem = (
+    setForm,
+    field,
+    value
+) => {
+    setForm((previous) => {
+        const currentItems = previous[field] || [];
+        const exists = currentItems.includes(value);
+
+        return {
+            ...previous,
+            [field]: exists
+                ? currentItems.filter((item) => item !== value)
+                : [...currentItems, value],
+        };
+    });
+};
+
+export const resetFormState = ({
+    setForm,
+    emptyForm,
+    setEditing,
+    setErrors,
+}) => {
+    setForm({
+        ...emptyForm,
+        allowed_days: [...(emptyForm.allowed_days || [])],
+    });
+
+    setEditing(null);
+    setErrors({});
+};
+
+export const getFieldError = (errors, field) => {
+    return errors?.[field]?.[0] || "";
+};

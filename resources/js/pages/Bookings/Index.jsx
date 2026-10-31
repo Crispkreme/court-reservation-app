@@ -65,27 +65,25 @@ export default function Bookings() {
     const query = search.trim().toLowerCase();
 
     return bookings.filter((booking) => {
-        const bookingId = String(booking.booking_reference || "");
-        const customer = String(booking.customer_name || "");
-        const email = String(booking.customer_email || "");
-        const court = String(booking.court?.name || "");
-        const sport = String(booking.sport_category?.name || "");
-        const bookingStatus = String(booking.status || "").toLowerCase();
-        const bookingDate = String(booking.booking_date || "").slice(0, 10);
+      const bookingId = String(booking.booking_reference || "");
+      const customer = String(booking.customer_name || "");
+      const email = String(booking.customer_email || "");
+      const court = String(booking.court?.name || "");
+      const sport = String(booking.sport_category?.name || "");
+      const bookingStatus = String(booking.status || "").toLowerCase();
+      const bookingDate = String(booking.booking_date || "").slice(0, 10);
 
-        const matchesSearch =
-            bookingId.toLowerCase().includes(query) ||
-            customer.toLowerCase().includes(query) ||
-            email.toLowerCase().includes(query) ||
-            court.toLowerCase().includes(query) ||
-            sport.toLowerCase().includes(query);
+      const matchesSearch =
+        bookingId.toLowerCase().includes(query) ||
+        customer.toLowerCase().includes(query) ||
+        email.toLowerCase().includes(query) ||
+        court.toLowerCase().includes(query) ||
+        sport.toLowerCase().includes(query);
 
-        const matchesStatus =
-            !status || bookingStatus === status.toLowerCase();
+      const matchesStatus = !status || bookingStatus === status.toLowerCase();
+      const matchesDate = !date || bookingDate === date;
 
-        const matchesDate = !date || bookingDate === date;
-
-        return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesStatus && matchesDate;
     });
   }, [bookings, search, status, date]);
 

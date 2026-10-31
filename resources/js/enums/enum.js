@@ -25,8 +25,6 @@ export const BOOKING_STATUS = Object.freeze({
     FAILED: "FAILED",
 });
 
-export const BOOKING_STATUS_OPTIONS = Object.values(BOOKING_STATUS);
-
 export const BOOKING_STATUS_CLASSES = Object.freeze({
     [BOOKING_STATUS.DRAFT]: "bg-slate-100 text-slate-700 ring-slate-500/20",
     [BOOKING_STATUS.PENDING_PAYMENT]: "bg-yellow-50 text-yellow-700 ring-yellow-600/20",
@@ -41,7 +39,6 @@ export const BOOKING_STATUS_CLASSES = Object.freeze({
     [BOOKING_STATUS.FAILED]: "bg-rose-50 text-rose-700 ring-rose-600/20",
 });
 
-// Other application statuses (holds, payments, courts, etc.)
 export const GENERAL_STATUS_CLASSES = Object.freeze({
     ACTIVE: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
     PAID: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
@@ -61,15 +58,30 @@ export const GENERAL_STATUS_CLASSES = Object.freeze({
     INACTIVE: "bg-slate-100 text-slate-600 ring-slate-500/20",
 });
 
-export const getBookingStatusClass = (status) =>
-    BOOKING_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
+export const DAYS_OF_WEEK = Object.freeze({
+    SUNDAY: 0,
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+});
 
-export const getGeneralStatusClass = (status) =>
-    GENERAL_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
+export const DAYS_OF_WEEK_OPTIONS = Object.freeze([
+    { value: DAYS_OF_WEEK.SUNDAY, label: "Sunday" },
+    { value: DAYS_OF_WEEK.MONDAY, label: "Monday" },
+    { value: DAYS_OF_WEEK.TUESDAY, label: "Tuesday" },
+    { value: DAYS_OF_WEEK.WEDNESDAY, label: "Wednesday" },
+    { value: DAYS_OF_WEEK.THURSDAY, label: "Thursday" },
+    { value: DAYS_OF_WEEK.FRIDAY, label: "Friday" },
+    { value: DAYS_OF_WEEK.SATURDAY, label: "Saturday" },
+]);
 
-export const getStatusClass = (status) => {
-    const normalized = String(status || "").toUpperCase();
-
+export const BOOKING_STATUS_OPTIONS = Object.values(BOOKING_STATUS);
+export const getBookingStatusClass = (status) => BOOKING_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
+export const getGeneralStatusClass = (status) => GENERAL_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
+export const getStatusClass = (status) => { const normalized = String(status || "").toUpperCase();
     return (
         BOOKING_STATUS_CLASSES[normalized] ||
         GENERAL_STATUS_CLASSES[normalized] ||

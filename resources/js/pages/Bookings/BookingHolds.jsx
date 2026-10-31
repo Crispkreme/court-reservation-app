@@ -9,11 +9,15 @@ import {
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import { formatDate, formatTime, getStatusClass } from "../../utils/formatters";
-import { getBookingHolds } from "../../services/bookingHoldService";
 import SuccessAlert from "../../components/SuccessAlert";
 import ErrorAlert from "../../components/ErrorAlert";
-
-const API = "/api/v1";
+import {
+    getBookingHolds,
+    createBookingHold,
+    convertBookingHold,
+    failBookingHold,
+    releaseExpiredBookingHolds,
+} from "../../services/bookingHoldService";
 
 function Index() {
     const [holds, setHolds] = useState([]);
@@ -61,7 +65,6 @@ function Index() {
             setLoading(false);
         }
     }
-
     async function createTestHold(event) {
         event.preventDefault();
 
@@ -70,71 +73,7 @@ function Index() {
             setError("");
             setSuccess("");
 
-            const response = await fetch(
-                `${API}/booking-holds`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-
-                        Accept:
-                            "application/json",
-                    },
-
-                    body: JSON.stringify({
-                        ...form,
-
-                        sport_category_id:
-                            Number(
-                                form.sport_category_id
-                            ),
-
-                        court_id:
-                            Number(
-                                form.court_id
-                            ),
-
-                        duration_minutes:
-                            Number(
-                                form.duration_minutes
-                            ),
-
-                        players_count:
-                            Number(
-                                form.players_count
-                            ),
-
-                        hold_duration_minutes:
-                            Number(
-                                form.hold_duration_minutes
-                            ),
-                    }),
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                if (result.errors) {
-                    const firstError =
-                        Object.values(
-                            result.errors
-                        )[0];
-
-                    throw new Error(
-                        Array.isArray(firstError)
-                            ? firstError[0]
-                            : firstError
-                    );
-                }
-
-                throw new Error(
-                    result.message ||
-                    "Unable to create hold."
-                );
-            }
+            await createBookingHold(form);
 
             setSuccess(
                 "Court successfully placed on hold."
@@ -147,12 +86,17 @@ function Index() {
 
             await loadHolds();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.errors
+                    ? readErrorMessage(err.response.data)
+                    : err.response?.data?.message ||
+                    err.message ||
+                    "Unable to create hold."
+            );
         } finally {
             setProcessing(false);
         }
     }
-
     async function convertHold(id) {
         if (
             !window.confirm(
@@ -167,91 +111,46 @@ function Index() {
             setError("");
             setSuccess("");
 
-            const response = await fetch(
-                `${API}/booking-holds/${id}/convert`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-
-                        Accept:
-                            "application/json",
-                    },
-
-                    body: JSON.stringify({
-                        payment_reference:
-                            `TEST-PAY-${Date.now()}`,
-                    }),
-                }
+            const result = await convertBookingHold(
+                id,
+                `TEST-PAY-${Date.now()}`
             );
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to convert hold."
-                );
-            }
-
             setSuccess(
-                `Hold converted successfully. Booking reference: ${result.data.booking.booking_reference}`
+                `Hold converted successfully. Booking reference: ${
+                    result.data.booking.booking_reference
+                }`
             );
 
             await loadHolds();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to convert hold."
+            );
         } finally {
             setProcessing(false);
         }
     }
-
     async function failHold(id) {
         const reason = window.prompt(
             "Enter checkout failure reason:",
             "Payment failed."
         );
 
-        if (!reason) {
-            return;
-        }
+        if (!reason) return;
 
         try {
             setProcessing(true);
             setError("");
             setSuccess("");
 
-            const response = await fetch(
-                `${API}/booking-holds/${id}/fail`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-
-                        Accept:
-                            "application/json",
-                    },
-
-                    body: JSON.stringify({
-                        failure_reason: reason,
-                        payment_reference:
-                            `FAILED-PAY-${Date.now()}`,
-                    }),
-                }
+            await failBookingHold(
+                id,
+                reason,
+                `FAILED-PAY-${Date.now()}`
             );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to record failure."
-                );
-            }
 
             setSuccess(
                 "Checkout failure recorded and court released."
@@ -259,30 +158,22 @@ function Index() {
 
             await loadHolds();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to record failure."
+            );
         } finally {
             setProcessing(false);
         }
     }
-
     async function releaseExpired() {
         try {
             setProcessing(true);
             setError("");
             setSuccess("");
 
-            const response = await fetch(
-                `${API}/booking-holds/release-expired`
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to release expired holds."
-                );
-            }
+            const result = await releaseExpiredBookingHolds();
 
             setSuccess(
                 `${result.data.released_count} expired hold(s) released.`
@@ -290,7 +181,11 @@ function Index() {
 
             await loadHolds();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to release expired holds."
+            );
         } finally {
             setProcessing(false);
         }

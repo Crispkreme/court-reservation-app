@@ -1,44 +1,20 @@
+import { getStatusClass } from "../enums/enum";
+
 export default function StatusBadge({ status, active }) {
-    // Support boolean active prop or the existing status prop.
     const resolvedStatus =
         typeof active === "boolean"
             ? active
-                ? "active"
-                : "inactive"
+                ? "ACTIVE"
+                : "INACTIVE"
             : status;
 
-    const normalized = String(resolvedStatus || "unknown").toLowerCase();
+    const normalized = String(
+        resolvedStatus || "UNKNOWN"
+    ).toUpperCase();
 
-    const statusStyles = {
-        confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-        paid: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-        completed: "bg-blue-50 text-blue-700 ring-blue-600/20",
-        active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-        available: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-        success: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-        successful: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    const classes = getStatusClass(normalized);
 
-        pending: "bg-amber-50 text-amber-700 ring-amber-600/20",
-        held: "bg-amber-50 text-amber-700 ring-amber-600/20",
-        reserved: "bg-amber-50 text-amber-700 ring-amber-600/20",
-        processing: "bg-amber-50 text-amber-700 ring-amber-600/20",
-        waiting: "bg-amber-50 text-amber-700 ring-amber-600/20",
-
-        cancelled: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        failed: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        expired: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        closed: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        maintenance: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        no_show: "bg-rose-50 text-rose-700 ring-rose-600/20",
-        inactive: "bg-slate-100 text-slate-600 ring-slate-500/20",
-    };
-
-    const classes =
-        statusStyles[normalized] ||
-        "bg-slate-100 text-slate-600 ring-slate-500/20";
-
-    const label = String(resolvedStatus || "Unknown")
-        .replaceAll("_", " ");
+    const label = normalized.replaceAll("_", " ").toLowerCase();
 
     return (
         <span

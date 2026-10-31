@@ -1,61 +1,22 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
 import { Activity, CalendarDays, Filter, History, RefreshCw, ShieldCheck } from "lucide-react";
-
-const API = "/api/v1";
-
-const STATUS_OPTIONS = [
-    "DRAFT",
-    "PENDING_PAYMENT",
-    "CONFIRMED",
-    "CHECKED_IN",
-    "IN_PROGRESS",
-    "COMPLETED",
-    "CANCELLED",
-    "RESCHEDULED",
-    "NO_SHOW",
-    "EXPIRED",
-    "FAILED",
-];
-
-const statusClasses = {
-    DRAFT: "bg-slate-100 text-slate-700",
-    PENDING_PAYMENT: "bg-yellow-100 text-yellow-700",
-    CONFIRMED: "bg-green-100 text-green-700",
-    CHECKED_IN: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-indigo-100 text-indigo-700",
-    COMPLETED: "bg-emerald-100 text-emerald-700",
-    CANCELLED: "bg-red-100 text-red-700",
-    RESCHEDULED: "bg-purple-100 text-purple-700",
-    NO_SHOW: "bg-orange-100 text-orange-700",
-    EXPIRED: "bg-slate-200 text-slate-700",
-    FAILED: "bg-red-100 text-red-800",
-};
-
-function StatusBadge({ status }) {
-    return (
-        <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                statusClasses[status] ??
-                "bg-slate-100 text-slate-700"
-            }`}
-        >
-            {status?.replaceAll("_", " ")}
-        </span>
-    );
-}
+import { BOOKING_STATUS, BOOKING_STATUS_OPTIONS, getBookingStatusClass } from "../../enums/enum";
+import StatusBadge from "../../components/StatusBadge";
+import {
+    getBookingStatusBookings,
+    getBookingStatusHistory,
+    updateBookingStatus,
+} from "../../services/bookingStatusService";
 
 export default function BookingStatus() {
     const [bookings, setBookings] = useState([]);
     const [pagination, setPagination] = useState(null);
-
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [history, setHistory] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [historyLoading, setHistoryLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-
     const [error, setError] = useState("");
 
     const [filters, setFilters] = useState({
@@ -74,48 +35,26 @@ export default function BookingStatus() {
         setError("");
 
         try {
-            const params = new URLSearchParams();
-
-            if (filters.status) {
-                params.set("status", filters.status);
-            }
-
-            if (filters.date) {
-                params.set("date", filters.date);
-            }
-
-            const query = params.toString();
-
-            const response = await fetch(
-                `${API}/booking-statuses/bookings${
-                    query ? `?${query}` : ""
-                }`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ??
-                        "Unable to load bookings."
-                );
-            }
+            const result = await getBookingStatusBookings({
+                status: filters.status || undefined,
+                date: filters.date || undefined,
+            });
 
             setBookings(result.data?.data ?? []);
             setPagination(result.data ?? null);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ??
+                err.message ??
+                "Unable to load bookings."
+            );
         } finally {
             setLoading(false);
         }
     }
-
     async function loadHistory(booking) {
+        if (!booking?.id) return;
+
         setSelectedBooking(booking);
         setHistory([]);
         setHistoryLoading(true);
@@ -128,42 +67,24 @@ export default function BookingStatus() {
         });
 
         try {
-            const response = await fetch(
-                `${API}/booking-statuses/bookings/${booking.id}/history`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                }
-            );
+            const result = await getBookingStatusHistory(booking.id);
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ??
-                        "Unable to load booking history."
-                );
-            }
-
-            setSelectedBooking(
-                result.data?.booking ?? booking
-            );
-
+            setSelectedBooking(result.data?.booking ?? booking);
             setHistory(result.data?.history ?? []);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ??
+                err.message ??
+                "Unable to load booking history."
+            );
         } finally {
             setHistoryLoading(false);
         }
     }
-
     async function updateStatus(event) {
         event.preventDefault();
 
-        if (!selectedBooking) {
-            return;
-        }
+        if (!selectedBooking) return;
 
         if (!statusForm.status) {
             setError("Please select a new status.");
@@ -174,50 +95,35 @@ export default function BookingStatus() {
         setError("");
 
         try {
-            const response = await fetch(
-                `${API}/booking-statuses/bookings/${selectedBooking.id}/status`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify(statusForm),
-                }
+            const result = await updateBookingStatus(
+                selectedBooking.id,
+                statusForm
             );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                const validationErrors =
-                    result.errors
-                        ? Object.values(result.errors)
-                              .flat()
-                              .join(" ")
-                        : null;
-
-                throw new Error(
-                    validationErrors ??
-                        result.message ??
-                        "Unable to update booking status."
-                );
-            }
 
             const updatedBooking =
-                result.data?.booking;
+                result.data?.booking ?? selectedBooking;
 
-            if (updatedBooking) {
-                setSelectedBooking(updatedBooking);
-            }
+            setSelectedBooking(updatedBooking);
 
-            await loadHistory(
-                updatedBooking ?? selectedBooking
-            );
+            // Refresh lifecycle history
+            await loadHistory(updatedBooking);
 
+            // Refresh booking list
             await loadBookings();
+
         } catch (err) {
-            setError(err.message);
+            const validationErrors = err.response?.data?.errors;
+
+            const firstError = validationErrors
+                ? Object.values(validationErrors).flat()[0]
+                : null;
+
+            setError(
+                firstError ??
+                err.response?.data?.message ??
+                err.message ??
+                "Unable to update booking status."
+            );
         } finally {
             setSaving(false);
         }
@@ -292,7 +198,7 @@ export default function BookingStatus() {
                         </p>
 
                         <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-                            {STATUS_OPTIONS.length}
+                            {BOOKING_STATUS_OPTIONS.length}
                         </p>
                     </div>
                 </div>
@@ -316,7 +222,7 @@ export default function BookingStatus() {
                             >
                                 <option value="">All Statuses</option>
 
-                                {STATUS_OPTIONS.map((status) => (
+                                {BOOKING_STATUS_OPTIONS.map((status) => (
                                     <option key={status} value={status}>
                                         {status.replaceAll("_", " ")}
                                     </option>

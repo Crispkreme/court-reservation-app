@@ -389,309 +389,155 @@ function Index() {
                         </p>
                     </div>
                 </div>
+                
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                    {holds.map((hold) => (
+                        <div
+                            key={hold.id}
+                            className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                        >
+                            {/* Hold Header */}
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-semibold text-slate-900">
+                                    Hold #{hold.id}
+                                </h3>
 
-                <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-900">
-                        Test Booking Hold
-                    </h2>
+                                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${getStatusClass(hold.status)}`}>
+                                    {hold.status}
+                                </span>
+                            </div>
 
-                    <p className="mb-5 mt-1 text-sm text-slate-500">
-                        This form is useful for testing the
-                        concurrency and hold functionality.
-                    </p>
+                            {/* Court Details */}
+                            <div className="mt-4">
+                                <h4 className="text-base font-semibold text-slate-900">
+                                    {hold.court?.name || "-"}
+                                </h4>
 
-                    <form
-                        onSubmit={createTestHold}
-                        className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
-                    >
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Sport Category ID
-                            </label>
+                                <p className="mt-1 break-words text-sm text-slate-500">
+                                    {hold.customer_name || "Guest Customer"}
+                                    {hold.customer_email && ` · ${hold.customer_email}`}
+                                </p>
+                            </div>
 
-                            <input
-                                type="number"
-                                value={
-                                    form.sport_category_id
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        sport_category_id:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="1"
-                                required
-                            />
-                        </div>
+                            {/* Booking Information */}
+                            <div className="mt-5 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-slate-500">Booking Date</p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {formatDate(hold.booking_date)}
+                                    </p>
+                                </div>
 
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Court ID
-                            </label>
+                                <div>
+                                    <p className="text-xs text-slate-500">Schedule</p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {formatTime(hold.start_time)} - {formatTime(hold.end_time)}
+                                    </p>
+                                </div>
 
-                            <input
-                                type="number"
-                                value={
-                                    form.court_id
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        court_id:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                placeholder="1"
-                                required
-                            />
-                        </div>
+                                <div>
+                                    <p className="text-xs text-slate-500">Duration</p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {hold.duration_minutes} minutes
+                                    </p>
+                                </div>
 
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Date
-                            </label>
+                                <div>
+                                    <p className="text-xs text-slate-500">Players</p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {hold.players_count}
+                                    </p>
+                                </div>
+                            </div>
 
-                            <input
-                                type="date"
-                                value={
-                                    form.booking_date
-                                }
-                                min={
-                                    new Date()
-                                        .toISOString()
-                                        .split("T")[0]
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        booking_date:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">Start Time</label>
-                            <input
-                                type="time"
-                                value={form.start_time}
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        start_time: event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                required
-                            />
-                        </div>
+                            {/* ACTIVE HOLD ONLY */}
+                            {hold.status === "ACTIVE" && (
+                                <div className="mt-auto pt-5">
 
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">Duration</label>
-                            <select
-                                value={form.duration_minutes}
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        duration_minutes: event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                                <option value="30">30 minutes</option>
-                                <option value="60">60 minutes</option>
-                                <option value="90">90 minutes</option>
-                            </select>
-                        </div>
+                                    {/* Hold Expiration */}
+                                    <div className="rounded-xl border border-orange-300 bg-orange-50 p-3">
+                                        <div className="flex items-center gap-2">
+                                            <svg
+                                                className="h-4 w-4 text-orange-600"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
 
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">Hold Duration</label>
-                            <select
-                                value={form.hold_duration_minutes}
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        hold_duration_minutes: event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                                <option value="5">5 minutes</option>
-                                <option value="10">10 minutes</option>
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Players
-                            </label>
-
-                            <input
-                                type="number"
-                                min="1"
-                                value={
-                                    form.players_count
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        players_count:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Customer Name
-                            </label>
-
-                            <input
-                                type="text"
-                                value={
-                                    form.customer_name
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        customer_name:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium">
-                                Customer Email
-                            </label>
-
-                            <input
-                                type="email"
-                                value={
-                                    form.customer_email
-                                }
-                                onChange={(event) =>
-                                    setForm({
-                                        ...form,
-                                        customer_email:
-                                            event.target.value,
-                                    })
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            />
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2 xl:col-span-3 border-t border-slate-100 pt-4">
-                            <button
-                                type="submit"
-                                disabled={
-                                    processing
-                                }
-                                className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {processing
-                                    ? "Processing..."
-                                    : "Place Court on Hold"}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 px-5 py-4">
-                        <h2 className="text-lg font-semibold text-slate-900">
-                            Hold History
-                        </h2>
-                    </div>
-
-                    {loading ? (
-                        <div className="p-8 text-center text-slate-500">
-                            Loading booking holds...
-                        </div>
-                    ) : holds.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500">
-                            No booking holds found.
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-slate-100">
-                            {holds.map((hold) => (
-                                <div
-                                    key={hold.id}
-                                    className="p-6"
-                                >
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-3">
-                                                <h3 className="font-semibold text-slate-900">Hold # {hold.id}</h3>
-                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(hold.status)}`}>{hold.status}</span>
-                                            </div>
-                                            <p className="mt-2 text-lg font-medium">{hold.court?.name}</p>
-                                            <div className="mt-2 grid gap-1 text-sm text-slate-500 md:grid-cols-2">
-                                                <span>Date: {formatDate(hold.booking_date)}</span>
-                                                <span>Time: {formatTime(hold.start_time)}-{formatTime(hold.end_time)}</span>
-                                                <span>Duration: {hold.duration_minutes} minutes</span>
-                                                <span>Players: {hold.players_count}</span>
-                                                <span>Customer: {hold.customer_name || "-"}</span>
-                                                <span>Email: {hold.customer_email || "-"}</span>
-                                            </div>
-
-                                            {hold.status === "ACTIVE" && (
-                                                <p className="mt-3 font-medium text-orange-600">
-                                                    Expires: {hold.expires_at ? new Date(hold.expires_at).toLocaleString(): "-"}
-                                                </p>
-                                            )}
-                                            {hold.failure_reason && (
-                                                <p className="mt-3 text-sm text-red-600">
-                                                    Failure: {hold.failure_reason}
-                                                </p>
-                                            )}
-                                            {hold.booking && (
-                                                <p className="mt-3 text-sm text-blue-600">
-                                                    Booking: {hold.booking.booking_reference}
-                                                </p>
-                                            )}
+                                            <span className="text-sm font-semibold text-slate-800">
+                                                Hold Expiration
+                                            </span>
                                         </div>
 
-                                        {hold.status === "ACTIVE" && (
-                                            <div className="flex flex-col gap-2 sm:flex-row">
-                                                <button
-                                                    type="button"
-                                                    disabled={processing}
-                                                    onClick={() => convertHold(hold.id)}
-                                                    className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                                >
-                                                    Convert to Booking
-                                                </button>
+                                        <p className="mt-2 text-sm font-medium text-orange-600">
+                                            {hold.expires_at
+                                                ? new Date(hold.expires_at).toLocaleString("en-PH", {
+                                                    timeZone: "Asia/Manila",
+                                                    dateStyle: "medium",
+                                                    timeStyle: "short",
+                                                })
+                                                : "-"
+                                            }
+                                        </p>
+                                    </div>
 
-                                                <button
-                                                    type="button"
-                                                    disabled={processing}
-                                                    onClick={() => failHold(hold.id)}
-                                                    className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                                >
-                                                    Payment Failed
-                                                </button>
-                                            </div>
-                                        )}
+                                    {/* Action Buttons */}
+                                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <button
+                                            type="button"
+                                            disabled={processing}
+                                            onClick={() => convertHold(hold.id)}
+                                            className="rounded-lg bg-green-600 px-3 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Convert to Booking
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            disabled={processing}
+                                            onClick={() => failHold(hold.id)}
+                                            className="rounded-lg border border-red-300 bg-white px-3 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Payment Failed
+                                        </button>
                                     </div>
                                 </div>
-                            ))}
+                            )}
+
+                            {/* Failure Reason */}
+                            {hold.failure_reason && (
+                                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                                    <p className="text-xs font-semibold text-red-700">
+                                        Failure Reason
+                                    </p>
+                                    <p className="mt-1 text-sm text-red-600">
+                                        {hold.failure_reason}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Booking Reference */}
+                            {hold.booking && (
+                                <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                    <p className="text-xs font-semibold text-blue-700">
+                                        Booking Reference
+                                    </p>
+                                    <p className="mt-1 break-all text-sm text-blue-600">
+                                        {hold.booking.booking_reference}
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    ))}
                 </div>
+
             </div>
         </Layout>
     );

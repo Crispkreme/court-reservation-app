@@ -11,11 +11,11 @@ class BookingHoldSeeder extends Seeder
 {
     public function run(): void
     {
-        $court = Court::query()
+        $courts = Court::query()
             ->where('is_active', true)
-            ->first();
+            ->get();
 
-        if (!$court) {
+        if ($courts->isEmpty()) {
             $this->command->warn(
                 'No active court found. Booking hold seeder skipped.'
             );
@@ -23,87 +23,95 @@ class BookingHoldSeeder extends Seeder
             return;
         }
 
-        $sportCategoryId = $court->sport_category_id;
+        $statuses = [
+            BookingHold::STATUS_ACTIVE,
+            BookingHold::STATUS_EXPIRED,
+            BookingHold::STATUS_CONVERTED,
+            BookingHold::STATUS_FAILED,
+        ];
 
-        $start = now()
-            ->addDay()
-            ->setTime(14, 0, 0);
+        foreach ($statuses as $index => $status) {
 
-        $end = $start
-            ->copy()
-            ->addMinutes(60);
+            $court = $courts[$index % $courts->count()];
 
-        BookingHold::create([
-            'user_id' => null,
+            // Give every hold a unique schedule.
+            $start = now()
+                ->addDay()
+                ->setTime(14 + $index, 0, 0);
+            $end = $start->copy()->addMinutes(60);
+            $heldAt = now();
+            $expiresAt = now()->addMinutes(10);
 
-            'sport_category_id' =>
-                $sportCategoryId,
+            // Adjust timestamps depending on status.
+            if ($status === BookingHold::STATUS_EXPIRED) {
+                $heldAt = now()->subMinutes(20);
+                $expiresAt = now()->subMinutes(10);
+            }
 
-            'court_id' =>
-                $court->id,
+            if ($status === BookingHold::STATUS_CONVERTED) {
+                $heldAt = now()->subMinutes(15);
+                $expiresAt = now()->subMinutes(5);
+            }
 
-            'booking_id' =>
-                null,
+            if ($status === BookingHold::STATUS_FAILED) {
+                $heldAt = now()->subMinutes(10);
+                $expiresAt = now()->subMinutes(5);
+            }
 
-            'hold_token' =>
-                (string) Str::uuid(),
+            BookingHold::create([
+                'user_id' => null,
+                'sport_category_id' => $court->sport_category_id,
+                'court_id' => $court->id,
+                'booking_id' => null,
+                'hold_token' => (string) Str::uuid(),
+                'active_slot_key' => $status === BookingHold::STATUS_ACTIVE
+                    ? $court->id
+                        . '|'
+                        . $start->format('Y-m-d')
+                        . '|'
+                        . $start->format('H:i:s')
+                        . '|'
+                        . $end->format('H:i:s')
+                    : null,
+                'booking_date' => $start->format('Y-m-d'),
+                'start_time' => $start->format('H:i:s'),
+                'end_time' => $end->format('H:i:s'),
+                'duration_minutes' => 60,
+                'players_count' => max(1, (int) $court->min_players),
+                'status' => $status,
+                'hold_duration_minutes' => 10,
+                'held_at' => $heldAt,
+                'expires_at' => $expiresAt,
+                'customer_name' => match ($status) {
+                    BookingHold::STATUS_ACTIVE => 'Active Test Customer',
+                    BookingHold::STATUS_EXPIRED => 'Expired Test Customer',
+                    BookingHold::STATUS_CONVERTED => 'Converted Test Customer',
+                    BookingHold::STATUS_FAILED => 'Failed Test Customer',
+                    default => 'Test Customer',
+                },
+                'customer_email' => match ($status) {
+                    BookingHold::STATUS_ACTIVE => 'active@example.com',
+                    BookingHold::STATUS_EXPIRED => 'expired@example.com',
+                    BookingHold::STATUS_CONVERTED => 'converted@example.com',
+                    BookingHold::STATUS_FAILED => 'failed@example.com',
+                    default => 'test@example.com',
+                },
+                'customer_phone' => '09123456789',
+                'notes' => "Test booking hold for status: {$status}",
+                'metadata' => [
+                    'source' => 'SEEDER',
+                    'test' => true,
+                    'status' => $status,
+                ],
+            ]);
 
-            'active_slot_key' =>
-                $court->id
-                . '|'
-                . $start->format('Y-m-d')
-                . '|'
-                . $start->format('H:i:s')
-                . '|'
-                . $end->format('H:i:s'),
-
-            'booking_date' =>
-                $start->format('Y-m-d'),
-
-            'start_time' =>
-                $start->format('H:i:s'),
-
-            'end_time' =>
-                $end->format('H:i:s'),
-
-            'duration_minutes' =>
-                60,
-
-            'players_count' =>
-                max(1, (int) $court->min_players),
-
-            'status' =>
-                BookingHold::STATUS_ACTIVE,
-
-            'hold_duration_minutes' =>
-                10,
-
-            'held_at' =>
-                now(),
-
-            'expires_at' =>
-                now()->addMinutes(10),
-
-            'customer_name' =>
-                'Test Customer',
-
-            'customer_email' =>
-                'test@example.com',
-
-            'customer_phone' =>
-                '09123456789',
-
-            'notes' =>
-                'Test booking hold created by BookingHoldSeeder.',
-
-            'metadata' => [
-                'source' => 'SEEDER',
-                'test' => true,
-            ],
-        ]);
+            $this->command->info(
+                "Created {$status} booking hold successfully."
+            );
+        }
 
         $this->command->info(
-            'Test booking hold created successfully.'
+            'All four booking hold statuses have been seeded!'
         );
     }
 }

@@ -1,20 +1,15 @@
 
 import { useEffect, useMemo, useState } from "react";
-import {
-    Tags,
-    Plus,
-    Search,
-    SlidersHorizontal,
-    Pencil,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    X,
-    RefreshCw,
-} from "lucide-react";
-
+import { Tags, Plus, Search, SlidersHorizontal, Pencil, Trash2, ChevronLeft, ChevronRight, X, RefreshCw } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import SummaryCard from "../../components/SummaryCard";
+import LoadingState from "../../components/LoadingState";
+import TableHeader from "../../components/TableHeader";
+import TablePagination from "../../components/TablePagination";
+import EmptyState from "../../components/EmptyState";
+import TableHead from "../../components/TableHead";
+import SportCategoryModal from "../../components/modal/SportCategoryModal";
+import FilterPanel from "../../components/FilterPanel";
 
 import {
     getSportCategories,
@@ -22,23 +17,6 @@ import {
     updateSportCategory,
     deleteSportCategory,
 } from "../../services/sportCategoryService";
-
-function FilterSelect({ label, value, onChange, children }) {
-    return (
-        <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">
-                {label}
-            </span>
-            <select
-                value={value}
-                onChange={onChange}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            >
-                {children}
-            </select>
-        </label>
-    );
-}
 
 const emptyForm = {
     name: "",
@@ -50,11 +28,9 @@ export default function SportCategories() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
     const [page, setPage] = useState(1);
-
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [form, setForm] = useState(emptyForm);
@@ -62,8 +38,48 @@ export default function SportCategories() {
     const [formError, setFormError] = useState("");
 
     const pageSize = 5;
+    const filteredCategories = useMemo(() => {
+        const query = search.trim().toLowerCase();
 
-    // Load categories
+        return categories.filter((category) => {
+            const name = String(category.name || "").toLowerCase();
+            const description = String(category.description || "").toLowerCase();
+            const categoryStatus = String(category.status || "").toLowerCase();
+            const matchesSearch = name.includes(query) || description.includes(query);
+            const matchesStatus = !status || categoryStatus === status.toLowerCase();
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [categories, search, status]);
+    const paginatedCategories = filteredCategories.slice(
+        (page - 1) * pageSize,
+        page * pageSize
+    );
+
+    const openCreateModal = () => {
+        setEditingCategory(null);
+        setForm(emptyForm);
+        setFormError("");
+        setShowModal(true);
+    };
+    const openEditModal = (category) => {
+        setEditingCategory(category);
+        setForm({
+            name: category.name || "",
+            description: category.description || "",
+            status: category.status?.toUpperCase() || "ACTIVE",
+        });
+        setFormError("");
+        setShowModal(true);
+    };
+    const closeModal = () => {
+        if (saving) return;
+        setShowModal(false);
+        setEditingCategory(null);
+        setForm(emptyForm);
+        setFormError("");
+    };
+
     const fetchCategories = async () => {
         try {
             setLoading(true);
@@ -74,7 +90,6 @@ export default function SportCategories() {
                 per_page: 100,
             });
 
-            // Supports both Laravel pagination and a plain array response.
             const records = Array.isArray(response)
                 ? response
                 : response?.data || [];
@@ -90,89 +105,10 @@ export default function SportCategories() {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         fetchCategories();
     }, []);
 
-    // Search and filter
-    const filteredCategories = useMemo(() => {
-        const query = search.trim().toLowerCase();
-
-        return categories.filter((category) => {
-            const name = String(category.name || "").toLowerCase();
-            const description = String(
-                category.description || ""
-            ).toLowerCase();
-
-            const categoryStatus = String(
-                category.status || ""
-            ).toLowerCase();
-
-            const matchesSearch =
-                name.includes(query) ||
-                description.includes(query);
-
-            const matchesStatus =
-                !status || categoryStatus === status.toLowerCase();
-
-            return matchesSearch && matchesStatus;
-        });
-    }, [categories, search, status]);
-
-    const totalPages = Math.max(
-        1,
-        Math.ceil(filteredCategories.length / pageSize)
-    );
-
-    const currentPage = Math.min(page, totalPages);
-
-    const paginatedCategories = filteredCategories.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
-
-    // Summary counts
-    const activeCount = categories.filter(
-        (category) => category.status?.toLowerCase() === "active"
-    ).length;
-
-    const inactiveCount = categories.filter(
-        (category) => category.status?.toLowerCase() === "inactive"
-    ).length;
-
-    // Open create modal
-    const openCreateModal = () => {
-        setEditingCategory(null);
-        setForm(emptyForm);
-        setFormError("");
-        setShowModal(true);
-    };
-
-    // Open edit modal
-    const openEditModal = (category) => {
-        setEditingCategory(category);
-
-        setForm({
-            name: category.name || "",
-            description: category.description || "",
-            status: category.status?.toUpperCase() || "ACTIVE",
-        });
-
-        setFormError("");
-        setShowModal(true);
-    };
-
-    const closeModal = () => {
-        if (saving) return;
-
-        setShowModal(false);
-        setEditingCategory(null);
-        setForm(emptyForm);
-        setFormError("");
-    };
-
-    // Save category
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -210,12 +146,8 @@ export default function SportCategories() {
             setSaving(false);
         }
     };
-
-    // Delete category
     const handleDelete = async (category) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to delete "${category.name}"?`
-        );
+        const confirmed = window.confirm(`Are you sure you want to delete "${category.name}"?`);
 
         if (!confirmed) return;
 
@@ -224,14 +156,12 @@ export default function SportCategories() {
             await fetchCategories();
         } catch (err) {
             console.error("Failed to delete category:", err);
-
             alert(
                 err.response?.data?.message ||
                 "Unable to delete this sport category."
             );
         }
     };
-
     const resetFilters = () => {
         setSearch("");
         setStatus("");
@@ -270,120 +200,63 @@ export default function SportCategories() {
                 </div>
 
                 {/* Search and Filters */}
-                <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                    <div className="mb-4 flex items-center gap-2">
-                        <SlidersHorizontal size={17} className="text-slate-500" />
-                        <h2 className="text-sm font-semibold text-slate-900">
-                            Filter Sport Categories
-                        </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <label className="block xl:col-span-3">
-                            <span className="mb-1.5 block text-xs font-medium text-slate-500">
-                                Search
-                            </span>
-
-                            <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                                <Search
-                                    size={17}
-                                    className="shrink-0 text-slate-400"
-                                />
-
-                                <input
-                                    type="search"
-                                    value={search}
-                                    onChange={(e) => {
-                                        setSearch(e.target.value);
-                                        setPage(1);
-                                    }}
-                                    placeholder="Search by sport name or description..."
-                                    className="w-full min-w-0 border-0 bg-transparent py-2.5 text-sm outline-none placeholder:text-slate-400"
-                                />
-                            </div>
-                        </label>
-
-                        <FilterSelect
-                            label="Category Status"
-                            value={status}
-                            onChange={(e) => {
-                                setStatus(e.target.value);
-                                setPage(1);
-                            }}
-                        >
-                            <option value="">All statuses</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </FilterSelect>
-                    </div>
-
-                    <div className="mt-4 flex justify-end">
-                        <button
-                            type="button"
-                            onClick={resetFilters}
-                            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                        >
-                            Clear Filters
-                        </button>
-                    </div>
-                </section>
+                <FilterPanel
+                    title="Filter Sport Categories"
+                    search={search}
+                    setSearch={(value) => {
+                        setSearch(value);
+                        setPage(1);
+                    }}
+                    searchPlaceholder="Search by sport name or description..."
+                    searchLabel="Search"
+                    status={status}
+                    setStatus={(value) => {
+                        setStatus(value);
+                        setPage(1);
+                    }}
+                    statusLabel="Category Status"
+                    statusOptions={[
+                        { value: "", label: "All statuses" },
+                        { value: "active", label: "Active" },
+                        { value: "inactive", label: "Inactive" },
+                    ]}
+                    onReset={() => {
+                        setSearch("");
+                        setStatus("");
+                        setPage(1);
+                    }}
+                />
 
                 {/* Categories Table */}
                 <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <div className="flex flex-col gap-2 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                        <div>
-                            <h2 className="text-sm font-semibold text-slate-900">
-                                All Sport Categories
-                            </h2>
-                            <p className="mt-1 text-xs text-slate-500">
-                                View and manage your available sports.
-                            </p>
-                        </div>
-
-                        <span className="text-xs text-slate-500">
-                            {filteredCategories.length} categor
-                            {filteredCategories.length === 1 ? "y" : "ies"} found
-                        </span>
-                    </div>
+        
+                    <TableHeader
+                        title="All Sport Categories"
+                        description="View and manage your available sports."
+                        count={filteredCategories.length}
+                        countLabel="Categories"
+                    />
 
                     {loading ? (
-                        <div className="flex items-center justify-center gap-2 px-5 py-16 text-sm text-slate-500">
-                            <RefreshCw size={17} className="animate-spin" />
-                            Loading sport categories...
-                        </div>
-                    ) : error ? (
-                        <div className="px-5 py-12 text-center">
-                            <p className="text-sm text-red-600">{error}</p>
-                            <button
-                                type="button"
-                                onClick={fetchCategories}
-                                className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                            >
-                                Try Again
-                            </button>
-                        </div>
+                        <LoadingState message="Loading booking rules..." />
+                    ) : categories.length === 0 ? (
+                        <EmptyState
+                            icon={ShieldCheck}
+                            title="No booking rules found"
+                            description="Create your first booking rule to configure booking limits and restrictions."
+                        />
                     ) : (
                         <>
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[800px] divide-y divide-slate-200 text-left">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            {[
-                                                "Sport Category",
-                                                "Description",
-                                                "Status",
-                                                "Actions",
-                                            ].map((heading) => (
-                                                <th
-                                                    key={heading}
-                                                    className="whitespace-nowrap px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500"
-                                                >
-                                                    {heading}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-
+                                    <TableHead
+                                        columns={[
+                                            "Sport Category",
+                                            "Description",
+                                            "Status",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody className="divide-y divide-slate-100">
                                         {paginatedCategories.length > 0 ? (
                                             paginatedCategories.map((category) => (
@@ -396,14 +269,9 @@ export default function SportCategories() {
                                                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                                                 <Tags size={18} />
                                                             </div>
-
                                                             <div>
-                                                                <p className="text-sm font-semibold text-slate-800">
-                                                                    {category.name}
-                                                                </p>
-                                                                <p className="mt-0.5 text-xs text-slate-400">
-                                                                    ID: {category.id}
-                                                                </p>
+                                                                <p className="text-sm font-semibold text-slate-800">{category.name}</p>
+                                                                <p className="mt-0.5 text-xs text-slate-400">ID: {category.id}</p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -477,178 +345,28 @@ export default function SportCategories() {
                                 </table>
                             </div>
 
-                            {/* Pagination */}
-                            <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                                <p className="text-xs text-slate-500">
-                                    Showing{" "}
-                                    {filteredCategories.length === 0
-                                        ? 0
-                                        : (currentPage - 1) * pageSize + 1}
-                                    {" "}to{" "}
-                                    {Math.min(
-                                        currentPage * pageSize,
-                                        filteredCategories.length
-                                    )}
-                                    {" "}of {filteredCategories.length} results
-                                </p>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        disabled={currentPage === 1}
-                                        onClick={() =>
-                                            setPage((p) => Math.max(1, p - 1))
-                                        }
-                                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <ChevronLeft size={15} />
-                                        Previous
-                                    </button>
-
-                                    <span className="text-xs text-slate-500">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
-
-                                    <button
-                                        type="button"
-                                        disabled={currentPage >= totalPages}
-                                        onClick={() =>
-                                            setPage((p) =>
-                                                Math.min(totalPages, p + 1)
-                                            )
-                                        }
-                                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        Next
-                                        <ChevronRight size={15} />
-                                    </button>
-                                </div>
-                            </div>
+                            <TablePagination
+                                currentPage={page}
+                                setPage={setPage}
+                                totalItems={filteredCategories.length}
+                                pageSize={pageSize}
+                            />
                         </>
                     )}
+
                 </section>
             </div>
-
-            {/* Add / Edit Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-                    <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl">
-                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-900">
-                                    {editingCategory
-                                        ? "Edit Sport Category"
-                                        : "Add Sport Category"}
-                                </h2>
-                                <p className="mt-1 text-xs text-slate-500">
-                                    Enter the sport category details below.
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                disabled={saving}
-                                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit}>
-                            <div className="space-y-4 p-5">
-                                {formError && (
-                                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                                        {formError}
-                                    </div>
-                                )}
-
-                                <label className="block">
-                                    <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                        Sport Category Name
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                name: e.target.value,
-                                            })
-                                        }
-                                        placeholder="e.g. Basketball"
-                                        required
-                                        className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                        Description
-                                    </span>
-                                    <textarea
-                                        rows="3"
-                                        value={form.description}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                description: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter a short description..."
-                                        className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                        Status
-                                    </span>
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                status: e.target.value,
-                                            })
-                                        }
-                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                    >
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="INACTIVE">Inactive</option>
-                                    </select>
-                                </label>
-                            </div>
-
-                            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:justify-end">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    disabled={saving}
-                                    className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    {saving && (
-                                        <RefreshCw size={15} className="animate-spin" />
-                                    )}
-                                    {saving
-                                        ? "Saving..."
-                                        : editingCategory
-                                            ? "Update Category"
-                                            : "Save Category"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            
+            <SportCategoryModal
+                isOpen={showModal}
+                onClose={closeModal}
+                editingCategory={editingCategory}
+                form={form}
+                setForm={setForm}
+                handleSubmit={handleSubmit}
+                formError={formError}
+                saving={saving}
+            />
         </Layout>
     );
 }

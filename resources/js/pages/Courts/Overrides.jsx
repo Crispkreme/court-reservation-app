@@ -2,24 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import Layout from '../../components/layout/Layout';
 import { CalendarDays, Plus, Search, Pencil, Trash2, CheckCircle2, Ban, Wrench, CalendarOff, X } from 'lucide-react';
-import { getCourtSchedules, getCourts, createCourtSchedule, updateCourtSchedule, deleteCourtSchedule, getCourtNameById } from '../../services/courtService';
-
-const statusOptions = [
-    { value: '', label: 'All Statuses' },
-    { value: 'available', label: 'Available' },
-    { value: 'blocked', label: 'Blocked' },
-    { value: 'maintenance', label: 'Maintenance' },
-    { value: 'closed', label: 'Closed' },
-    { value: 'holiday', label: 'Holiday' },
-];
-
-const statusClasses = {
-    available: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    blocked: 'bg-red-50 text-red-700 ring-red-600/20',
-    maintenance: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-    closed: 'bg-slate-100 text-slate-600 ring-slate-500/20',
-    holiday: 'bg-violet-50 text-violet-700 ring-violet-600/20',
-};
+import { createCourtScheduleOverride, updateCourtScheduleOverride, deleteCourtScheduleOverride, getCourts, getCourtNameById, getCourtScheduleOverrides } from '../../services/courtService';
+import ErrorAlert from "../../components/ErrorAlert";
+import BadgeCard from '../../components/BadgeCard';
+import SuccessAlert from "../../components/SuccessAlert";
+import { formatDate } from '../../utils/formatters';
+import { COURT_OVERRIDE_STATUS_OPTIONS, getGeneralStatusClass } from "../../enums/enum";
 
 const emptyForm = {
     court_id: '',
@@ -35,61 +23,43 @@ const emptyForm = {
 export default function Overrides() {
     const [courts, setCourts] = useState([]);
     const [overrides, setOverrides] = useState([]);
-
     const [selectedCourt, setSelectedCourt] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-    const [errorMessage, setErrorMessage] = useState('');
-
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [showModal, setShowModal] = useState(false);
     const [editingOverride, setEditingOverride] = useState(null);
-
     const [form, setForm] = useState(emptyForm);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Load Courts
-    |--------------------------------------------------------------------------
-    */
 
     const loadCourts = async () => {
         try {
-            const response = await axios.get('/api/v1/courts');
-
+            const response = await getCourts();
             const data = response.data?.data ?? response.data ?? [];
-
             setCourts(Array.isArray(data) ? data : []);
+
         } catch (error) {
-            console.error('Failed to load courts:', error);
-            setErrorMessage('Unable to load courts. Please refresh and try again.');
+            console.error("Failed to load courts:", error);
+            setError("Unable to load courts. Please refresh and try again.");
         }
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Load Overrides
-    |--------------------------------------------------------------------------
-    */
-
     const loadOverrides = async () => {
         setLoading(true);
 
         try {
-            const response = await axios.get(
-                '/api/v1/court-schedule-overrides'
-            );
-
+            const response = await getCourtScheduleOverrides();
             const data = response.data?.data ?? response.data ?? [];
-
             setOverrides(Array.isArray(data) ? data : []);
+
         } catch (error) {
-            console.error('Failed to load overrides:', error);
-            setErrorMessage('Unable to load schedule overrides. Please refresh and try again.');
+            console.error("Failed to load overrides:", error);
+            setError(
+                "Unable to load schedule overrides. Please refresh and try again."
+            );
         } finally {
             setLoading(false);
         }
@@ -100,23 +70,10 @@ export default function Overrides() {
         loadOverrides();
     }, []);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Filter Overrides
-    |--------------------------------------------------------------------------
-    */
-
     const filteredOverrides = useMemo(() => {
         return overrides.filter((override) => {
-            const matchesCourt =
-                selectedCourt === '' ||
-                String(override.court_id) === String(selectedCourt);
-
-            const matchesStatus =
-                selectedStatus === '' ||
-                String(override.status).toLowerCase() ===
-                    String(selectedStatus).toLowerCase();
-
+            const matchesCourt = selectedCourt === '' || String(override.court_id) === String(selectedCourt);
+            const matchesStatus = selectedStatus === '' || String(override.status).toLowerCase() === String(selectedStatus).toLowerCase();
             const query = searchTerm.trim().toLowerCase();
             const matchesSearch = [
                 getCourtNameById(courts, override.court_id),
@@ -129,13 +86,6 @@ export default function Overrides() {
             return matchesCourt && matchesStatus && matchesSearch;
         });
     }, [overrides, selectedCourt, selectedStatus, searchTerm]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Form Helpers
-    |--------------------------------------------------------------------------
-    */
-
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
 
@@ -144,12 +94,6 @@ export default function Overrides() {
             [name]: type === 'checkbox' ? checked : value,
         }));
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Open Add Modal
-    |--------------------------------------------------------------------------
-    */
 
     const openCreateModal = () => {
         setEditingOverride(null);
@@ -161,12 +105,6 @@ export default function Overrides() {
 
         setShowModal(true);
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Open Edit Modal
-    |--------------------------------------------------------------------------
-    */
 
     const openEditModal = (override) => {
         setEditingOverride(override);
@@ -189,17 +127,11 @@ export default function Overrides() {
         setShowModal(true);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | Save
-    |--------------------------------------------------------------------------
-    */
-
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setSaving(true);
-        setErrorMessage('');
+        setError("");
 
         try {
             const payload = {
@@ -214,15 +146,12 @@ export default function Overrides() {
             };
 
             if (editingOverride) {
-                await axios.put(
-                    `/api/v1/court-schedule-overrides/${editingOverride.id}`,
+                await updateCourtScheduleOverride(
+                    editingOverride.id,
                     payload
                 );
             } else {
-                await axios.post(
-                    '/api/v1/court-schedule-overrides',
-                    payload
-                );
+                await createCourtScheduleOverride(payload);
             }
 
             setShowModal(false);
@@ -231,61 +160,35 @@ export default function Overrides() {
 
             await loadOverrides();
         } catch (error) {
-            console.error('Failed to save override:', error);
+            console.error("Failed to save override:", error);
 
-            setErrorMessage(error.response?.data?.message || 'Failed to save schedule override.');
+            setError(
+                error.response?.data?.message ||
+                "Failed to save schedule override."
+            );
         } finally {
             setSaving(false);
         }
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete
-    |--------------------------------------------------------------------------
-    */
-
     const handleDelete = async (override) => {
         const confirmed = window.confirm(
-            'Are you sure you want to delete this schedule override?'
+            "Are you sure you want to delete this schedule override?"
         );
 
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
         try {
-            await axios.delete(
-                `/api/v1/court-schedule-overrides/${override.id}`
-            );
+            await deleteCourtScheduleOverride(override.id);
 
             await loadOverrides();
         } catch (error) {
-            console.error('Failed to delete override:', error);
+            console.error("Failed to delete override:", error);
 
-            setErrorMessage(error.response?.data?.message || 'Failed to delete schedule override.');
+            setError(
+                error.response?.data?.message ||
+                "Failed to delete schedule override."
+            );
         }
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Date Formatting
-    |--------------------------------------------------------------------------
-    */
-
-    const formatDate = (date) => {
-        if (!date) {
-            return '-';
-        }
-
-        return new Date(`${date}T00:00:00`).toLocaleDateString(
-            undefined,
-            {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            }
-        );
     };
 
     const totalPages = Math.max(1, Math.ceil(filteredOverrides.length / perPage));
@@ -320,30 +223,14 @@ export default function Overrides() {
                     </button>
                 </div>
 
-                {errorMessage && (
-                    <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        <span>{errorMessage}</span>
-                        <button type="button" onClick={() => setErrorMessage('')} aria-label="Dismiss error" className="rounded p-0.5 transition hover:bg-red-100"><X className="h-4 w-4" /></button>
-                    </div>
-                )}
+                <ErrorAlert message={error} />
+                <SuccessAlert message={success} />
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">Total Overrides</p><span className="rounded-lg bg-blue-50 p-2 text-blue-700"><CalendarDays className="h-5 w-5" /></span></div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{overrides.length}</p><p className="mt-1 text-xs text-slate-500">Configured exceptions</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">Active Overrides</p><span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><CheckCircle2 className="h-5 w-5" /></span></div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{activeCount}</p><p className="mt-1 text-xs text-slate-500">Currently enabled</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">Blocked</p><span className="rounded-lg bg-red-50 p-2 text-red-700"><Ban className="h-5 w-5" /></span></div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{blockedCount}</p><p className="mt-1 text-xs text-slate-500">Active blocked periods</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between"><p className="text-sm font-medium text-slate-500">Maintenance</p><span className="rounded-lg bg-amber-50 p-2 text-amber-700"><Wrench className="h-5 w-5" /></span></div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{maintenanceCount}</p><p className="mt-1 text-xs text-slate-500">Active maintenance periods</p>
-                    </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                    <BadgeCard title="Total Overrides" value={overrides.length} description="Configured exceptions" icon={CalendarDays} colorIndex={0}/>
+                    <BadgeCard title="Active Overrides" value={activeCount} description="Currently enabled" icon={CheckCircle2} colorIndex={1}/>
+                    <BadgeCard title="Blocked" value={blockedCount} description="Active blocked periods" icon={Ban} colorIndex={2}/>
+                    <BadgeCard title="Maintenance" value={maintenanceCount} description="Active maintenance periods" icon={Wrench} colorIndex={3}/>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -364,8 +251,19 @@ export default function Overrides() {
                             </div>
                             <div>
                                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Status</label>
-                                <select value={selectedStatus} onChange={(event) => { setSelectedStatus(event.target.value); setCurrentPage(1); }} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                                    {statusOptions.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                                <select
+                                    value={selectedStatus}
+                                    onChange={(event) => {
+                                        setSelectedStatus(event.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
+                                    {COURT_OVERRIDE_STATUS_OPTIONS.map((status) => (
+                                        <option key={status.value} value={status.value}>
+                                            {status.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -402,7 +300,7 @@ export default function Overrides() {
                                         <td className="px-5 py-4 font-semibold text-slate-800">{getCourtNameById(courts, override.court_id)}</td>
                                         <td className="whitespace-nowrap px-5 py-4 text-slate-600">{formatDate(override.date)}</td>
                                         <td className="whitespace-nowrap px-5 py-4 text-slate-600">{override.start_time && override.end_time ? `${String(override.start_time).substring(0, 5)} – ${String(override.end_time).substring(0, 5)}` : 'Whole Day'}</td>
-                                        <td className="px-5 py-4"><span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClasses[override.status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{String(override.status ?? 'unknown').charAt(0).toUpperCase() + String(override.status ?? 'unknown').slice(1)}</span></td>
+                                        <td className="px-5 py-4"><span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${getGeneralStatusClass[override.status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{String(override.status ?? 'unknown').charAt(0).toUpperCase() + String(override.status ?? 'unknown').slice(1)}</span></td>
                                         <td className="px-5 py-4 text-slate-600"><div className="font-medium text-slate-800">{override.title || '-'}</div>{override.reason && <div className="mt-1 max-w-xs truncate text-xs text-slate-500">{override.reason}</div>}</td>
                                         <td className="whitespace-nowrap px-5 py-4"><div className="flex items-center justify-end gap-2">
                                             <button type="button" onClick={() => openEditModal(override)} title="Edit override" aria-label={`Edit override ${override.id}`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"><Pencil className="h-4 w-4" /></button>

@@ -30,6 +30,13 @@ export const getCourtSchedules = (params = {}) => api.get('/court-schedules', { 
 export const createCourtSchedule = (data) => api.post('/court-schedules', data);
 export const updateCourtSchedule = (id, data) => api.put(`/court-schedules/${id}`, data);
 export const deleteCourtSchedule = (id) => api.delete(`/court-schedules/${id}`);
+
+// Court Schedule Overrides
+export const getCourtScheduleOverrides = (params = {}) => api.get("/court-schedule-overrides", { params });
+export const createCourtScheduleOverride = (data) => api.post("/court-schedule-overrides", data);
+export const updateCourtScheduleOverride = (id, data) => api.put(`/court-schedule-overrides/${id}`, data);
+export const deleteCourtScheduleOverride = (id) => api.delete(`/court-schedule-overrides/${id}`);
+
 export const getCourtNameById = (courts, courtId) => {
     const court = courts.find(
         (item) => Number(item.id) === Number(courtId)

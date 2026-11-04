@@ -64,6 +64,8 @@ export const GENERAL_STATUS = Object.freeze({
     INACTIVE: "INACTIVE",
     MAINTENANCE: "MAINTENANCE",
     FAILED: "FAILED",
+    BLOCKED: "BLOCKED",
+    HOLIDAY: "HOLIDAY",
 });
 
 export const GENERAL_STATUS_CLASSES = Object.freeze({
@@ -72,17 +74,16 @@ export const GENERAL_STATUS_CLASSES = Object.freeze({
     [GENERAL_STATUS.AVAILABLE]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
     [GENERAL_STATUS.SUCCESS]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
     [GENERAL_STATUS.SUCCESSFUL]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-
     [GENERAL_STATUS.PENDING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
     [GENERAL_STATUS.HELD]: "bg-amber-50 text-amber-700 ring-amber-600/20",
     [GENERAL_STATUS.RESERVED]: "bg-amber-50 text-amber-700 ring-amber-600/20",
     [GENERAL_STATUS.PROCESSING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
     [GENERAL_STATUS.WAITING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
-
     [GENERAL_STATUS.CLOSED]: "bg-rose-50 text-rose-700 ring-rose-600/20",
     [GENERAL_STATUS.MAINTENANCE]: "bg-rose-50 text-rose-700 ring-rose-600/20",
-
     [GENERAL_STATUS.INACTIVE]: "bg-slate-100 text-slate-600 ring-slate-500/20",
+    [GENERAL_STATUS.BLOCKED]: "bg-red-50 text-red-700 ring-red-600/20",
+    [GENERAL_STATUS.HOLIDAY]: "bg-violet-50 text-violet-700 ring-violet-600/20",
 });
 
 export const DAYS_OF_WEEK = Object.freeze({
@@ -129,3 +130,26 @@ export const getStatusClass = (status) => { const normalized = String(status || 
         "bg-slate-100 text-slate-600 ring-slate-500/20"
     );
 };
+export const GENERAL_STATUS_OPTIONS = Object.freeze(
+    Object.values(GENERAL_STATUS).map((status) => ({
+        value: status.toLowerCase(),
+        label: status
+            .replaceAll("_", " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase()),
+    }))
+);
+
+export const COURT_OVERRIDE_STATUS_OPTIONS = Object.freeze([
+    { value: "", label: "All Statuses" },
+    ...[
+        GENERAL_STATUS.AVAILABLE,
+        GENERAL_STATUS.BLOCKED,
+        GENERAL_STATUS.MAINTENANCE,
+        GENERAL_STATUS.CLOSED,
+        GENERAL_STATUS.HOLIDAY,
+    ].map((status) => ({
+        value: status.toLowerCase(),
+        label: status.charAt(0) + status.slice(1).toLowerCase(),
+    })),
+]);

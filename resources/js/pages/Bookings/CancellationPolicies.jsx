@@ -350,16 +350,10 @@ export default function CancellationPolicies() {
                                             </tr>
                                         ) : (
                                             policies.map((policy) => (
-                                                <tr
-                                                    key={policy.id}
-                                                    className="transition-colors hover:bg-slate-50/70"
-                                                >
+                                                <tr key={policy.id} className="transition-colors hover:bg-slate-50/70">
                                                     {/* Policy */}
                                                     <td className="px-5 py-4">
-                                                        <div className="font-semibold text-slate-800">
-                                                            {policy.name}
-                                                        </div>
-
+                                                        <div className="font-semibold text-slate-800">{policy.name}</div>
                                                         {policy.description && (
                                                             <p className="mt-1 max-w-xs truncate text-xs text-slate-500">
                                                                 {policy.description}
@@ -379,10 +373,11 @@ export default function CancellationPolicies() {
                                                         <div className="font-medium text-slate-700">
                                                             {policy.minimum_hours_before_booking ?? 0}
                                                             {" – "}
-                                                            {policy.maximum_hours_before_booking !== null &&
-                                                            policy.maximum_hours_before_booking !== ""
-                                                                ? policy.maximum_hours_before_booking
-                                                                : "∞"}
+                                                            {
+                                                                policy.maximum_hours_before_booking !== null &&
+                                                                policy.maximum_hours_before_booking !== "" ? 
+                                                                policy.maximum_hours_before_booking : "∞"
+                                                            }
                                                             <span className="ml-1 text-xs font-normal text-slate-500">
                                                                 hours
                                                             </span>
@@ -391,10 +386,7 @@ export default function CancellationPolicies() {
 
                                                     {/* Refund */}
                                                     <td className="px-5 py-4">
-                                                        <span className="font-semibold text-slate-800">
-                                                            {Number(policy.refund_percentage)}%
-                                                        </span>
-
+                                                        <span className="font-semibold text-slate-800">{Number(policy.refund_percentage)}%</span>
                                                         <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
                                                             <div
                                                                 className="h-full rounded-full bg-emerald-500"
@@ -413,9 +405,7 @@ export default function CancellationPolicies() {
 
                                                     {/* Priority */}
                                                     <td className="px-5 py-4">
-                                                        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-700">
-                                                            {policy.priority}
-                                                        </span>
+                                                        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-700">{policy.priority}</span>
                                                     </td>
 
                                                     {/* Status */}

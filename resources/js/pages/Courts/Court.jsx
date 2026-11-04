@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import CourtModal from "../../components/modal/CourtModal";
 import PageHeader from "../../components/PageHeader";
+import FilterPanel from "../../components/FilterPanel";
+import BadgeCard from "../../components/BadgeCard";
+import Header from "../../components/Header";
+import TableHead from "../../components/TableHead";
 import Layout from "../../components/layout/Layout";
-import { Search, Plus, ChevronLeft, ChevronRight, Trophy, Users, Activity } from "lucide-react";
-import {
-    getCourts,
-    getSportCategories,
-    createCourt,
-    updateCourt,
-    deleteCourt,
-} from "../../services/courtService";
+import TablePagination from "../../components/TablePagination";
+import { Trophy, Users, Activity } from "lucide-react";
+import ErrorAlert from '../../components/ErrorAlert';
+import SuccessAlert from "../../components/SuccessAlert";
+import { getCourts, getSportCategories, createCourt, updateCourt, deleteCourt } from "../../services/courtService";
+import { getGeneralStatusClass } from "../../enums/enum";
 
 const initialForm = {
     sport_category_id: "",
@@ -38,13 +40,17 @@ export default function Court() {
     const [editingId, setEditingId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [searchTerm, setSearchTerm] = useState("");
+    const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [sportFilter, setSportFilter] = useState("all");
     const [perPage, setPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const availableCourts = courts.filter((court) =>["available", "active"].includes(String(court.status || "").toLowerCase())).length;
+    const maintenanceCourts = courts.filter((court) => String(court.status || "").toLowerCase() === "maintenance").length;
 
     const sportOptions = [
         ...new Set(
@@ -63,7 +69,7 @@ export default function Court() {
     ];
 
     const filteredCourts = courts.filter((court) => {
-        const search = searchTerm.toLowerCase().trim();
+        const query = search.toLowerCase().trim();
 
         const matchesSearch = [
             court.name,
@@ -71,12 +77,12 @@ export default function Court() {
             court.sport_category?.name,
             court.branch,
         ].some((value) =>
-            String(value ?? "").toLowerCase().includes(search)
+            String(value ?? "").toLowerCase().includes(query)
         );
 
         const matchesStatus =
             statusFilter === "all" ||
-            court.status === statusFilter;
+            court.status?.toLowerCase() === statusFilter.toLowerCase();
 
         const matchesSport =
             sportFilter === "all" ||
@@ -198,7 +204,6 @@ export default function Court() {
 
         try {
             await deleteCourt(id);
-
             await loadData();
         } catch (err) {
             console.error(err);
@@ -216,74 +221,52 @@ export default function Court() {
     return (
         <Layout>
             <div className="mx-auto w-full max-w-[1800px] space-y-6">
-                {error && (
-                    <div className="rounded-lg bg-red-50 p-4 text-red-700">
-                        {error}
-                    </div>
-                )}
+                
+                <ErrorAlert message={error} />
+                <SuccessAlert message={success} />
 
-                <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <Trophy size={24} />
-                    </div>
-                    <div>
-                        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-                            Court
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-500">
-                            Manage court details, sports categories, availability, and court status.
-                        </p>
-                    </div>
+                <CourtModal isOpen={isModalOpen} editingId={editingId} form={form} categories={categories} loading={loading} error={error} onChange={handleChange} onSubmit={handleSubmit} onClose={cancelEdit} />
+
+                <Header title="Court" description="Manage court details, sports categories, availability, and court status." icon={Trophy}/>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                    <BadgeCard title="Total Courts" value={courts.length} description="Registered courts" icon={Trophy} colorIndex={0}/>
+                    <BadgeCard title="Available" value={availableCourts} description="Ready for booking" icon={Activity} colorIndex={1}/>
+                    <BadgeCard title="Maintenance" value={maintenanceCourts} description="Courts needing attention" icon={Activity} colorIndex={2}/>
+                    <BadgeCard title="Sport Categories" value={categories.length} description="Available sport types" icon={Users} colorIndex={3}/>
                 </div>
 
-                <CourtModal
-                    isOpen={isModalOpen}
-                    editingId={editingId}
-                    form={form}
-                    categories={categories}
-                    loading={loading}
-                    error={error}
-                    onChange={handleChange}
-                    onSubmit={handleSubmit}
-                    onClose={cancelEdit}
+                <FilterPanel
+                    title="Filter Courts"
+                    search={search}
+                    setSearch={(value) => {
+                        setSearch(value);
+                        setCurrentPage(1);
+                    }}
+                    searchPlaceholder="Search by court name, sport, or branch..."
+                    status={statusFilter}
+                    setStatus={(value) => {
+                        setStatusFilter(value);
+                        setCurrentPage(1);
+                    }}
+                    statusLabel="Court Status"
+                    statusOptions={[
+                        { value: "all", label: "All statuses" },
+                        ...statusOptions.map((status) => ({
+                            value: status,
+                            label: status.charAt(0).toUpperCase() + status.slice(1),
+                        })),
+                    ]}
+                    onReset={() => {
+                        setSearch("");
+                        setStatusFilter("all");
+                        setSportFilter("all");
+                        setCurrentPage(1);
+                    }}
                 />
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Total Courts</p>
-                            <span className="rounded-lg bg-blue-50 p-2 text-blue-700"><Trophy className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{courts.length}</p>
-                        <p className="mt-1 text-xs text-slate-500">Registered courts</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Available</p>
-                            <span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><Activity className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{courts.filter((court) => ["available", "active"].includes(String(court.status || "").toLowerCase())).length}</p>
-                        <p className="mt-1 text-xs text-slate-500">Ready for booking</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Maintenance</p>
-                            <span className="rounded-lg bg-amber-50 p-2 text-amber-700"><Activity className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{courts.filter((court) => String(court.status || "").toLowerCase() === "maintenance").length}</p>
-                        <p className="mt-1 text-xs text-slate-500">Courts needing attention</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Sport Categories</p>
-                            <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><Users className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{categories.length}</p>
-                        <p className="mt-1 text-xs text-slate-500">Available sport types</p>
-                    </div>
-                </div>
-
                 <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
                     <PageHeader
                         title="Court Management"
                         description="Manage sports courts, schedules, pricing, capacity and availability."
@@ -291,127 +274,30 @@ export default function Court() {
                         countLabel="courts total"
                     />
 
-                    <div className="grid grid-cols-1 gap-4 border-b border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <div className="sm:col-span-2 xl:col-span-1">
-                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                Search Courts
-                            </label>
-
-                            <div className="relative">
-    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    placeholder="Search name, sport, branch..."
-                                    className="w-full min-w-0 rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                Status
-                            </label>
-
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => {
-                                    setStatusFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                                <option value="all">All Statuses</option>
-
-                                {statusOptions.map((status) => (
-                                    <option key={status} value={status}>
-                                        {status.replace(/_/g, " ")}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                Sport Category
-                            </label>
-
-                            <select
-                                value={sportFilter}
-                                onChange={(e) => {
-                                    setSportFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                                <option value="all">All Sports</option>
-
-                                {sportOptions.map((sport) => (
-                                    <option key={sport} value={sport}>
-                                        {sport}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                        <div className="flex items-end">
-                            <button
-                                type="button"
-                                onClick={handleCreate}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:w-auto xl:w-full"
-                            >
-    <Plus className="h-4 w-4" />
-                                Add Court
-                            </button>
-                        </div>
-                    </div>
-
                     <div className="w-full overflow-x-auto">
                         <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
-                            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                                <tr>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Court
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Sport
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Branch
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Capacity
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Operating Hours
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Price
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                        Status
-                                    </th>
-                                    <th className="whitespace-nowrap px-5 py-4 text-right font-semibold">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
+                            <TableHead
+                                columns={[
+                                    "Court",
+                                    "Sport",
+                                    "Branch",
+                                    "Capacity",
+                                    "Operating Hours",
+                                    "Price",
+                                    "Status",
+                                    { label: "Actions", align: "right" },
+                                ]}
+                            />
 
                             <tbody className="divide-y divide-slate-100">
                                 {paginatedCourts.map((court) => {
-                                    const status = (court.status || "unknown").replace(/_/g, " ");
-                                    const statusClass = {
-                                        active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-                                        available: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-                                        inactive: "bg-slate-100 text-slate-600 ring-slate-500/20",
-                                        maintenance: "bg-amber-50 text-amber-700 ring-amber-600/20",
-                                        unavailable: "bg-red-50 text-red-700 ring-red-600/20",
-                                    }[court.status] || "bg-slate-100 text-slate-600 ring-slate-500/20";
+
+                                    const status = court.status || "UNKNOWN";
+                                    const formattedStatus = status
+                                        .replaceAll("_", " ")
+                                        .toLowerCase()
+                                        .replace(/\b\w/g, (char) => char.toUpperCase());
+                                    const statusClass = getGeneralStatusClass(status);
 
                                     return (
                                         <tr
@@ -463,7 +349,7 @@ export default function Court() {
                                                     className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClass}`}
                                                 >
                                                     <span className="h-1.5 w-1.5 bg-current" />
-                                                    {status}
+                                                    {formattedStatus}
                                                 </span>
                                             </td>
                                             
@@ -531,22 +417,18 @@ export default function Court() {
                                     <tr>
                                         <td colSpan={8} className="px-5 py-16 text-center">
                                             <p className="font-semibold text-slate-800">
-                                                {courts.length === 0
-                                                    ? "No courts available"
-                                                    : "No matching courts found"}
+                                                {courts.length === 0 ? "No courts available" : "No matching courts found"}
                                             </p>
 
                                             <p className="mt-1 text-sm text-slate-500">
-                                                {courts.length === 0
-                                                    ? "Courts will appear here once they are added."
-                                                    : "Try changing your search or filters."}
+                                                {courts.length === 0 ? "Courts will appear here once they are added." : "Try changing your search or filters."}
                                             </p>
 
                                             {courts.length > 0 && (
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        setSearchTerm("");
+                                                        setSearch("");
                                                         setStatusFilter("all");
                                                         setSportFilter("all");
                                                         setCurrentPage(1);
@@ -563,52 +445,12 @@ export default function Court() {
                         </table>
                     </div>
 
-                    {/* Footer */}
-                    {courts.length > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                <span>
-                                    Showing <span className="font-semibold text-slate-700">{startEntry}–{endEntry}</span> of{" "}
-                                    <span className="font-semibold text-slate-700">{filteredCourts.length}</span> courts
-                                </span>
-                                <label className="flex items-center gap-2">
-                                    Rows
-                                    <select
-                                        value={perPage}
-                                        onChange={(event) => {
-                                            setPerPage(Number(event.target.value));
-                                            setCurrentPage(1);
-                                        }}
-                                        className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                    >
-                                        <option value={5}>5</option>
-                                        <option value={10}>10</option>
-                                        <option value={25}>25</option>
-                                        <option value={50}>50</option>
-                                    </select>
-                                </label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                                    disabled={safePage <= 1}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Previous
-                                </button>
-                                <span className="text-xs font-medium text-slate-600">Page {safePage} of {totalPages}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                                    disabled={safePage >= totalPages}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                    Next <ChevronRight className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    <TablePagination
+                        currentPage={safePage}
+                        setPage={setCurrentPage}
+                        totalItems={filteredCourts.length}
+                        pageSize={perPage}
+                    />
 
                 </div>
             </div>

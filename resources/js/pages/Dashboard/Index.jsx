@@ -6,6 +6,8 @@ import { useAuth } from "../../context/AuthContext";
 import PageState from "../../components/PageState";
 import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 import { getAdminDashboard } from "../../services/adminService";
+import BadgeCard from '../../components/BadgeCard';
+import { ClipboardCheck, ClipboardClock, ClipboardList, ClipboardMinus, ClipboardX } from "lucide-react";
 
 export default function Dashboard() {
 
@@ -277,26 +279,11 @@ export default function Dashboard() {
                     <SectionHeader title="Booking Status" />
 
                     <div className="grid grid-cols-2 gap-4 p-5 md:grid-cols-5">
-                        <StatusCard
-                            label="Confirmed"
-                            value={ bookingStatus.confirmed || 0 }
-                        />
-                        <StatusCard
-                            label="Pending"
-                            value={ bookingStatus.pending || 0 }
-                        />
-                        <StatusCard
-                            label="Cancelled"
-                            value={ bookingStatus.cancelled || 0 }
-                        />
-                        <StatusCard
-                            label="Completed"
-                            value={ bookingStatus.completed || 0 }
-                        />
-                        <StatusCard
-                            label="Failed"
-                            value={ bookingStatus.failed || 0 }
-                        />
+                        <BadgeCard title="Confirmed" value={bookingStatus.confirmed || 0} description="Bookings approved" icon={ClipboardCheck} colorIndex={0}/>
+                        <BadgeCard title="Pending" value={bookingStatus.pending || 0} description="Awaiting approval" icon={ClipboardClock} colorIndex={1}/>
+                        <BadgeCard title="Cancelled" value={bookingStatus.cancelled || 0} description="Bookings cancelled" icon={ClipboardMinus} colorIndex={2}/>
+                        <BadgeCard title="Completed" value={bookingStatus.cancelled || 0} description="Booking Completed" icon={ClipboardList} colorIndex={3}/>
+                        <BadgeCard title="Failed" value={bookingStatus.failed || 0} description="Booking Failed" icon={ClipboardX} colorIndex={3}/>
                     </div>
                 </section>
 

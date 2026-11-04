@@ -1,39 +1,13 @@
 import React, { useEffect, useState} from "react";
 import TableHead from '../../components/TableHead';
-
+import { AUDIT_MODULE_OPTIONS, AUDIT_ACTION_OPTIONS } from "../../enums/enum";
+import { getAuditLogs, getAuditLogSummary } from "../../services/auditLogService";
+import {
+    formatDate,
+    titleCase,
+    formatValues,
+} from "../../utils/formatters";
 const API = "/api/v1";
-const MODULES = [
-    "booking",
-    "cancellation",
-    "rescheduling",
-    "payment",
-    "refund",
-    "administration",
-    "court_schedule",
-    "court_blocking",
-    "membership",
-    "waitlist",
-    "failure_exception",
-];
-
-const ACTIONS = [
-    "created",
-    "updated",
-    "deleted",
-    "cancelled",
-    "rescheduled",
-    "paid",
-    "payment_failed",
-    "refunded",
-    "refund_failed",
-    "blocked",
-    "unblocked",
-    "promoted",
-    "expired",
-    "approved",
-    "rejected",
-];
-
 function authHeaders() {
     return {
         Accept: "application/json",
@@ -75,164 +49,61 @@ function formatValues(values) {
 }
 
 export default function AuditHistoryIndex() {
-    const [logs, setLogs] =
-        useState([]);
+    const [logs, setLogs] = useState([]);
+    const [summary, setSummary] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [module, setModule] = useState("");
+    const [action, setAction] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+    const [page, setPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
+    const [selectedLog, setSelectedLog] = useState(null);
 
-    const [summary, setSummary] =
-        useState({});
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
-    const [module, setModule] =
-        useState("");
-
-    const [action, setAction] =
-        useState("");
-
-    const [dateFrom, setDateFrom] =
-        useState("");
-
-    const [dateTo, setDateTo] =
-        useState("");
-
-    const [page, setPage] =
-        useState(1);
-
-    const [lastPage, setLastPage] =
-        useState(1);
-
-    const [selectedLog, setSelectedLog] =
-        useState(null);
-
-    async function loadLogs(
-        requestedPage = page
-    ) {
+    async function loadLogs(requestedPage = page) {
         try {
             setLoading(true);
             setError("");
 
-            const params =
-                new URLSearchParams();
+            const params = {
+                page: requestedPage,
+                per_page: 25,
+                ...(module && { module }),
+                ...(action && { action }),
+                ...(dateFrom && { date_from: dateFrom }),
+                ...(dateTo && { date_to: dateTo }),
+            };
 
-            params.set(
-                "page",
-                requestedPage
-            );
+            const response = await getAuditLogs(params);
+            const result = response.data;
 
-            params.set(
-                "per_page",
-                "25"
-            );
-
-            if (module) {
-                params.set(
-                    "module",
-                    module
-                );
-            }
-
-            if (action) {
-                params.set(
-                    "action",
-                    action
-                );
-            }
-
-            if (dateFrom) {
-                params.set(
-                    "date_from",
-                    dateFrom
-                );
-            }
-
-            if (dateTo) {
-                params.set(
-                    "date_to",
-                    dateTo
-                );
-            }
-
-            const response =
-                await fetch(
-                    `${API}/audit-logs?${params.toString()}`,
-                    {
-                        headers:
-                            authHeaders(),
-                    }
-                );
-
-            const result =
-                await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                        "Failed to load audit history."
-                );
-            }
-
-            setLogs(
-                result.data || []
-            );
-
-            setPage(
-                result.current_page || 1
-            );
-
-            setLastPage(
-                result.last_page || 1
-            );
+            setLogs(result.data || []);
+            setPage(result.current_page || 1);
+            setLastPage(result.last_page || 1);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to load audit history."
+            );
         } finally {
             setLoading(false);
         }
     }
-
     async function loadSummary() {
         try {
-            const params =
-                new URLSearchParams();
+            const params = {
+                ...(dateFrom && { date_from: dateFrom }),
+                ...(dateTo && { date_to: dateTo }),
+            };
 
-            if (dateFrom) {
-                params.set(
-                    "date_from",
-                    dateFrom
-                );
-            }
-
-            if (dateTo) {
-                params.set(
-                    "date_to",
-                    dateTo
-                );
-            }
-
-            const response =
-                await fetch(
-                    `${API}/audit-logs/summary?${params.toString()}`,
-                    {
-                        headers:
-                            authHeaders(),
-                    }
-                );
-
-            const result =
-                await response.json();
-
-            if (response.ok) {
-                setSummary(result);
-            }
+            const response = await getAuditLogSummary(params);
+            setSummary(response.data);
         } catch {
-            // Summary failure should not
-            // prevent audit records from loading.
+            // Summary failure should not prevent audit records from loading.
         }
     }
-
     async function loadAll() {
         await Promise.all([
             loadLogs(1),
@@ -321,78 +192,37 @@ export default function AuditHistoryIndex() {
                         label="Deleted"
                         value={summary.deleted}
                     />
-
                 </div>
-
-                {/* Filters */}
-
                 <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                Module
-                            </label>
-
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Module</label>
                             <select
                                 value={module}
-                                onChange={(event) =>
-                                    setModule(
-                                        event.target.value
-                                    )
-                                }
+                                onChange={(event) => setModule(event.target.value)}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             >
-                                <option value="">
-                                    All Modules
-                                </option>
-
-                                {MODULES.map(
-                                    (item) => (
-                                        <option
-                                            key={item}
-                                            value={item}
-                                        >
-                                            {titleCase(
-                                                item
-                                            )}
-                                        </option>
-                                    )
-                                )}
+                                <option value="">All Modules</option>
+                                {AUDIT_MODULE_OPTIONS.map((item) => (
+                                    <option key={item} value={item}>
+                                        {titleCase(item)}
+                                    </option>
+                                ))}
                             </select>
                         </div>
-
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                Action
-                            </label>
-
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Action</label>
                             <select
                                 value={action}
-                                onChange={(event) =>
-                                    setAction(
-                                        event.target.value
-                                    )
-                                }
+                                onChange={(event) => setAction(event.target.value)}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             >
-                                <option value="">
-                                    All Actions
-                                </option>
-
-                                {ACTIONS.map(
-                                    (item) => (
-                                        <option
-                                            key={item}
-                                            value={item}
-                                        >
-                                            {titleCase(
-                                                item
-                                            )}
-                                        </option>
-                                    )
-                                )}
+                                <option value="">All Actions</option>
+                                {AUDIT_ACTION_OPTIONS.map((item) => (
+                                    <option key={item} value={item}>
+                                        {titleCase(item)}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 

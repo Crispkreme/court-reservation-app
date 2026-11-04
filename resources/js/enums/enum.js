@@ -118,6 +118,40 @@ export const COLOR_CLASSES = Object.freeze({
     GRAY: "bg-gray-50 text-gray-700",
 });
 
+export const AUDIT_MODULES = Object.freeze({
+    BOOKING: "booking",
+    CANCELLATION: "cancellation",
+    RESCHEDULING: "rescheduling",
+    PAYMENT: "payment",
+    REFUND: "refund",
+    ADMINISTRATION: "administration",
+    COURT_SCHEDULE: "court_schedule",
+    COURT_BLOCKING: "court_blocking",
+    MEMBERSHIP: "membership",
+    WAITLIST: "waitlist",
+    FAILURE_EXCEPTION: "failure_exception",
+});
+
+export const AUDIT_ACTIONS = Object.freeze({
+    CREATED: "created",
+    UPDATED: "updated",
+    DELETED: "deleted",
+    CANCELLED: "cancelled",
+    RESCHEDULED: "rescheduled",
+    PAID: "paid",
+    PAYMENT_FAILED: "payment_failed",
+    REFUNDED: "refunded",
+    REFUND_FAILED: "refund_failed",
+    BLOCKED: "blocked",
+    UNBLOCKED: "unblocked",
+    PROMOTED: "promoted",
+    EXPIRED: "expired",
+    APPROVED: "approved",
+    REJECTED: "rejected",
+});
+
+export const AUDIT_ACTION_OPTIONS = Object.freeze(Object.values(AUDIT_ACTIONS));
+export const AUDIT_MODULE_OPTIONS = Object.freeze(Object.values(AUDIT_MODULES));
 export const BOOKING_STATUS_OPTIONS = Object.values(BOOKING_STATUS);
 export const COURT_STATUS_OPTIONS = Object.freeze(Object.values(GENERAL_STATUS));
 

@@ -177,3 +177,30 @@ export const getDayName = (day) => {
         )?.label ?? '-'
     );
 };
+
+export const titleCase = (value) => {
+    if (!value) {
+        return "-";
+    }
+
+    return String(value)
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, (character) =>
+            character.toUpperCase()
+        );
+};
+
+export const formatValues = (values) => {
+    if (
+        values === null ||
+        values === undefined
+    ) {
+        return "-";
+    }
+
+    try {
+        return JSON.stringify(values, null, 2);
+    } catch {
+        return String(values);
+    }
+};

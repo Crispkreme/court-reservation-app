@@ -7,7 +7,7 @@ if(import.meta.env.VITE_APP_ENV === 'local') {
     url = 'https://court-reservation-app.vercel.app'
 }
 
-const API_URL = `${url}/api/v1`;
+const API_URL = `${url}/api/v1/`;
 const api = axios.create({
     baseURL: API_URL,
     headers: {

@@ -39,23 +39,50 @@ export const BOOKING_STATUS_CLASSES = Object.freeze({
     [BOOKING_STATUS.FAILED]: "bg-rose-50 text-rose-700 ring-rose-600/20",
 });
 
+export const GENERAL_STATUS = Object.freeze({
+    DRAFT: "DRAFT",
+    PENDING_PAYMENT: "PENDING_PAYMENT",
+    CONFIRMED: "CONFIRMED",
+    CHECKED_IN: "CHECKED_IN",
+    IN_PROGRESS: "IN_PROGRESS",
+    COMPLETED: "COMPLETED",
+    CANCELLED: "CANCELLED",
+    RESCHEDULED: "RESCHEDULED",
+    NO_SHOW: "NO_SHOW",
+    ACTIVE: "ACTIVE",
+    EXPIRED: "EXPIRED",
+    PAID: "PAID",
+    AVAILABLE: "AVAILABLE",
+    PENDING: "PENDING",
+    SUCCESSFUL: "SUCCESSFUL",
+    HELD: "HELD",
+    SUCCESS: "SUCCESS",
+    RESERVED: "RESERVED",
+    PROCESSING: "PROCESSING",
+    WAITING: "WAITING",
+    CLOSED: "CLOSED",
+    INACTIVE: "INACTIVE",
+    MAINTENANCE: "MAINTENANCE",
+    FAILED: "FAILED",
+});
+
 export const GENERAL_STATUS_CLASSES = Object.freeze({
-    ACTIVE: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    PAID: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    AVAILABLE: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    SUCCESS: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    SUCCESSFUL: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    [GENERAL_STATUS.ACTIVE]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    [GENERAL_STATUS.PAID]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    [GENERAL_STATUS.AVAILABLE]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    [GENERAL_STATUS.SUCCESS]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    [GENERAL_STATUS.SUCCESSFUL]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
 
-    PENDING: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    HELD: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    RESERVED: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    PROCESSING: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    WAITING: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    [GENERAL_STATUS.PENDING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    [GENERAL_STATUS.HELD]: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    [GENERAL_STATUS.RESERVED]: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    [GENERAL_STATUS.PROCESSING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    [GENERAL_STATUS.WAITING]: "bg-amber-50 text-amber-700 ring-amber-600/20",
 
-    CLOSED: "bg-rose-50 text-rose-700 ring-rose-600/20",
-    MAINTENANCE: "bg-rose-50 text-rose-700 ring-rose-600/20",
+    [GENERAL_STATUS.CLOSED]: "bg-rose-50 text-rose-700 ring-rose-600/20",
+    [GENERAL_STATUS.MAINTENANCE]: "bg-rose-50 text-rose-700 ring-rose-600/20",
 
-    INACTIVE: "bg-slate-100 text-slate-600 ring-slate-500/20",
+    [GENERAL_STATUS.INACTIVE]: "bg-slate-100 text-slate-600 ring-slate-500/20",
 });
 
 export const DAYS_OF_WEEK = Object.freeze({
@@ -78,7 +105,21 @@ export const DAYS_OF_WEEK_OPTIONS = Object.freeze([
     { value: DAYS_OF_WEEK.SATURDAY, label: "Saturday" },
 ]);
 
+export const COLOR_CLASSES = Object.freeze({
+    BLUE: "bg-blue-50 text-blue-700",
+    RED: "bg-red-50 text-red-700",
+    GREEN: "bg-green-50 text-green-700",
+    YELLOW: "bg-yellow-50 text-yellow-700",
+    ORANGE: "bg-orange-50 text-orange-700",
+    PINK: "bg-pink-50 text-pink-700",
+    PURPLE: "bg-purple-50 text-purple-700",
+    INDIGO: "bg-indigo-50 text-indigo-700",
+    GRAY: "bg-gray-50 text-gray-700",
+});
+
 export const BOOKING_STATUS_OPTIONS = Object.values(BOOKING_STATUS);
+export const COURT_STATUS_OPTIONS = Object.freeze(Object.values(GENERAL_STATUS));
+
 export const getBookingStatusClass = (status) => BOOKING_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
 export const getGeneralStatusClass = (status) => GENERAL_STATUS_CLASSES[String(status || "").toUpperCase()] || "bg-slate-100 text-slate-600 ring-slate-500/20";
 export const getStatusClass = (status) => { const normalized = String(status || "").toUpperCase();

@@ -13,7 +13,6 @@ export default function StatusBadge({ status, active }) {
     ).toUpperCase();
 
     const classes = getStatusClass(normalized);
-
     const label = normalized.replaceAll("_", " ").toLowerCase();
 
     return (

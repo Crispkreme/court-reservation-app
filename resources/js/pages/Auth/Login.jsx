@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
     const navigate = useNavigate();
     const { login } = useAuth();
+
     const [form, setForm] = useState({
         email: '',
         password: '',
@@ -13,6 +15,7 @@ export default function Login() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         setForm({
@@ -28,19 +31,13 @@ export default function Login() {
         setError('');
 
         try {
-            // Login through AuthContext
             const user = await login(form);
-
             const role = user?.role?.toLowerCase();
 
             if (role === 'admin') {
-                navigate('/admin/dashboard', {
-                    replace: true
-                });
+                navigate('/admin/dashboard', { replace: true });
             } else if (role === 'member') {
-                navigate('/member-dashboard', {
-                    replace: true
-                });
+                navigate('/member-dashboard', { replace: true });
             } else {
                 setError('Your account role is not recognized.');
             }
@@ -52,9 +49,7 @@ export default function Login() {
                 const errors = err.response.data.errors;
 
                 setError(
-                    Object.values(errors)
-                        .flat()
-                        .join(' ')
+                    Object.values(errors).flat().join(' ')
                 );
             } else {
                 setError(
@@ -70,6 +65,7 @@ export default function Login() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
+
                 <div className="mb-8 text-center">
                     <h1 className="text-3xl font-bold text-gray-900">
                         Welcome Back
@@ -85,10 +81,17 @@ export default function Login() {
                     </div>
                 )}
 
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-5">
+
+                    {/* Email */}
                     <div>
-                        <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">Email Address</label>
+                        <label
+                            htmlFor="email"
+                            className="mb-2 block text-sm font-medium text-gray-700"
+                        >
+                            Email Address
+                        </label>
+
                         <input
                             id="email"
                             name="email"
@@ -101,20 +104,46 @@ export default function Login() {
                             className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                         />
                     </div>
+
+                    {/* Password */}
                     <div>
-                        <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                            autoComplete="current-password"
-                            placeholder="Enter your password"
-                            className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                        />
+                        <label
+                            htmlFor="password"
+                            className="mb-2 block text-sm font-medium text-gray-700"
+                        >
+                            Password
+                        </label>
+
+                        <div className="relative">
+                            <input
+                                id="password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                                autoComplete="current-password"
+                                placeholder="Enter your password"
+                                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 transition hover:text-blue-600"
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPassword}
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={20} />
+                                ) : (
+                                    <Eye size={20} />
+                                )}
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Submit */}
                     <button
                         type="submit"
                         disabled={loading}
@@ -122,17 +151,20 @@ export default function Login() {
                     >
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
+
                 </form>
 
                 <div className="mt-6 text-center text-sm text-gray-600">
                     Don't have an account?
-                    <Link to="/register" className="ml-1 font-semibold text-blue-600 hover:text-blue-700">
+                    <Link
+                        to="/register"
+                        className="ml-1 font-semibold text-blue-600 hover:text-blue-700"
+                    >
                         Create an account
                     </Link>
                 </div>
 
             </div>
-
         </div>
     );
 }

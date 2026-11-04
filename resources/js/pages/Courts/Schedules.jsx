@@ -1,23 +1,15 @@
 import { useEffect, useState } from 'react';
 import Layout from '../../components/layout/Layout';
 import { CalendarDays, Plus, Search, Pencil, Trash2, Clock3, CheckCircle2, Wrench, CalendarCheck, X } from 'lucide-react';
+import { DAYS_OF_WEEK_OPTIONS, COURT_STATUS_OPTIONS, getStatusClass } from '../../enums/enum'
+import { getCourtSchedules, getCourts, createCourtSchedule, updateCourtSchedule, deleteCourtSchedule, getCourtNameById } from '../../services/courtService';
+import { getDayName } from '../../utils/formatters';
+import ErrorAlert from "../../components/ErrorAlert";
+import SuccessAlert from "../../components/SuccessAlert";
+import BadgeCard from '../../components/BadgeCard';
 
-const DAYS = [
-    { value: 0, label: 'Sunday' },
-    { value: 1, label: 'Monday' },
-    { value: 2, label: 'Tuesday' },
-    { value: 3, label: 'Wednesday' },
-    { value: 4, label: 'Thursday' },
-    { value: 5, label: 'Friday' },
-    { value: 6, label: 'Saturday' },
-];
-
-const STATUSES = [
-    'available',
-    'blocked',
-    'maintenance',
-    'closed',
-];
+const DAYS = DAYS_OF_WEEK_OPTIONS;
+const STATUSES = COURT_STATUS_OPTIONS;
 
 export default function Schedules() {
     const [schedules, setSchedules] = useState([]);
@@ -31,6 +23,7 @@ export default function Schedules() {
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const [showModal, setShowModal] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState(null);
@@ -54,56 +47,23 @@ export default function Schedules() {
 
     const fetchCourts = async () => {
         try {
-            const response = await fetch('/api/v1/courts', {
-                headers: {
-                    Accept: 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to load courts');
-            }
-
-            const data = await response.json();
-
-            setCourts(data.data ?? data);
+            const response = await getCourts();
+            setCourts(response.data.data ?? response.data);
         } catch (error) {
             console.error(error);
             setError('Unable to load courts. Please refresh and try again.');
         }
     };
-
     const fetchSchedules = async () => {
         try {
             setLoading(true);
 
-            const params = new URLSearchParams();
-
-            if (selectedCourt) {
-                params.append('court_id', selectedCourt);
-            }
-
-            if (selectedStatus) {
-                params.append('status', selectedStatus);
-            }
-
-            const url = `/api/v1/court-schedules${
-                params.toString() ? `?${params}` : ''
-            }`;
-
-            const response = await fetch(url, {
-                headers: {
-                    Accept: 'application/json',
-                },
+            const response = await getCourtSchedules({
+                court_id: selectedCourt || undefined,
+                status: selectedStatus || undefined,
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to load schedules');
-            }
-
-            const data = await response.json();
-
-            setSchedules(data.data ?? data);
+            setSchedules(response.data.data ?? response.data);
         } catch (error) {
             console.error(error);
             setError('Unable to load court schedules. Please refresh and try again.');
@@ -152,6 +112,8 @@ export default function Schedules() {
         });
 
         setShowModal(true);
+        setSuccess("");
+        setError("");
     };
 
     const handleChange = (e) => {
@@ -163,6 +125,7 @@ export default function Schedules() {
         }));
     };
 
+
     const saveSchedule = async (e) => {
         e.preventDefault();
 
@@ -170,92 +133,59 @@ export default function Schedules() {
         setError('');
 
         try {
-            const url = editingSchedule
-                ? `/api/v1/court-schedules/${editingSchedule.id}`
-                : '/api/v1/court-schedules';
-
-            const method = editingSchedule ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify(form),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ?? 'Failed to save schedule'
-                );
+            if (editingSchedule) {
+                await updateCourtSchedule(editingSchedule.id, form);
+            } else {
+                await createCourtSchedule(form);
             }
-
+            
             setShowModal(false);
-            fetchSchedules();
+            await fetchSchedules();
+
         } catch (error) {
-            setError(error.message || 'Unable to save schedule.');
+            console.error('Save schedule error:', error);
+
+            const errors = error.response?.data?.errors;
+
+            setError(
+                errors
+                    ? Object.values(errors).flat().join(' ')
+                    : error.response?.data?.message ||
+                    'Unable to save schedule.'
+            );
         } finally {
             setSaving(false);
         }
     };
-
     const deleteSchedule = async (id) => {
-        if (!confirm('Delete this court schedule?')) {
+        if (!window.confirm('Delete this court schedule?')) {
             return;
         }
 
         try {
-            const response = await fetch(
-                `/api/v1/court-schedules/${id}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                }
-            );
+            await deleteCourtSchedule(id);
+            await fetchSchedules();
 
-            if (!response.ok) {
-                throw new Error('Failed to delete schedule');
-            }
-
-            fetchSchedules();
         } catch (error) {
-            setError(error.message || 'Unable to delete schedule.');
+            console.error('Delete schedule error:', error);
+
+            setError(
+                error.response?.data?.message ||
+                'Unable to delete schedule.'
+            );
         }
-    };
-
-    const getCourtName = (courtId) => {
-        const court = courts.find(
-            (item) => Number(item.id) === Number(courtId)
-        );
-
-        return court?.name ?? `Court #${courtId}`;
-    };
-
-    const getDayName = (day) => {
-        return (
-            DAYS.find(
-                (item) => Number(item.value) === Number(day)
-            )?.label ?? '-'
-        );
-    };
-
-    const statusClasses = {
-        available: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-        blocked: 'bg-red-50 text-red-700 ring-red-600/20',
-        maintenance: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-        closed: 'bg-slate-100 text-slate-600 ring-slate-500/20',
     };
 
     const filteredSchedules = schedules.filter((schedule) => {
         const query = searchTerm.trim().toLowerCase();
-        return [getCourtName(schedule.court_id), getDayName(schedule.day_of_week), schedule.status, schedule.notes]
-            .some((value) => String(value ?? '').toLowerCase().includes(query));
+        return [
+            getCourtNameById(courts, schedule.court_id), 
+            getDayName(schedule.day_of_week), 
+            schedule.status, 
+            schedule.notes
+        ].some((value) => String(value ?? '').toLowerCase().includes(query));
     });
+
     const totalPages = Math.max(1, Math.ceil(filteredSchedules.length / perPage));
     const safePage = Math.min(currentPage, totalPages);
     const startIndex = (safePage - 1) * perPage;
@@ -293,48 +223,14 @@ export default function Schedules() {
                     </button>
                 </div>
 
-                {error && (
-                    <div className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-                        <span>{error}</span>
-                        <button type="button" onClick={() => setError('')} className="rounded p-0.5 hover:bg-red-100" aria-label="Dismiss error">
-                            <X className="h-4 w-4" />
-                        </button>
-                    </div>
-                )}
+                <ErrorAlert message={error} />
+                <SuccessAlert message={success} />
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Total Schedules</p>
-                            <span className="rounded-lg bg-blue-50 p-2 text-blue-700"><CalendarDays className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{schedules.length}</p>
-                        <p className="mt-1 text-xs text-slate-500">All configured schedules</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Active Schedules</p>
-                            <span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><CheckCircle2 className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{activeCount}</p>
-                        <p className="mt-1 text-xs text-slate-500">Currently enabled</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Available</p>
-                            <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><Clock3 className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{availableCount}</p>
-                        <p className="mt-1 text-xs text-slate-500">Active availability windows</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Maintenance</p>
-                            <span className="rounded-lg bg-amber-50 p-2 text-amber-700"><Wrench className="h-5 w-5" /></span>
-                        </div>
-                        <p className="mt-3 text-2xl font-bold text-slate-900">{maintenanceCount}</p>
-                        <p className="mt-1 text-xs text-slate-500">Maintenance windows</p>
-                    </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                    <BadgeCard title="Total Schedules" value={schedules.length} description="All configured schedules" icon={CalendarDays} colorIndex={0}/>
+                    <BadgeCard title="Active Schedules" value={activeCount} description="Currently enabled" icon={CheckCircle2} colorIndex={1}/>
+                    <BadgeCard title="Available" value={availableCount} description="Active availability windows" icon={Clock3} colorIndex={2}/>
+                    <BadgeCard title="Maintenance" value={maintenanceCount} description="Maintenance windows" icon={Wrench} colorIndex={3}/>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -422,7 +318,7 @@ export default function Schedules() {
                                 ) : paginatedSchedules.map((schedule) => (
                                     <tr key={schedule.id} className="transition-colors hover:bg-slate-50/80">
                                         <td className="px-5 py-4">
-                                            <div className="font-semibold text-slate-800">{getCourtName(schedule.court_id)}</div>
+                                            <div className="font-semibold text-slate-800">{getCourtNameById(courts, schedule.court_id)}</div>
                                             {schedule.notes && <div className="mt-1 max-w-xs truncate text-xs text-slate-500">{schedule.notes}</div>}
                                         </td>
                                         <td className="whitespace-nowrap px-5 py-4 text-slate-600">{getDayName(schedule.day_of_week)}</td>
@@ -430,7 +326,7 @@ export default function Schedules() {
                                             {schedule.start_time?.substring(0, 5) || '--:--'} <span className="mx-1 text-slate-400">–</span> {schedule.end_time?.substring(0, 5) || '--:--'}
                                         </td>
                                         <td className="px-5 py-4">
-                                            <span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClasses[schedule.status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'}`}>
+                                            <span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${getStatusClass[schedule.status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'}`}>
                                                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                 {schedule.status || 'Unknown'}
                                             </span>
@@ -544,7 +440,7 @@ export default function Schedules() {
                                     required
                                     className="w-full rounded-lg rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 >
-                                    {DAYS.map((day) => (
+                                    {DAYS_OF_WEEK_OPTIONS.map((day) => (
                                         <option
                                             key={day.value}
                                             value={day.value}

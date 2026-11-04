@@ -1,18 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import Layout from '../../components/layout/Layout';
-import {
-    CalendarDays,
-    Plus,
-    Search,
-    Pencil,
-    Trash2,
-    CheckCircle2,
-    Ban,
-    Wrench,
-    CalendarOff,
-    X,
-} from 'lucide-react';
+import { CalendarDays, Plus, Search, Pencil, Trash2, CheckCircle2, Ban, Wrench, CalendarOff, X } from 'lucide-react';
+import { getCourtSchedules, getCourts, createCourtSchedule, updateCourtSchedule, deleteCourtSchedule, getCourtNameById } from '../../services/courtService';
 
 const statusOptions = [
     { value: '', label: 'All Statuses' },
@@ -129,7 +119,7 @@ export default function Overrides() {
 
             const query = searchTerm.trim().toLowerCase();
             const matchesSearch = [
-                getCourtName(override.court_id),
+                getCourtNameById(courts, override.court_id),
                 override.title,
                 override.reason,
                 override.status,
@@ -279,20 +269,6 @@ export default function Overrides() {
 
     /*
     |--------------------------------------------------------------------------
-    | Court Name
-    |--------------------------------------------------------------------------
-    */
-
-    const getCourtName = (courtId) => {
-        const court = courts.find(
-            (item) => String(item.id) === String(courtId)
-        );
-
-        return court?.name ?? `Court #${courtId}`;
-    };
-
-    /*
-    |--------------------------------------------------------------------------
     | Date Formatting
     |--------------------------------------------------------------------------
     */
@@ -423,7 +399,7 @@ export default function Overrides() {
                                     </td></tr>
                                 ) : paginatedOverrides.map((override) => (
                                     <tr key={override.id} className="transition-colors hover:bg-slate-50/80">
-                                        <td className="px-5 py-4 font-semibold text-slate-800">{getCourtName(override.court_id)}</td>
+                                        <td className="px-5 py-4 font-semibold text-slate-800">{getCourtNameById(courts, override.court_id)}</td>
                                         <td className="whitespace-nowrap px-5 py-4 text-slate-600">{formatDate(override.date)}</td>
                                         <td className="whitespace-nowrap px-5 py-4 text-slate-600">{override.start_time && override.end_time ? `${String(override.start_time).substring(0, 5)} – ${String(override.end_time).substring(0, 5)}` : 'Whole Day'}</td>
                                         <td className="px-5 py-4"><span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusClasses[override.status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{String(override.status ?? 'unknown').charAt(0).toUpperCase() + String(override.status ?? 'unknown').slice(1)}</span></td>

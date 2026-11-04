@@ -24,3 +24,16 @@ export const getCourtMaintenance = (courtId) => api.get(`/courts/${courtId}/main
 export const createCourtMaintenance = (courtId, data) => api.post(`/courts/${courtId}/maintenance`, data);
 export const updateCourtMaintenance = (id, data) => api.put(`/maintenance-periods/${id}`, data);
 export const deleteCourtMaintenance = (id) => api.delete(`/maintenance-periods/${id}`);
+
+// Court Schedules
+export const getCourtSchedules = (params = {}) => api.get('/court-schedules', { params });
+export const createCourtSchedule = (data) => api.post('/court-schedules', data);
+export const updateCourtSchedule = (id, data) => api.put(`/court-schedules/${id}`, data);
+export const deleteCourtSchedule = (id) => api.delete(`/court-schedules/${id}`);
+export const getCourtNameById = (courts, courtId) => {
+    const court = courts.find(
+        (item) => Number(item.id) === Number(courtId)
+    );
+
+    return court?.name ?? `Court #${courtId}`;
+};

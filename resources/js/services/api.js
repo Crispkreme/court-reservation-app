@@ -1,7 +1,15 @@
 import axios from 'axios';
+let url;
 
+if(import.meta.env.VITE_APP_ENV === 'local') {
+    url = 'http://localhost:8000'
+} else {
+    url = 'https://court-reservation-app.vercel.app'
+}
+
+const API_URL = `${url}/api/v1`;
 const api = axios.create({
-    baseURL: 'https://court-reservation-app.vercel.app/api/v1',
+    baseURL: API_URL,
     headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',

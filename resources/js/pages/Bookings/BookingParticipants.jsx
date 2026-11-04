@@ -1,20 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-    UsersRound,
-    UserPlus,
-    Search,
-    RefreshCw,
-    Pencil,
-    Trash2,
-    X,
-    CheckCircle2,
-    AlertCircle,
-    UserRound,
-    Mail,
-    Phone,
-    MapPin,
-    SlidersHorizontal,
-} from "lucide-react";
+import { UsersRound, UserPlus, Search, RefreshCw, Pencil, Trash2, X, CheckCircle2, AlertCircle, UserRound, Mail, Phone, MapPin, SlidersHorizontal } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import StatusBadge from "../../components/StatusBadge";
 import FilterSelect from "../../components/FilterSelect";
@@ -263,7 +248,6 @@ export default function BookingParticipants() {
                 </div>
 
                 <ErrorAlert message={error} />
-
                 <SuccessAlert message={success} />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

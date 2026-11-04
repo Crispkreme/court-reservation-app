@@ -1,3 +1,5 @@
+import { DAYS_OF_WEEK_OPTIONS } from '../enums/enum';
+
 export const formatCurrency = (value) => {
     return new Intl.NumberFormat("en-PH", {
         style: "currency",
@@ -166,4 +168,12 @@ export const resetFormState = ({
 
 export const getFieldError = (errors, field) => {
     return errors?.[field]?.[0] || "";
+};
+
+export const getDayName = (day) => {
+    return (
+        DAYS_OF_WEEK_OPTIONS.find(
+            (item) => Number(item.value) === Number(day)
+        )?.label ?? '-'
+    );
 };

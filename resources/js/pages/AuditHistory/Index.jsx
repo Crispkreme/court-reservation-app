@@ -1,10 +1,7 @@
-import React, {
-    useEffect,
-    useState,
-} from "react";
+import React, { useEffect, useState} from "react";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
-
 const MODULES = [
     "booking",
     "cancellation",
@@ -483,43 +480,19 @@ export default function AuditHistoryIndex() {
                         <div className="overflow-x-auto">
 
                             <table className="min-w-full divide-y divide-gray-200">
-
-                                <thead className="bg-gray-50">
-                                    <tr>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Date / Time
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            User
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Module
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Action
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Description
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Record
-                                        </th>
-
-                                        <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Details
-                                        </th>
-
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Date / Time",
+                                        "User",
+                                        "Module",
+                                        "Action",
+                                        "Description",
+                                        "Record",
+                                        { label: "Details", align: "right" },
+                                    ]}
+                                />
 
                                 <tbody className="divide-y divide-gray-200">
-
                                     {logs.map(
                                         (log) => (
                                             <tr

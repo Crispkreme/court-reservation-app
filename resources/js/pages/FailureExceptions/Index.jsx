@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-
+import TableHead from '../../components/TableHead';
 const API = "/api/v1";
 
 const FAILURE_TYPES = [
@@ -650,21 +650,20 @@ export default function FailureExceptionsIndex() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <Th>ID</Th>
-                                        <Th>Type</Th>
-                                        <Th>Stage</Th>
-                                        <Th>Booking</Th>
-                                        <Th>Member</Th>
-                                        <Th>Court</Th>
-                                        <Th>Reason</Th>
-                                        <Th>Failed At</Th>
-                                        <Th>Status</Th>
-                                        <Th>Actions</Th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "ID",
+                                        "Type",
+                                        "Stage",
+                                        "Booking",
+                                        "Member",
+                                        "Court",
+                                        "Reason",
+                                        "Failed At",
+                                        "Status",
+                                        { label: "Actions", align: "right" },
+                                    ]}
+                                />
                                 <tbody className="divide-y divide-gray-200">
                                     {failures.map((failure) => (
                                         <tr

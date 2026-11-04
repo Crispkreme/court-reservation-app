@@ -9,6 +9,7 @@ import SuccessAlert from "../../components/SuccessAlert";
 import { formatDate } from '../../utils/formatters';
 import { COURT_OVERRIDE_STATUS_OPTIONS, getGeneralStatusClass } from "../../enums/enum";
 import CourtScheduleOverrideModal from '../../components/modal/CourtScheduleOverrideModal';
+import TableHead from '../../components/TableHead';
 
 const emptyForm = {
     court_id: '',
@@ -270,16 +271,16 @@ export default function Overrides() {
 
                     <div className="w-full overflow-x-auto">
                         <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-                            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                                <tr>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">Court</th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">Date</th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">Time</th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">Status</th>
-                                    <th className="whitespace-nowrap px-5 py-4 font-semibold">Title</th>
-                                    <th className="whitespace-nowrap px-5 py-4 text-right font-semibold">Actions</th>
-                                </tr>
-                            </thead>
+                            <TableHead
+                                columns={[
+                                    "Court",
+                                    "Date",
+                                    "Time",
+                                    "Status",
+                                    "Title",
+                                    { label: "Actions", align: "right" },
+                                ]}
+                            />
                             <tbody className="divide-y divide-slate-100">
                                 {loading ? (
                                     <tr><td colSpan={6} className="px-5 py-14 text-center text-sm text-slate-500">Loading overrides...</td></tr>

@@ -1,33 +1,13 @@
 
 import { useEffect, useState } from "react";
-import {
-    ShieldCheck,
-    Plus,
-    Pencil,
-    Trash2,
-    CheckCircle2,
-    XCircle,
-} from "lucide-react";
-
+import { ShieldCheck, Plus, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import TableHead from '../../components/TableHead';
 import Layout from "../../components/layout/Layout";
 import BookingRuleModal from "../../components/modal/BookingRuleModal";
 import LoadingState from "../../components/LoadingState";
 import EmptyState from "../../components/EmptyState";
-import {
-    getBookingRules,
-    getMembershipTiers,
-    getSportCategories,
-    getCourts,
-    createBookingRule,
-    updateBookingRule,
-    deleteBookingRule as removeBookingRule,
-} from "../../services/bookingRuleService";
-import {
-    updateFormField,
-    toggleFormArrayItem,
-    resetFormState,
-    getFieldError,
-} from "../../utils/formatters";
+import { getBookingRules, getMembershipTiers, getSportCategories, getCourts, createBookingRule, updateBookingRule, deleteBookingRule as removeBookingRule } from "../../services/bookingRuleService";
+import { updateFormField, toggleFormArrayItem, resetFormState, getFieldError } from "../../utils/formatters";
 
 const emptyForm = {
     name: "",
@@ -326,27 +306,21 @@ export default function BookingRulesIndex() {
 
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[900px] text-left text-sm">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        {[
-                                            "Rule",
-                                            "Type",
-                                            "Membership",
-                                            "Sport",
-                                            "Court",
-                                            "Daily Limit",
-                                            "Minutes",
-                                            "Advance",
-                                            "Priority",
-                                            "Status",
-                                            "Actions",
-                                        ].map((heading) => (
-                                            <th key={heading} className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                {heading}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Rule",
+                                        "Type",
+                                        "Membership",
+                                        "Sport",
+                                        "Court",
+                                        "Daily Limit",
+                                        "Minutes",
+                                        "Advance",
+                                        "Priority",
+                                        "Status",
+                                        { label: "Actions", align: "right" },
+                                    ]}
+                                />
 
                                 <tbody className="divide-y divide-slate-100">
                                     {rules.map((rule) => (

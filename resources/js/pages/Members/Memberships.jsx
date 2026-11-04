@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
+import TableHead from '../../components/TableHead';
 
 const emptyType = {
     name: "",
@@ -539,38 +540,17 @@ export default function Memberships() {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left">
-                                                Member
-                                            </th>
-
-                                            <th className="px-6 py-4 text-left">
-                                                Membership
-                                            </th>
-
-                                            <th className="px-6 py-4 text-left">
-                                                Start
-                                            </th>
-
-                                            <th className="px-6 py-4 text-left">
-                                                Expiration
-                                            </th>
-
-                                            <th className="px-6 py-4 text-left">
-                                                Price
-                                            </th>
-
-                                            <th className="px-6 py-4 text-left">
-                                                Status
-                                            </th>
-
-                                            <th className="px-6 py-4 text-right">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-
+                                    <TableHead
+                                        columns={[
+                                            "Member",
+                                            "Membership",
+                                            "Start",
+                                            "Expiration",
+                                            "Price",
+                                            "Status",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody>
                                         {memberships.map(
                                             (membership) => (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
 
@@ -299,30 +300,15 @@ export default function CustomerDashboard() {
                             <EmptyState message="You have no bookings today." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                                            Reference
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                                            Sport
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                                            Court
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                                            Time
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Reference",
+                                        "Sport",
+                                        "Court",
+                                        "Time",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {filteredTodayBookings.map(
                                         (booking) => (
@@ -616,30 +602,15 @@ export default function CustomerDashboard() {
                             <EmptyState message="No booking history found." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Reference
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Date
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Court
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Sport
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Reference",
+                                        "Date",
+                                        "Court",
+                                        "Sport",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {dashboard?.booking_history?.map(
                                         (booking) => (
@@ -693,26 +664,14 @@ export default function CustomerDashboard() {
                             <EmptyState message="No transactions found." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Reference
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Date
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Amount
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm text-gray-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Reference",
+                                        "Date",
+                                        "Amount",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {dashboard?.transactions?.map(
                                         (transaction) => (

@@ -5,19 +5,10 @@ import CancellationPolicyModal from "../../components/modal/CancellationPolicyMo
 import LoadingState from "../../components/LoadingState";
 import EmptyState from "../../components/EmptyState";
 import StatCard from "../../components/StatCard";
+import TableHead from '../../components/TableHead';
 import TableHeader from "../../components/TableHeader";
-import {
-    getCancellationPolicies,
-    createCancellationPolicy,
-    updateCancellationPolicy,
-    deleteCancellationPolicy,
-} from "../../services/cancellationPolicyService";
-import {
-    updateFormField,
-    toggleFormArrayItem,
-    resetFormState,
-    getFieldError,
-} from "../../utils/formatters";
+import { getCancellationPolicies, createCancellationPolicy, updateCancellationPolicy, deleteCancellationPolicy } from "../../services/cancellationPolicyService";
+import { updateFormField, toggleFormArrayItem, resetFormState, getFieldError } from "../../utils/formatters";
 
 const emptyForm = {
     name: "",
@@ -317,18 +308,17 @@ export default function CancellationPolicies() {
 
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[900px] text-left text-sm">
-                                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                                        <tr>
-                                            <th className="px-5 py-3.5 font-semibold">Policy</th>
-                                            <th className="px-5 py-3.5 font-semibold">Type</th>
-                                            <th className="px-5 py-3.5 font-semibold">Time Window</th>
-                                            <th className="px-5 py-3.5 font-semibold">Refund</th>
-                                            <th className="px-5 py-3.5 font-semibold">Priority</th>
-                                            <th className="px-5 py-3.5 font-semibold">Status</th>
-                                            <th className="px-5 py-3.5 text-right font-semibold">Actions</th>
-                                        </tr>
-                                    </thead>
-
+                                    <TableHead
+                                        columns={[
+                                            "Policy",
+                                            "Type",
+                                            "Time Window",
+                                            "Refund",
+                                            "Priority",
+                                            "Status",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody className="divide-y divide-slate-100">
                                         {policies.length === 0 ? (
                                             <tr>

@@ -1,19 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-    formatCurrency,
-    formatDate,
-    formatTime,
-} from "@/utils/formatters";
-import {
-    InfoPanel,
-    SectionHeader,
-    EmptyState,
-    StatusBadge,
-    SummaryCard,
-    StatusCard,
-    StatBox,
-} from "@/components";
+import TableHead from '../../components/TableHead';
+import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
+import { InfoPanel, SectionHeader, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 
 const API = "/api/v1";
 
@@ -270,25 +259,15 @@ export default function MemberDashboard() {
                             <EmptyState message="You have no upcoming sessions." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Date
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Time
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Court
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Sport
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Date",
+                                        "Time",
+                                        "Court",
+                                        "Sport",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {upcomingSessions.map((session) => (
                                         <tr key={session.id}>
@@ -329,25 +308,15 @@ export default function MemberDashboard() {
                             <EmptyState message="You have no bookings yet. Browse the available courts to make a reservation." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Date
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Court
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Sport
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Amount
-                                        </th>
-                                        <th className="px-5 py-3 text-left text-sm text-gray-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Date",
+                                        "Court",
+                                        "Sport",
+                                        "Amount",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {recentBookings.map((booking) => (
                                         <tr key={booking.id}>

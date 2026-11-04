@@ -1,18 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-    Activity,
-    CheckCircle2,
-    CreditCard,
-    DollarSign,
-    RefreshCw,
-    Wallet,
-    AlertCircle,
-    Check,
-    X,
-    RotateCcw,
-    ExternalLink,
-} from "lucide-react";
+import { Activity, CheckCircle2, CreditCard, DollarSign, RefreshCw, Wallet, AlertCircle, Check, X, RotateCcw, ExternalLink } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
 
@@ -648,15 +637,17 @@ export default function Payments() {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-[950px] w-full divide-y divide-slate-200">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            {["Reference", "Booking", "Method", "Amount", "Refunded", "Status", "Actions"].map((heading) => (
-                                                <th key={heading} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                                    {heading}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
+                                    <TableHead
+                                        columns={[
+                                            "Reference",
+                                            "Booking",
+                                            "Method",
+                                            "Amount",
+                                            "Refunded",
+                                            "Status",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredPayments.map((payment) => (
                                             <tr key={payment.id} className="transition hover:bg-slate-50/80">

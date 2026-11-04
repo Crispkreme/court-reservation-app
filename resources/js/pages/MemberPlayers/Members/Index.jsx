@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import TableHead from '../../../components/TableHead';
 
 export default function MembersIndex() {
     const [members, setMembers] = useState([]);
@@ -133,34 +134,16 @@ export default function MembersIndex() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="border-b bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-4 text-left">
-                                        Member
-                                    </th>
-
-                                    <th className="px-6 py-4 text-left">
-                                        Member No.
-                                    </th>
-
-                                    <th className="px-6 py-4 text-left">
-                                        Contact
-                                    </th>
-
-                                    <th className="px-6 py-4 text-left">
-                                        Status
-                                    </th>
-
-                                    <th className="px-6 py-4 text-left">
-                                        Expiration
-                                    </th>
-
-                                    <th className="px-6 py-4 text-right">
-                                        Action
-                                    </th>
-                                </tr>
-                            </thead>
-
+                            <TableHead
+                                columns={[
+                                    "Member",
+                                    "Member No.",
+                                    "Contact",
+                                    "Status",
+                                    "Expiration",
+                                    { label: "Action", align: "right" },
+                                ]}
+                            />
                             <tbody>
                                 {members.map((member) => (
                                     <tr

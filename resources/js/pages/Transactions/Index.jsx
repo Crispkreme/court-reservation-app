@@ -1,16 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-    Activity,
-    AlertCircle,
-    CalendarDays,
-    CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
-    CreditCard,
-    RefreshCw,
-    Search,
-    Wallet,
-} from "lucide-react";
+import TableHead from '../../components/TableHead';
+import { Activity, AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, RefreshCw, Search, Wallet } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 
 const API = "/api/v1";
@@ -439,48 +429,19 @@ export default function TransactionHistory() {
             <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
-                        <thead className="bg-slate-50">
-                            <tr>
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Transaction
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Booking
-                                </th>
-
-                                {isAdmin && (
-                                    <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                        Member
-                                    </th>
-                                )}
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Amount
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Payment
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Date
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Status
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Refund
-                                </th>
-
-                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Gateway Reference
-                                </th>
-                            </tr>
-                        </thead>
-
+                        <TableHead
+                            columns={[
+                                "Transaction",
+                                "Booking",
+                                ...(isAdmin ? ["Member"] : []),
+                                "Amount",
+                                "Payment",
+                                "Date",
+                                "Status",
+                                "Refund",
+                                "Gateway Reference",
+                            ]}
+                        />
                         <tbody className="divide-y divide-slate-100">
                             {transactions.length === 0 ? (
                                 <tr>

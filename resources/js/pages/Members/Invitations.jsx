@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, Mail, CheckCircle2, Clock3, XCircle, Timer } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import TableHead from '../../components/TableHead';
 
 export default function Invitations() {
     const [invitations, setInvitations] = useState([]);
@@ -167,15 +168,15 @@ export default function Invitations() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                                    <tr>
-                                        <th className="whitespace-nowrap px-6 py-4 font-semibold">Player</th>
-                                        <th className="whitespace-nowrap px-6 py-4 font-semibold">Email</th>
-                                        <th className="whitespace-nowrap px-6 py-4 font-semibold">Booking</th>
-                                        <th className="whitespace-nowrap px-6 py-4 font-semibold">Status</th>
-                                        <th className="whitespace-nowrap px-6 py-4 font-semibold">Expires</th>
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Player",
+                                        "Email",
+                                        "Booking",
+                                        "Status",
+                                        "Expires",
+                                    ]}
+                                />
                                 <tbody>
                                     {invitations.map((invitation) => (
                                         <tr

@@ -11,6 +11,7 @@ import SuccessAlert from "../../components/SuccessAlert";
 import { readErrorMessage } from "../../utils/formatters";
 import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
 import { getParticipants, createParticipant, updateParticipant } from "../../services/playerService";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
 const emptyForm = {
@@ -336,15 +337,17 @@ export default function BookingParticipants() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-sm">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        {["Participant", "Contact", "Player Type", "Skill Level", "Location", "Status", "Actions"].map((heading) => (
-                                            <th key={heading} className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                {heading}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
+                                <TableHead
+                                    columns={[
+                                        "Participant",
+                                        "Contact",
+                                        "Player Type",
+                                        "Skill Level",
+                                        "Location",
+                                        "Status",
+                                        { label: "Actions", align: "right" },
+                                    ]}
+                                />
                                 <tbody className="divide-y divide-slate-100">
                                     {filteredParticipants.map((participant) => (
                                         <tr key={participant.id} className="transition hover:bg-slate-50/70">

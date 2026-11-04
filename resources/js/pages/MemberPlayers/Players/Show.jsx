@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import TableHead from '../../../components/TableHead';
 
 export default function PlayersShow() {
     const { id } = useParams();
@@ -152,22 +153,13 @@ export default function PlayersShow() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left">
-                                            Date
-                                        </th>
-
-                                        <th className="px-6 py-4 text-left">
-                                            Court
-                                        </th>
-
-                                        <th className="px-6 py-4 text-left">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Date",
+                                        "Court",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody>
                                     {history.map((booking) => (
                                         <tr

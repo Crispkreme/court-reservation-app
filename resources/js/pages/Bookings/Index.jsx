@@ -6,6 +6,7 @@ import StatusBadge from "../../components/StatusBadge";
 import { getBookings } from "../../services/bookingService";
 import { formatCurrency, formatDate, formatTime } from "../../utils/formatters";
 import SummaryCard from "../../components/SummaryCard";
+import TableHead from '../../components/TableHead';
 
 function FilterSelect({ label, value, onChange, children }) {
   return (
@@ -250,26 +251,17 @@ export default function Bookings() {
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px] divide-y divide-slate-200 text-left">
-                <thead className="bg-slate-50">
-                  <tr>
-                    {[
-                      "Booking ID",
-                      "Customer",
-                      "Court / Sport",
-                      "Date & Time",
-                      "Amount",
-                      "Status",
-                      "Actions",
-                    ].map((heading) => (
-                      <th
-                        key={heading}
-                        className="whitespace-nowrap px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        {heading}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
+                <TableHead
+                  columns={[
+                    "Booking ID",
+                    "Customer",
+                    "Court / Sport",
+                    "Date & Time",
+                    "Amount",
+                    "Status",
+                    { label: "Actions", align: "right" },
+                  ]}
+                />
 
                 <tbody className="divide-y divide-slate-100">
                   {paginatedBookings.map((booking) => (

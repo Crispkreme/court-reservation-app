@@ -1,16 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-    Activity,
-    CalendarDays,
-    Download,
-    FileBarChart,
-    FileSpreadsheet,
-    FileText,
-    RefreshCw,
-    Search,
-    AlertCircle,
-} from "lucide-react";
+import { Activity, CalendarDays, Download, FileBarChart, FileSpreadsheet, FileText, RefreshCw, Search, AlertCircle } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
 

@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
-import {
-    Users,
-    UserPlus,
-    Search,
-    RefreshCw,
-    Eye,
-    CalendarDays,
-    AlertCircle,
-    ChevronLeft,
-    ChevronRight,
-} from "lucide-react";
+import { Users, UserPlus, Search, RefreshCw, Eye, CalendarDays, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import TableHead from '../../components/TableHead';
 
 export default function Members() {
     const [members, setMembers] = useState([]);
@@ -204,16 +195,16 @@ export default function Members() {
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-[850px] text-left text-sm">
-                                        <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                                            <tr>
-                                                <th className="px-5 py-3.5 font-semibold">Member</th>
-                                                <th className="px-5 py-3.5 font-semibold">Member No.</th>
-                                                <th className="px-5 py-3.5 font-semibold">Contact</th>
-                                                <th className="px-5 py-3.5 font-semibold">Status</th>
-                                                <th className="px-5 py-3.5 font-semibold">Expiration</th>
-                                                <th className="px-5 py-3.5 text-right font-semibold">Action</th>
-                                            </tr>
-                                        </thead>
+                                        <TableHead
+                                            columns={[
+                                                "Member",
+                                                "Member No.",
+                                                "Contact",
+                                                "Status",
+                                                "Expiration",
+                                                { label: "Action", align: "right" },
+                                            ]}
+                                        />
                                         <tbody className="divide-y divide-slate-100">
                                             {paginatedMembers.map((member) => (
                                                 <tr key={member.id} className="transition hover:bg-slate-50/80">

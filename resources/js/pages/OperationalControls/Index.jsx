@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import TableHead from '../../components/TableHead';
 
 const API = "/api/v1";
 
@@ -722,32 +723,17 @@ export default function OperationalControls() {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b text-left">
-                                            <th className="px-3 py-3">
-                                                Type
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Court
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Booking
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Period
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Status
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Reason
-                                            </th>
-                                            <th className="px-3 py-3">
-                                                Action
-                                            </th>
-                                        </tr>
-                                    </thead>
-
+                                    <TableHead
+                                        columns={[
+                                            "Type",
+                                            "Court",
+                                            "Booking",
+                                            "Period",
+                                            "Status",
+                                            "Reason",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody>
                                         {controls.map(
                                             (control) => (

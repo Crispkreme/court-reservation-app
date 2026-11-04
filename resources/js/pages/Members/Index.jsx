@@ -6,6 +6,7 @@ import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
 import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
 import { getMemberUsers } from '../../services/userService';
 import PageHeader from '../../components/PageHeader';
+import TableHead from '../../components/TableHead';
 
 const statusClasses = {
     active: "bg-green-100 text-green-700",
@@ -421,28 +422,16 @@ export default function Index() {
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
-                        <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                            <tr>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Member
-                                </th>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Membership
-                                </th>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Dates
-                                </th>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Status
-                                </th>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Remaining
-                                </th>
-                                <th className="whitespace-nowrap px-5 py-4 font-semibold">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
+                        <TableHead
+                            columns={[
+                                "Member",
+                                "Membership",
+                                "Dates",
+                                "Status",
+                                "Remaining",
+                                { label: "Action", align: "right" },
+                            ]}
+                        />
 
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (

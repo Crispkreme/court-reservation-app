@@ -1,19 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
-import {
-    Users,
-    UserPlus,
-    Search,
-    RefreshCw,
-    Eye,
-    UserRound,
-    UserCheck,
-    UserX,
-    AlertCircle,
-    ChevronLeft,
-    ChevronRight,
-} from "lucide-react";
+import TableHead from '../../components/TableHead';
+import { Users, UserPlus, Search, RefreshCw, Eye, UserRound, UserCheck, UserX, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Players() {
     const [players, setPlayers] = useState([]);
@@ -181,16 +170,16 @@ export default function Players() {
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-[850px] text-left text-sm">
-                                        <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                                            <tr>
-                                                <th className="px-5 py-3.5 font-semibold">Player</th>
-                                                <th className="px-5 py-3.5 font-semibold">Type</th>
-                                                <th className="px-5 py-3.5 font-semibold">Member No.</th>
-                                                <th className="px-5 py-3.5 font-semibold">Contact</th>
-                                                <th className="px-5 py-3.5 font-semibold">Status</th>
-                                                <th className="px-5 py-3.5 text-right font-semibold">Action</th>
-                                            </tr>
-                                        </thead>
+                                        <TableHead
+                                            columns={[
+                                                "Player",
+                                                "Type",
+                                                "Member No.",
+                                                "Contact",
+                                                "Status",
+                                                { label: "Action", align: "right" },
+                                            ]}
+                                        />
                                         <tbody className="divide-y divide-slate-100">
                                             {paginatedPlayers.map((player) => (
                                                 <tr key={player.id} className="transition hover:bg-slate-50/80">

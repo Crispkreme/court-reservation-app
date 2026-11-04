@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
+import TableHead from '../../components/TableHead';
 import { Activity, CalendarDays, Filter, History, RefreshCw, ShieldCheck } from "lucide-react";
 import { BOOKING_STATUS, BOOKING_STATUS_OPTIONS, getBookingStatusClass } from "../../enums/enum";
 import StatusBadge from "../../components/StatusBadge";
@@ -287,38 +288,17 @@ export default function BookingStatus() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Reference
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Customer
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Court
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Date
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Time
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                            Status
-                                        </th>
-
-                                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase text-slate-500">
-                                            Action
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Reference",
+                                        "Customer",
+                                        "Court",
+                                        "Date",
+                                        "Time",
+                                        "Status",
+                                        { label: "Action", align: "right" },
+                                    ]}
+                                />
                                 <tbody className="divide-y divide-slate-200">
                                     {bookings.map(
                                         (booking) => (

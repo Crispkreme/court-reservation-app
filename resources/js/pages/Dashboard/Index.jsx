@@ -8,6 +8,7 @@ import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, Summary
 import { getAdminDashboard } from "../../services/adminService";
 import BadgeCard from '../../components/BadgeCard';
 import { ClipboardCheck, ClipboardClock, ClipboardList, ClipboardMinus, ClipboardX } from "lucide-react";
+import TableHead from '../../components/TableHead';
 
 export default function Dashboard() {
 
@@ -357,25 +358,14 @@ export default function Dashboard() {
 
                     <div className="overflow-x-auto">
                         <table className="min-w-full">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                        Court
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                        Sport
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                        Bookings
-                                    </th>
-
-                                    <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                        Utilization
-                                    </th>
-                                </tr>
-                            </thead>
+                            <TableHead
+                                columns={[
+                                    "Court",
+                                    "Sport",
+                                    "Bookings",
+                                    "Utilization",
+                                ]}
+                            />
 
                             <tbody className="divide-y">
                                 {dashboard?.court_utilization?.map(
@@ -545,30 +535,15 @@ export default function Dashboard() {
                             <EmptyState message="No upcoming sessions." />
                         ) : (
                             <table className="min-w-full">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                            Date
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                            Time
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                            Court
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                            Sport
-                                        </th>
-
-                                        <th className="px-5 py-3 text-left text-sm text-slate-500">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-
+                                <TableHead
+                                    columns={[
+                                        "Date",
+                                        "Time",
+                                        "Court",
+                                        "Sport",
+                                        "Status",
+                                    ]}
+                                />
                                 <tbody className="divide-y">
                                     {dashboard?.upcoming_sessions?.map(
                                         (session) => (

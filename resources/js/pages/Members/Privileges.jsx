@@ -1,20 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
-import {
-    ShieldCheck,
-    CalendarClock,
-    Crown,
-    Clock,
-    Users,
-    CalendarDays,
-    Save,
-    X,
-    Pencil,
-    Trash2,
-    AlertCircle,
-    CheckCircle2,
-    Settings2,
-} from "lucide-react";
+import { ShieldCheck, CalendarClock, Crown, Clock, Users, CalendarDays, Save, X, Pencil, Trash2, AlertCircle, CheckCircle2, Settings2 } from "lucide-react";
+import TableHead from '../../components/TableHead';
 
 const emptyForm = {
     membership_type_id: "",
@@ -500,18 +487,18 @@ export default function Privileges() {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[900px] text-left text-sm">
-                                    <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                                        <tr>
-                                            <th className="px-5 py-3.5 font-semibold">Tier</th>
-                                            <th className="px-5 py-3.5 font-semibold">Advance</th>
-                                            <th className="px-5 py-3.5 font-semibold">Daily Limit</th>
-                                            <th className="px-5 py-3.5 font-semibold">Duration</th>
-                                            <th className="px-5 py-3.5 font-semibold">Priority</th>
-                                            <th className="px-5 py-3.5 font-semibold">Premium Courts</th>
-                                            <th className="px-5 py-3.5 font-semibold">Status</th>
-                                            <th className="px-5 py-3.5 text-right font-semibold">Actions</th>
-                                        </tr>
-                                    </thead>
+                                    <TableHead
+                                        columns={[
+                                            "Tier",
+                                            "Advance",
+                                            "Daily Limit",
+                                            "Duration",
+                                            "Priority",
+                                            "Premium Courts",
+                                            "Status",
+                                            { label: "Actions", align: "right" },
+                                        ]}
+                                    />
                                     <tbody className="divide-y divide-slate-100">
                                         {privileges.map((privilege) => (
                                             <tr key={privilege.id} className="transition hover:bg-slate-50/80">

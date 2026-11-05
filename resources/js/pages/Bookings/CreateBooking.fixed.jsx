@@ -1,32 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  FileText,
-  Trophy,
-  UserRound,
-} from "lucide-react";
-
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock, CreditCard, FileText, Trophy, UserRound } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import ErrorText from "../../components/ErrorText";
 import Section from "../../components/Section";
 import Field from "../../components/Field";
-
 import api from "../../services/api";
 import { getSportCategories } from "../../services/sportCategoryService";
 import { getCourts } from "../../services/courtService";
-
-import {
-  calculateDuration,
-  calculateTotalAmount,
-  formatCurrency,
-  getTodayDate,
-} from "../../utils/formatters";
+import { calculateDuration, calculateTotalAmount, formatCurrency, getTodayDate } from "../../utils/formatters";
 import ErrorAlert from "../../components/ErrorAlert";
+import { INPUT_CLASSES } from "../../enums/enum";
 
 const initialForm = {
   user_id: "",
@@ -48,12 +32,7 @@ const initialForm = {
   notes: "",
 };
 
-const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
-
 const getCollection = (response) => {
-  // Supports Laravel pagination: { data: { data: [...] } }
-  // and ordinary Laravel collections: { data: [...] }.
   const body = response?.data;
   if (Array.isArray(body?.data)) return body.data;
   if (Array.isArray(body)) return body;
@@ -336,7 +315,7 @@ export default function CreateBooking() {
           >
             <Field label="Customer Name" required>
               <input
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_name}
                 onChange={(event) =>
                   updateField("customer_name", event.target.value)
@@ -351,7 +330,7 @@ export default function CreateBooking() {
             <Field label="Customer Email">
               <input
                 type="email"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_email}
                 onChange={(event) =>
                   updateField("customer_email", event.target.value)
@@ -365,7 +344,7 @@ export default function CreateBooking() {
             <Field label="Phone Number">
               <input
                 type="tel"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_phone}
                 onChange={(event) =>
                   updateField("customer_phone", event.target.value)
@@ -381,7 +360,7 @@ export default function CreateBooking() {
                 type="number"
                 min="1"
                 step="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.user_id}
                 onChange={(event) =>
                   updateField("user_id", event.target.value)
@@ -402,7 +381,7 @@ export default function CreateBooking() {
           >
             <Field label="Sport Category" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.sport_category_id}
                 onChange={(event) =>
                   updateField("sport_category_id", event.target.value)
@@ -434,7 +413,7 @@ export default function CreateBooking() {
 
             <Field label="Court" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.court_id}
                 onChange={(event) =>
                   updateField("court_id", event.target.value)
@@ -474,7 +453,7 @@ export default function CreateBooking() {
                 <input
                   type="date"
                   min={minimumDate}
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.booking_date}
                   onChange={(event) =>
                     updateField("booking_date", event.target.value)
@@ -490,7 +469,7 @@ export default function CreateBooking() {
                 type="number"
                 min="1"
                 step="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.players_count}
                 onChange={(event) =>
                   updateField("players_count", event.target.value)
@@ -508,7 +487,7 @@ export default function CreateBooking() {
                 />
                 <input
                   type="time"
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.start_time}
                   onChange={(event) =>
                     updateField("start_time", event.target.value)
@@ -526,7 +505,7 @@ export default function CreateBooking() {
                 />
                 <input
                   type="time"
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.end_time}
                   onChange={(event) =>
                     updateField("end_time", event.target.value)
@@ -560,7 +539,7 @@ export default function CreateBooking() {
                 type="number"
                 min="0"
                 step="0.01"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.unit_price}
                 onChange={(event) =>
                   updateField("unit_price", event.target.value)
@@ -575,7 +554,7 @@ export default function CreateBooking() {
 
             <Field label="Membership Type">
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.membership_type}
                 onChange={(event) =>
                   updateField("membership_type", event.target.value)
@@ -630,7 +609,7 @@ export default function CreateBooking() {
           >
             <Field label="Booking Reference">
               <input
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.booking_reference}
                 onChange={(event) =>
                   updateField("booking_reference", event.target.value)
@@ -642,7 +621,7 @@ export default function CreateBooking() {
 
             <Field label="Booking Source" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.booking_source}
                 onChange={(event) =>
                   updateField("booking_source", event.target.value)
@@ -658,7 +637,7 @@ export default function CreateBooking() {
 
             <Field label="Initial Status" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.status}
                 onChange={(event) => updateField("status", event.target.value)}
                 required
@@ -677,7 +656,7 @@ export default function CreateBooking() {
               <textarea
                 rows={4}
                 maxLength={2000}
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.notes}
                 onChange={(event) => updateField("notes", event.target.value)}
                 placeholder="Additional booking notes or customer requests..."

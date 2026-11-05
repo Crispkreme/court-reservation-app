@@ -4,143 +4,22 @@ import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
 import { getReport, getReportExportUrl } from "../../services/reportService";
-
-const REPORTS = [
-    {
-        value: "daily_booking",
-        label: "Daily Booking Report",
-    },
-    {
-        value: "court_utilization",
-        label: "Court Utilization Report",
-    },
-    {
-        value: "sport_category",
-        label: "Sport Category Report",
-    },
-    {
-        value: "revenue",
-        label: "Revenue Report",
-    },
-    {
-        value: "payment",
-        label: "Payment Report",
-    },
-    {
-        value: "outstanding_fees",
-        label: "Outstanding / Aged Fees",
-    },
-    {
-        value: "cancellation",
-        label: "Cancellation Report",
-    },
-    {
-        value: "rescheduling",
-        label: "Rescheduling Report",
-    },
-    {
-        value: "no_show",
-        label: "No-Show Report",
-    },
-    {
-        value: "membership",
-        label: "Membership Report",
-    },
-    {
-        value: "waitlist",
-        label: "Waitlist Report",
-    },
-    {
-        value: "failed_transaction",
-        label: "Failed Transaction Report",
-    },
-    {
-        value: "booking_activity",
-        label: "Booking Activity / History",
-    },
-];
-
-function money(value) {
-    return Number(value || 0).toLocaleString(
-        undefined,
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }
-    );
-}
-
-function formatValue(value, key) {
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return "-";
-    }
-
-    if (
-        typeof value === "number" &&
-        (
-            key?.includes("amount") ||
-            key?.includes("revenue") ||
-            key?.includes("balance") ||
-            key?.includes("value")
-        )
-    ) {
-        return money(value);
-    }
-
-    if (
-        typeof value === "boolean"
-    ) {
-        return value ? "Yes" : "No";
-    }
-
-    if (
-        typeof value === "object"
-    ) {
-        return JSON.stringify(value);
-    }
-
-    return String(value);
-}
-
-function titleCase(value) {
-    return String(value)
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, (char) =>
-            char.toUpperCase()
-        );
-}
+import { REPORT_TYPES, REPORT_TYPE_OPTIONS } from "@/constants/enums";
+import { titleCase, formatValues } from "../../utils/formatters";
 
 export default function Reports() {
-    const [report, setReport] =
-        useState("daily_booking");
-
-    const [dateFrom, setDateFrom] =
-        useState("");
-
-    const [dateTo, setDateTo] =
-        useState("");
-
-    const [status, setStatus] =
-        useState("");
-
-    const [data, setData] =
-        useState(null);
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
+    const [report, setReport] = useState("daily_booking");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+    const [status, setStatus] = useState("");
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    
     const selectedReport = useMemo(
         () =>
-            REPORTS.find(
-                (item) =>
-                    item.value === report
+            REPORT_TYPE_OPTIONS.find(
+                (item) => item.value === report
             ),
         [report]
     );
@@ -249,22 +128,11 @@ export default function Reports() {
                                 }
                                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             >
-                                {REPORTS.map(
-                                    (item) => (
-                                        <option
-                                            key={
-                                                item.value
-                                            }
-                                            value={
-                                                item.value
-                                            }
-                                        >
-                                            {
-                                                item.label
-                                            }
-                                        </option>
-                                    )
-                                )}
+                                {REPORT_TYPE_OPTIONS.map((item) => (
+                                    <option key={item.value} value={item.value}>
+                                        {item.label}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -356,7 +224,7 @@ export default function Reports() {
                                 </div>
 
                                 <div className="mt-3 text-2xl font-bold text-slate-900">
-                                    {formatValue(
+                                    {formatValues(
                                         value,
                                         key
                                     )}
@@ -435,7 +303,7 @@ export default function Reports() {
                                                             }
                                                             className="whitespace-nowrap px-5 py-4 text-sm text-slate-700"
                                                         >
-                                                            {formatValue(
+                                                            {formatValues(
                                                                 value,
                                                                 key
                                                             )}

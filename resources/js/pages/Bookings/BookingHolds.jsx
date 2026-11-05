@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Clock3, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarClock, Clock3, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, NotebookDot, ClipboardClock, ClipboardX, ClipboardMinus } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import { formatDate, formatTime, getStatusClass } from "../../utils/formatters";
 import SuccessAlert from "../../components/SuccessAlert";
+import BadgeCard from "../../components/BadgeCard";
 import ErrorAlert from "../../components/ErrorAlert";
 import { getBookingHolds, createBookingHold, convertBookingHold, failBookingHold, releaseExpiredBookingHolds } from "../../services/bookingHoldService";
 
@@ -230,46 +231,11 @@ function Index() {
                 <ErrorAlert message={error} />
                 <SuccessAlert message={success} />
 
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Active Holds
-                        </p>
-
-                        <p className="mt-2 text-3xl font-bold text-green-600">
-                            {stats.active}
-                        </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Converted
-                        </p>
-
-                        <p className="mt-2 text-3xl font-bold text-blue-600">
-                            {stats.converted}
-                        </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Expired
-                        </p>
-
-                        <p className="mt-2 text-3xl font-bold text-slate-600">
-                            {stats.expired}
-                        </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-slate-500">
-                            Failed
-                        </p>
-
-                        <p className="mt-2 text-3xl font-bold text-red-600">
-                            {stats.failed}
-                        </p>
-                    </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4">
+                    <BadgeCard title="Active Holds" value={stats.active} description="" icon={NotebookDot} colorIndex={0} />
+                    <BadgeCard title="Converted" value={stats.converted} description="" icon={ClipboardClock} colorIndex={1} />
+                    <BadgeCard title="Expired" value={stats.expired} description="" icon={ClipboardMinus} colorIndex={2} />
+                    <BadgeCard title="Failed" value={stats.failed} description="" icon={ClipboardX} colorIndex={3} />
                 </div>
                 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">

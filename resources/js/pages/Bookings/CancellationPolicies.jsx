@@ -6,6 +6,7 @@ import LoadingState from "../../components/LoadingState";
 import EmptyState from "../../components/EmptyState";
 import StatCard from "../../components/StatCard";
 import TableHead from '../../components/table/TableHead';
+import BadgeCard from "../../components/BadgeCard";
 import TableHeader from "../../components/table/TableHeader";
 import { getCancellationPolicies, createCancellationPolicy, updateCancellationPolicy, deleteCancellationPolicy } from "../../services/cancellationPolicyService";
 import { updateFormField, toggleFormArrayItem, resetFormState, getFieldError } from "../../utils/formatters";
@@ -222,38 +223,12 @@ export default function CancellationPolicies() {
                     </button>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <StatCard
-                        label="Total Policies"
-                        value={policies.length}
-                        type="total"
-                        description="Configured cancellation rules"
-                    />
-
-                    <StatCard
-                        label="Active Policies"
-                        value={policies.filter((policy) => Boolean(policy.is_active)).length}
-                        type="active"
-                        description="Currently enabled"
-                    />
-
-                    <StatCard
-                        label="Customer Policies"
-                        value={policies.filter(
-                            (policy) => policy.cancellation_type === "customer"
-                        ).length}
-                        type="pending"
-                        description="Rules for customer cancellations"
-                    />
-
-                    <StatCard
-                        label="Full Refund Policies"
-                        value={policies.filter(
-                            (policy) => Number(policy.refund_percentage) === 100
-                        ).length}
-                        type="expiring"
-                        description="Policies offering a 100% refund"
-                    />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 sm:gap-4">
+                    <BadgeCard title="Total Policies" value={policies.length} description="Configured cancellation rules" icon={NotebookDot} colorIndex={0}/>
+                    <BadgeCard title="Active Policies" value={policies.filter((policy) => Boolean(policy.is_active)).length} description="Currently enabled" icon={ClipboardCheck} colorIndex={1}/>
+                    <BadgeCard title="Customer Policies" value={policies.filter((policy) => policy.cancellation_type === "customer" ).length} description="Rules for customer cancellations" icon={Users} colorIndex={2}/>
+                    <BadgeCard title="Full Refund Policies" value={policies.filter((policy) => Number(policy.refund_percentage) === 100 ).length} description="Policies offering a 100% refund" icon={Wallet} colorIndex={3}/>
+                    <BadgeCard title="Inactive Policies" value={policies.filter((policy) => !Boolean(policy.is_active)).length} description="Currently disabled" icon={ClipboardMinus} colorIndex={4}/>
                 </div>
 
                 <CancellationPolicyModal

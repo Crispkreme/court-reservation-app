@@ -118,6 +118,9 @@ export const COLOR_CLASSES = Object.freeze({
     GRAY: "bg-gray-50 text-gray-700",
 });
 
+export const INPUT_CLASSES = Object.freeze({
+    DEFAULT: "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
+});
 export const AUDIT_MODULES = Object.freeze({
     BOOKING: "booking",
     CANCELLATION: "cancellation",
@@ -149,6 +152,38 @@ export const AUDIT_ACTIONS = Object.freeze({
     APPROVED: "approved",
     REJECTED: "rejected",
 });
+
+export const REPORT_TYPES = Object.freeze({
+    DAILY_BOOKING: "daily_booking",
+    COURT_UTILIZATION: "court_utilization",
+    SPORT_CATEGORY: "sport_category",
+    REVENUE: "revenue",
+    PAYMENT: "payment",
+    OUTSTANDING_FEES: "outstanding_fees",
+    CANCELLATION: "cancellation",
+    RESCHEDULING: "rescheduling",
+    NO_SHOW: "no_show",
+    MEMBERSHIP: "membership",
+    WAITLIST: "waitlist",
+    FAILED_TRANSACTION: "failed_transaction",
+    BOOKING_ACTIVITY: "booking_activity",
+});
+
+export const REPORT_TYPE_OPTIONS = Object.freeze([
+    { value: REPORT_TYPES.DAILY_BOOKING, label: "Daily Booking Report",},
+    { value: REPORT_TYPES.COURT_UTILIZATION, label: "Court Utilization Report",},
+    { value: REPORT_TYPES.SPORT_CATEGORY, label: "Sport Category Report",},
+    { value: REPORT_TYPES.REVENUE, label: "Revenue Report",},
+    { value: REPORT_TYPES.PAYMENT, label: "Payment Report",},
+    { value: REPORT_TYPES.OUTSTANDING_FEES, label: "Outstanding / Aged Fees",},
+    { value: REPORT_TYPES.CANCELLATION, label: "Cancellation Report",},
+    { value: REPORT_TYPES.RESCHEDULING, label: "Rescheduling Report",},
+    { value: REPORT_TYPES.NO_SHOW, label: "No-Show Report",},
+    { value: REPORT_TYPES.MEMBERSHIP, label: "Membership Report",},
+    { value: REPORT_TYPES.WAITLIST, label: "Waitlist Report",},
+    { value: REPORT_TYPES.FAILED_TRANSACTION, label: "Failed Transaction Report",},
+    { value: REPORT_TYPES.BOOKING_ACTIVITY, label: "Booking Activity / History",},
+]);
 
 export const AUDIT_ACTION_OPTIONS = Object.freeze(Object.values(AUDIT_ACTIONS));
 export const AUDIT_MODULE_OPTIONS = Object.freeze(Object.values(AUDIT_MODULES));

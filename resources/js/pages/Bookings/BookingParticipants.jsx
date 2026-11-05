@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { UsersRound, UserPlus, Search, RefreshCw, Pencil, Trash2, X, CheckCircle2, AlertCircle, UserRound, Mail, Phone, MapPin, SlidersHorizontal } from "lucide-react";
+import { UsersRound, UserPlus, Search, RefreshCw, Pencil, Trash2, X, CheckCircle2, AlertCircle, UserRound, Mail, Phone, MapPin, SlidersHorizontal, UserGroup, UserShield, UserMinus } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import StatusBadge from "../../components/StatusBadge";
 import FilterSelect from "../../components/FilterSelect";
@@ -12,6 +12,7 @@ import { readErrorMessage } from "../../utils/formatters";
 import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
 import { getParticipants, createParticipant, updateParticipant } from "../../services/playerService";
 import TableHead from '../../components/table/TableHead';
+import BadgeCard from "../../components/BadgeCard";
 
 const emptyForm = {
     member_id: "",
@@ -268,27 +269,9 @@ export default function BookingParticipants() {
                 <SuccessAlert message={success} />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Total Participants</p>
-                            <UsersRound size={19} className="text-blue-600" />
-                        </div>
-                        <p className="mt-3 text-3xl font-bold text-slate-900">{stats.total}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Active</p>
-                            <CheckCircle2 size={19} className="text-emerald-600" />
-                        </div>
-                        <p className="mt-3 text-3xl font-bold text-emerald-600">{stats.active}</p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-500">Inactive</p>
-                            <UserRound size={19} className="text-slate-400" />
-                        </div>
-                        <p className="mt-3 text-3xl font-bold text-slate-600">{stats.inactive}</p>
-                    </div>
+                    <BadgeCard title="Total Participants" value={stats.total} description="" icon={UserGroup} colorIndex={0} />
+                    <BadgeCard title="Active" value={stats.active} description="" icon={UserShield} colorIndex={1} />
+                    <BadgeCard title="Inactive" value={stats.inactive} description="" icon={UserMinus} colorIndex={2} />
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

@@ -1,18 +1,13 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  CalendarDays,
-  Clock,
-  UserRound,
-  Trophy,
-  CreditCard,
-  FileText,
-  CheckCircle2,
-} from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, UserRound, Trophy, CreditCard, FileText, CheckCircle2 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import ErrorAlert from "../../components/ErrorAlert";
+import Section from "../../components/Section";
+import { INPUT_CLASSES } from "../../enums/enum";
+import Field from "../../components/Field";
+import { calculateDuration } from "../../utils/formatters";
 
 const initialForm = {
   user_id: "",
@@ -34,52 +29,6 @@ const initialForm = {
   notes: "",
 };
 
-function calculateDuration(start, end) {
-  if (!start || !end) return 0;
-
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
-
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
-
-  return endMinutes > startMinutes ? endMinutes - startMinutes : 0;
-}
-
-function Section({ icon: Icon, title, description, children }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-start gap-3 border-b border-slate-100 p-5 sm:p-6">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-          <Icon size={20} />
-        </div>
-        <div>
-          <h2 className="font-semibold text-slate-900">{title}</h2>
-          <p className="mt-1 text-sm text-slate-500">{description}</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Field({ label, required, children, className = "" }) {
-  return (
-    <div className={className}>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">
-        {label}
-        {required && <span className="ml-1 text-rose-500">*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
-
 export default function CreateBooking() {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
@@ -87,15 +36,8 @@ export default function CreateBooking() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const duration = useMemo(
-    () => calculateDuration(form.start_time, form.end_time),
-    [form.start_time, form.end_time]
-  );
-
-  const totalAmount = useMemo(
-    () => (duration / 60) * (Number(form.unit_price) || 0),
-    [duration, form.unit_price]
-  );
+  const duration = useMemo(() => calculateDuration(form.start_time, form.end_time), [form.start_time, form.end_time]);
+  const totalAmount = useMemo(() => (duration / 60) * (Number(form.unit_price) || 0),[duration, form.unit_price]);
 
   const updateField = (name, value) => {
     setForm((previous) => ({ ...previous, [name]: value }));
@@ -264,7 +206,7 @@ export default function CreateBooking() {
           >
             <Field label="Customer Name" required>
               <input
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_name}
                 onChange={(e) => updateField("customer_name", e.target.value)}
                 placeholder="Enter customer name"
@@ -276,7 +218,7 @@ export default function CreateBooking() {
             <Field label="Customer Email">
               <input
                 type="email"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_email}
                 onChange={(e) => updateField("customer_email", e.target.value)}
                 placeholder="customer@example.com"
@@ -287,7 +229,7 @@ export default function CreateBooking() {
             <Field label="Phone Number">
               <input
                 type="tel"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.customer_phone}
                 onChange={(e) => updateField("customer_phone", e.target.value)}
                 placeholder="Enter phone number"
@@ -298,7 +240,7 @@ export default function CreateBooking() {
               <input
                 type="number"
                 min="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.user_id}
                 onChange={(e) => updateField("user_id", e.target.value)}
                 placeholder="Optional user ID"
@@ -318,7 +260,7 @@ export default function CreateBooking() {
               <input
                 type="number"
                 min="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.sport_category_id}
                 onChange={(e) =>
                   updateField("sport_category_id", e.target.value)
@@ -336,7 +278,7 @@ export default function CreateBooking() {
               <input
                 type="number"
                 min="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.court_id}
                 onChange={(e) => updateField("court_id", e.target.value)}
                 placeholder="Enter court ID"
@@ -357,7 +299,7 @@ export default function CreateBooking() {
                 <input
                   type="date"
                   min={minimumDate}
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.booking_date}
                   onChange={(e) => updateField("booking_date", e.target.value)}
                   required
@@ -370,7 +312,7 @@ export default function CreateBooking() {
               <input
                 type="number"
                 min="1"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.players_count}
                 onChange={(e) => updateField("players_count", e.target.value)}
                 required
@@ -386,7 +328,7 @@ export default function CreateBooking() {
                 />
                 <input
                   type="time"
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.start_time}
                   onChange={(e) => updateField("start_time", e.target.value)}
                   required
@@ -402,7 +344,7 @@ export default function CreateBooking() {
                 />
                 <input
                   type="time"
-                  className={`${inputClass} pl-10`}
+                  className={`${INPUT_CLASSES.DEFAULT} pl-10`}
                   value={form.end_time}
                   onChange={(e) => updateField("end_time", e.target.value)}
                   required
@@ -436,7 +378,7 @@ export default function CreateBooking() {
                 type="number"
                 min="0"
                 step="0.01"
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.unit_price}
                 onChange={(e) => updateField("unit_price", e.target.value)}
                 required
@@ -449,7 +391,7 @@ export default function CreateBooking() {
 
             <Field label="Membership Type">
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.membership_type}
                 onChange={(e) => updateField("membership_type", e.target.value)}
               >
@@ -500,7 +442,7 @@ export default function CreateBooking() {
           >
             <Field label="Booking Reference">
               <input
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.booking_reference}
                 onChange={(e) =>
                   updateField("booking_reference", e.target.value)
@@ -511,7 +453,7 @@ export default function CreateBooking() {
 
             <Field label="Booking Source" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.booking_source}
                 onChange={(e) => updateField("booking_source", e.target.value)}
               >
@@ -523,7 +465,7 @@ export default function CreateBooking() {
 
             <Field label="Initial Status" required>
               <select
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.status}
                 onChange={(e) => updateField("status", e.target.value)}
               >
@@ -539,7 +481,7 @@ export default function CreateBooking() {
               <textarea
                 rows={4}
                 maxLength={2000}
-                className={inputClass}
+                className={INPUT_CLASSES.DEFAULT}
                 value={form.notes}
                 onChange={(e) => updateField("notes", e.target.value)}
                 placeholder="Additional booking notes or customer requests..."

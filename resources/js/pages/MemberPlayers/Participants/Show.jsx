@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import TableHead from '../../../components/table/TableHead';
+import { getBooking, getPlayers, addBookingPlayer, removeBookingPlayer, createBookingPlayerInvitation} from '../../../services/bookingService'
 
 export default function ParticipantsShow() {
     const { id } = useParams();
@@ -16,36 +17,21 @@ export default function ParticipantsShow() {
 
     const loadData = async () => {
         try {
-            const [bookingResponse, playersResponse] =
-                await Promise.all([
-                    fetch(`/api/v1/bookings/${id}`, {
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
-                    }),
-
-                    fetch("/api/v1/players", {
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
-                    }),
-                ]);
-
-            const bookingData =
-                await bookingResponse.json();
-
-            const playersData =
-                await playersResponse.json();
+            const [bookingResponse, playersResponse] = await Promise.all([
+                getBooking(id),
+                getPlayers(),
+            ]);
 
             setBooking(
-                bookingData.booking ?? bookingData
+                bookingResponse.data.booking ?? bookingResponse.data
             );
 
-            setPlayers(playersData.data ?? []);
+            setPlayers(playersResponse.data.data ?? []);
         } catch (error) {
-            console.error(error);
+            console.error(
+                "Failed to load booking data:",
+                error.response?.data?.message || error.message
+            );
         }
     };
 
@@ -58,124 +44,69 @@ export default function ParticipantsShow() {
         booking?.players ??
         [];
 
-    const capacity =
-        booking?.court?.capacity ?? 0;
-
+    const capacity = booking?.court?.capacity ?? 0;
     const remaining = Math.max(
         capacity - participants.length,
         0
     );
 
     const addPlayer = async () => {
-        if (!selectedPlayer) {
-            return;
-        }
+        if (!selectedPlayer) return;
 
         try {
-            const response = await fetch(
-                `/api/v1/bookings/${id}/players`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        player_id: selectedPlayer,
-                        participant_status: "confirmed",
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.message);
-                return;
-            }
+            await addBookingPlayer(id, {
+                player_id: selectedPlayer,
+                participant_status: "confirmed",
+            });
 
             setSelectedPlayer("");
             setShowAdd(false);
 
-            loadData();
+            await loadData();
         } catch (error) {
-            console.error(error);
+            alert(
+                error.response?.data?.message ||
+                "Unable to add player."
+            );
         }
     };
-
     const invitePlayer = async () => {
-        if (!guestName) {
-            return;
-        }
+        if (!guestName) return;
 
         try {
-            const response = await fetch(
-                `/api/v1/bookings/${id}/player-invitations`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        name: guestName,
-                        email: guestEmail || null,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.message);
-                return;
-            }
+            await createBookingPlayerInvitation(id, {
+                name: guestName,
+                email: guestEmail || null,
+            });
 
             setGuestName("");
             setGuestEmail("");
             setShowInvite(false);
 
-            loadData();
+            await loadData();
 
             alert("Invitation created successfully.");
         } catch (error) {
-            console.error(error);
+            alert(
+                error.response?.data?.message ||
+                "Unable to create invitation."
+            );
         }
     };
-
     const removePlayer = async (participantId) => {
-        if (
-            !confirm(
-                "Remove this player from the booking?"
-            )
-        ) {
+        if (!window.confirm("Remove this player from the booking?")) {
             return;
         }
 
         try {
-            const response = await fetch(
-                `/api/v1/bookings/${id}/players/${participantId}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Accept: "application/json",
-                    },
-                    credentials: "include",
-                }
-            );
+            await removeBookingPlayer(id, participantId);
 
-            if (!response.ok) {
-                const data = await response.json();
-
-                alert(data.message);
-                return;
-            }
-
-            loadData();
+            await loadData();
         } catch (error) {
-            console.error(error);
+            alert(
+                error.response?.data?.message ||
+                "Unable to remove player."
+            );
         }
     };
 

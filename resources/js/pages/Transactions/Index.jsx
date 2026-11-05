@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableHead from '../../components/table/TableHead';
-import { Activity, AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, RefreshCw, Search, Wallet } from "lucide-react";
+import { ChevronLeft, ChevronRight, CreditCard, RefreshCw, Search, Wallet } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import ErrorAlert from "../../components/ErrorAlert";
-
-const API = "/api/v1";
+import { formatDate, formatTime, formatCurrency } from "../../utils/formatters";
+import { getCurrentUser } from '../../services/userService';
+import { getTransactions } from '../../services/transactionService';
 
 export default function TransactionHistory() {
     const [transactions, setTransactions] = useState([]);
@@ -24,80 +25,55 @@ export default function TransactionHistory() {
     });
 
     const token = localStorage.getItem("auth_token");
-
     const isAdmin = Boolean(user?.is_admin);
 
     const loadUser = async () => {
         try {
-            const response = await fetch(`${API}/user`, {
-                headers: {
-                    Accept: "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUser(data);
-            }
+            const response = await getCurrentUser();
+            setUser(response.data);
         } catch (err) {
             console.error("Failed to load user:", err);
         }
     };
-
     const loadTransactions = async (page = 1) => {
         setLoading(true);
         setError("");
 
         try {
-            const params = new URLSearchParams();
+            const params = {
+                page,
+                per_page: 15,
+                ...Object.fromEntries(
+                    Object.entries(filters).filter(
+                        ([key, value]) => value !== "" && value !== null && value !== undefined
+                    )
+                ),
+            };
 
-            params.set("page", page);
-            params.set("per_page", "15");
-
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) {
-                    params.set(key, value);
-                }
-            });
-
-            const response = await fetch(
-                `${API}/transactions?${params.toString()}`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Failed to load transaction history."
-                );
-            }
+            const response = await getTransactions(params);
+            const data = response.data;
 
             setTransactions(data.data || []);
             setPagination(data);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to load transaction history."
+            );
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        loadUser();
-    }, []);
+        const initialize = async () => {
+            await loadUser();
+            await loadTransactions();
+        };
 
-    useEffect(() => {
-        if (user) {
-            loadTransactions();
-        }
-    }, [user]);
+        initialize();
+    }, []);
 
     const handleFilterChange = (event) => {
         const { name, value } = event.target;
@@ -127,27 +103,6 @@ export default function TransactionHistory() {
         setTimeout(() => {
             loadTransactions(1);
         }, 0);
-    };
-
-    const formatCurrency = (amount, currency = "PHP") => {
-        return new Intl.NumberFormat("en-PH", {
-            style: "currency",
-            currency,
-        }).format(Number(amount || 0));
-    };
-
-    const formatDate = (date) => {
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(date).toLocaleString("en-PH", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
     };
 
     const statusClass = (status) => {

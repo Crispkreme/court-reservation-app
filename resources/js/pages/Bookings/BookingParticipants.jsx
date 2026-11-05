@@ -13,7 +13,6 @@ import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
 import { getParticipants, createParticipant, updateParticipant } from "../../services/playerService";
 import TableHead from '../../components/table/TableHead';
 
-const API = "/api/v1";
 const emptyForm = {
     member_id: "",
     first_name: "",

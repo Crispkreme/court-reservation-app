@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TableHead from '../../../components/table/TableHead';
+import { getMembers } from "../../../services/memberService";
 
 export default function MembersIndex() {
     const [members, setMembers] = useState([]);
@@ -12,35 +13,24 @@ export default function MembersIndex() {
         setLoading(true);
 
         try {
-            const params = new URLSearchParams();
+            const params = {};
 
             if (search) {
-                params.append("search", search);
+                params.search = search;
             }
 
             if (status) {
-                params.append("status", status);
+                params.status = status;
             }
 
-            const response = await fetch(
-                `/api/v1/members?${params.toString()}`,
-                {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                    credentials: "include",
-                }
-            );
+            const response = await getMembers(params);
 
-            if (!response.ok) {
-                throw new Error("Failed to load members.");
-            }
-
-            const data = await response.json();
-
-            setMembers(data.data ?? []);
+            setMembers(response.data.data ?? []);
         } catch (error) {
-            console.error(error);
+            console.error(
+                "Failed to load members:",
+                error.response?.data?.message || error.message
+            );
         } finally {
             setLoading(false);
         }

@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Layout from "../../components/layout/Layout";
-import { Bell, CheckCheck, Plus, RefreshCw, Search, Trash2, X, Mail, Clock3, CheckCircle2, AlertCircle, Send, Eye } from "lucide-react";
+import { Bell, CheckCheck, RefreshCw, Search, X } from "lucide-react";
 import ErrorAlert from "../../components/ErrorAlert";
-
-const API = "/api/v1";
+import { getReservationNotifications, getReservationNotificationSummary, markNotificationAsRead, markNotificationAsUnread, markAllNotificationsAsRead, deleteReservationNotification, createReservationNotification } from "../../services/reservationNotificationService";
 
 const notificationTypes = [
     ["", "All Types"],
@@ -110,7 +109,6 @@ export default function Notifications() {
         delivered: 0,
         failed: 0,
     });
-
     const [filters, setFilters] = useState({
         search: "",
         type: "",
@@ -118,12 +116,9 @@ export default function Notifications() {
         status: "",
         unread: false,
     });
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [showCreate, setShowCreate] = useState(false);
-
     const [form, setForm] = useState({
         user_id: "",
         type: "booking_confirmation",
@@ -140,54 +135,38 @@ export default function Notifications() {
         setError("");
 
         try {
-            const params = new URLSearchParams();
-
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value !== "" && value !== false) {
-                    params.append(key, value);
-                }
-            });
-
-            params.append("per_page", "50");
-
-            const response = await fetch(
-                `${API}/reservation-notifications?${params.toString()}`,
-                {
-                    headers: authHeaders(),
-                }
+            const params = Object.fromEntries(
+                Object.entries(filters).filter(
+                    ([key, value]) =>
+                        key !== "search" &&
+                        value !== "" &&
+                        value !== false
+                )
             );
 
-            if (!response.ok) {
-                throw new Error("Unable to load notifications.");
-            }
+            params.per_page = 50;
 
-            const data = await response.json();
+            const response = await getReservationNotifications(params);
 
-            setNotifications(data.data || []);
+            setNotifications(response.data.data || []);
         } catch (err) {
-            setError(err.message);
+            console.error("Failed to load notifications:", err);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to load notifications."
+            );
         } finally {
             setLoading(false);
         }
     };
-
     const fetchSummary = async () => {
         try {
-            const response = await fetch(
-                `${API}/reservation-notifications/summary`,
-                {
-                    headers: authHeaders(),
-                }
-            );
+            const response = await getReservationNotificationSummary();
 
-            if (!response.ok) {
-                return;
-            }
-
-            const data = await response.json();
-
-            setSummary(data);
-        } catch {
+            setSummary(response.data);
+        } catch (err) {
+            console.error("Failed to load notification summary:", err);
             // Summary failure should not prevent the notification page.
         }
     };
@@ -219,95 +198,62 @@ export default function Notifications() {
             );
         });
     }, [notifications, filters.search]);
-
     const markAsRead = async (id) => {
         try {
-            const response = await fetch(
-                `${API}/reservation-notifications/${id}/read`,
-                {
-                    method: "POST",
-                    headers: authHeaders(),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Unable to mark notification as read.");
-            }
+            await markNotificationAsRead(id);
 
             await fetchNotifications();
             await fetchSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to mark notification as read."
+            );
         }
     };
-
     const markAsUnread = async (id) => {
         try {
-            const response = await fetch(
-                `${API}/reservation-notifications/${id}/unread`,
-                {
-                    method: "POST",
-                    headers: authHeaders(),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Unable to mark notification as unread.");
-            }
+            await markNotificationAsUnread(id);
 
             await fetchNotifications();
             await fetchSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to mark notification as unread."
+            );
         }
     };
-
     const markAllAsRead = async () => {
         try {
-            const response = await fetch(
-                `${API}/reservation-notifications/mark-all-read`,
-                {
-                    method: "POST",
-                    headers: authHeaders(),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Unable to mark all notifications as read.");
-            }
+            await markAllNotificationsAsRead();
 
             await fetchNotifications();
             await fetchSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to mark all notifications as read."
+            );
         }
     };
-
     const deleteNotification = async (id) => {
         if (!window.confirm("Delete this notification?")) {
             return;
         }
 
         try {
-            const response = await fetch(
-                `${API}/reservation-notifications/${id}`,
-                {
-                    method: "DELETE",
-                    headers: authHeaders(),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Unable to delete notification.");
-            }
+            await deleteReservationNotification(id);
 
             await fetchNotifications();
             await fetchSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to delete notification."
+            );
         }
     };
-
     const createNotification = async (event) => {
         event.preventDefault();
 
@@ -318,22 +264,7 @@ export default function Notifications() {
                 scheduled_at: form.scheduled_at || null,
             };
 
-            const response = await fetch(
-                `${API}/reservation-notifications`,
-                {
-                    method: "POST",
-                    headers: authHeaders(),
-                    body: JSON.stringify(payload),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || "Unable to create notification."
-                );
-            }
+            await createReservationNotification(payload);
 
             setShowCreate(false);
 
@@ -351,10 +282,14 @@ export default function Notifications() {
             await fetchNotifications();
             await fetchSummary();
         } catch (err) {
-            setError(err.message);
+            console.error("Failed to create notification:", err);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to create notification."
+            );
         }
     };
-
     const updateForm = (field, value) => {
         setForm((previous) => ({
             ...previous,

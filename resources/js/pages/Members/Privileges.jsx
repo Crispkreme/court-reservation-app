@@ -4,6 +4,8 @@ import { ShieldCheck, CalendarClock, Crown, Save, X, Pencil, Trash2, CheckCircle
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from '../../components/ErrorAlert';
 
+import { getMembershipTypesForPrivileges, getMembershipPrivileges, createMembershipPrivilege, updateMembershipPrivilege, deleteMembershipPrivilege } from "../../services/membershipPrivilegeService";
+
 const emptyForm = {
     membership_type_id: "",
     priority_booking: false,
@@ -29,8 +31,6 @@ export default function Privileges() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    const api = "/api/v1";
-
     useEffect(() => {
         loadData();
     }, []);
@@ -42,37 +42,19 @@ export default function Privileges() {
         try {
             const [typesResponse, privilegesResponse] =
                 await Promise.all([
-                    fetch(
-                        `${api}/membership-privileges-membership-types`,
-                        {
-                            headers: {
-                                Accept: "application/json",
-                            },
-                            credentials: "include",
-                        }
-                    ),
-                    fetch(`${api}/membership-privileges`, {
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
-                    }),
+                    getMembershipTypesForPrivileges(),
+                    getMembershipPrivileges(),
                 ]);
 
-            if (!typesResponse.ok || !privilegesResponse.ok) {
-                throw new Error(
-                    "Unable to load membership privileges."
-                );
-            }
-
-            const typesData = await typesResponse.json();
-            const privilegesData =
-                await privilegesResponse.json();
-
-            setMembershipTypes(typesData.data || []);
-            setPrivileges(privilegesData.data || []);
+            setMembershipTypes(typesResponse.data.data ?? []);
+            setPrivileges(privilegesResponse.data.data ?? []);
         } catch (err) {
-            setError(err.message);
+            console.error("Failed to load membership privileges:", err);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to load membership privileges."
+            );
         } finally {
             setLoading(false);
         }
@@ -142,17 +124,13 @@ export default function Privileges() {
         setError("");
 
         const payload = {
-            membership_type_id:
-                Number(form.membership_type_id),
+            membership_type_id: Number(form.membership_type_id),
 
-            priority_booking:
-                Boolean(form.priority_booking),
+            priority_booking: Boolean(form.priority_booking),
 
-            booking_advance_days:
-                Number(form.booking_advance_days),
+            booking_advance_days: Number(form.booking_advance_days),
 
-            premium_courts:
-                Boolean(form.premium_courts),
+            premium_courts: Boolean(form.premium_courts),
 
             daily_booking_limit:
                 form.daily_booking_limit === ""
@@ -172,129 +150,76 @@ export default function Privileges() {
             cancellation_window_hours:
                 form.cancellation_window_hours === ""
                     ? null
-                    : Number(
-                          form.cancellation_window_hours
-                      ),
+                    : Number(form.cancellation_window_hours),
 
-            free_cancellation:
-                Boolean(form.free_cancellation),
+            free_cancellation: Boolean(form.free_cancellation),
 
             reschedule_window_hours:
                 form.reschedule_window_hours === ""
                     ? null
-                    : Number(
-                          form.reschedule_window_hours
-                      ),
+                    : Number(form.reschedule_window_hours),
 
-            free_rescheduling:
-                Boolean(form.free_rescheduling),
+            free_rescheduling: Boolean(form.free_rescheduling),
 
             notes: form.notes || null,
 
-            is_active:
-                Boolean(form.is_active),
+            is_active: Boolean(form.is_active),
         };
 
         try {
-            const url = editingId
-                ? `${api}/membership-privileges/${editingId}`
-                : `${api}/membership-privileges`;
-
-            const method = editingId
-                ? "PUT"
-                : "POST";
-
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type":
-                        "application/json",
-                    "X-CSRF-TOKEN":
-                        document
-                            .querySelector(
-                                'meta[name="csrf-token"]'
-                            )
-                            ?.getAttribute("content"),
-                },
-                credentials: "include",
-                body: JSON.stringify(payload),
-            });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                if (data.errors) {
-                    const messages = Object.values(
-                        data.errors
-                    )
-                        .flat()
-                        .join(" ");
-
-                    throw new Error(messages);
-                }
-
-                throw new Error(
-                    data.message ||
-                        "Unable to save privileges."
-                );
+            if (editingId) {
+                await updateMembershipPrivilege(editingId, payload);
+            } else {
+                await createMembershipPrivilege(payload);
             }
 
             resetForm();
             await loadData();
         } catch (err) {
-            setError(err.message);
+            console.error("Failed to save membership privilege:", err);
+
+            const data = err.response?.data;
+
+            if (data?.errors) {
+                const messages = Object.values(data.errors)
+                    .flat()
+                    .join(" ");
+
+                setError(messages);
+            } else {
+                setError(
+                    data?.message ||
+                    "Unable to save privileges."
+                );
+            }
         } finally {
             setSaving(false);
         }
     }
 
     async function deletePrivilege(id) {
-        if (
-            !window.confirm(
-                "Delete this membership privilege configuration?"
-            )
-        ) {
+        if (!window.confirm("Delete this membership privilege configuration?")) {
             return;
         }
 
         try {
-            const response = await fetch(
-                `${api}/membership-privileges/${id}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Accept: "application/json",
-                        "X-CSRF-TOKEN":
-                            document
-                                .querySelector(
-                                    'meta[name="csrf-token"]'
-                                )
-                                ?.getAttribute(
-                                    "content"
-                                ),
-                    },
-                    credentials: "include",
-                }
-            );
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Unable to delete privileges."
-                );
-            }
-
+            await deleteMembershipPrivilege(id);
             await loadData();
         } catch (err) {
-            setError(err.message);
+            console.error("Failed to delete membership privilege:", err);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to delete privileges."
+            );
         }
     }
 
     function getMembershipName(privilege) {
-        const activeCount = privileges.filter((item) => Boolean(item.is_active)).length;
+        return privilege.membership_type?.name || "Unknown Membership";
+    }
+
+    const activeCount = privileges.filter((item) => Boolean(item.is_active)).length;
     const priorityCount = privileges.filter((item) => Boolean(item.priority_booking)).length;
     const premiumCount = privileges.filter((item) => Boolean(item.premium_courts)).length;
 
@@ -603,5 +528,4 @@ function CheckboxField({ name, label, checked, onChange }) {
             <span className="text-sm font-medium text-slate-700">{label}</span>
         </label>
     );
-}
 }

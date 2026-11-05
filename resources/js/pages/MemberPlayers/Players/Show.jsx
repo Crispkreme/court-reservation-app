@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import TableHead from '../../../components/table/TableHead';
+import { getPlayer } from '../../../services/playerService';
 
 export default function PlayersShow() {
     const { id } = useParams();
@@ -12,33 +13,29 @@ export default function PlayersShow() {
     useEffect(() => {
         const loadPlayer = async () => {
             try {
-                const response = await fetch(
-                    `/api/v1/players/${id}`,
-                    {
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
-                    }
-                );
-
-                const data = await response.json();
+                const response = await getPlayer(id);
+                const data = response.data;
 
                 setPlayer(data.player);
 
                 setHistory(
                     data.booking_history?.data ??
-                        data.booking_history ??
-                        []
+                    data.booking_history ??
+                    []
                 );
             } catch (error) {
-                console.error(error);
+                console.error(
+                    "Failed to load player:",
+                    error.response?.data?.message || error.message
+                );
             } finally {
                 setLoading(false);
             }
         };
 
-        loadPlayer();
+        if (id) {
+            loadPlayer();
+        }
     }, [id]);
 
     if (loading) {

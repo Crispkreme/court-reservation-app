@@ -3,39 +3,27 @@ import { Link } from "react-router-dom";
 import TableHead from '../../components/table/TableHead';
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
 import { InfoPanel, SectionHeader, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
-
-const API = "/api/v1";
+import { getMemberDashboard } from "../../services/userService";
 
 export default function MemberDashboard() {
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const token = localStorage.getItem("auth_token");
-
     const fetchDashboard = async () => {
         setLoading(true);
         setError("");
 
         try {
-            const response = await fetch(`${API}/member-dashboard`, {
-                headers: {
-                    Accept: "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
+            const response = await getMemberDashboard();
             console.log("dashboard response", response);
-
-            if (!response.ok) {
-                throw new Error("Unable to load your member dashboard.");
-            }
-
-            const data = await response.json();
-            
-            setDashboard(data.data ?? data);
+            setDashboard(response.data.data ?? response.data);
         } catch (err) {
-            setError(err.message || "Unable to load your dashboard.");
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to load your dashboard."
+            );
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
-const API = "/api/v1";
+import { getFailureExceptions, getFailureExceptionSummary, getFailureException, retryFailureException, resolveFailureException, ignoreFailureException, reopenFailureException } from "../../services/failureExceptionService";
 
 const FAILURE_TYPES = [
     {
@@ -163,7 +163,10 @@ export default function FailureExceptionsIndex() {
     const [loading, setLoading] = useState(true);
     const [summaryLoading, setSummaryLoading] = useState(true);
     const [error, setError] = useState("");
-
+    const [selectedFailure, setSelectedFailure] = useState(null);
+    const [resolutionNotes, setResolutionNotes] = useState("");
+    const [actionLoading, setActionLoading] = useState(false);
+    
     const [filters, setFilters] = useState({
         search: "",
         failure_type: "",
@@ -173,68 +176,54 @@ export default function FailureExceptionsIndex() {
         date_to: "",
     });
 
-    const [selectedFailure, setSelectedFailure] = useState(null);
-
-    const [resolutionNotes, setResolutionNotes] = useState("");
-
-    const [actionLoading, setActionLoading] = useState(false);
-
     const [pagination, setPagination] = useState({
         current_page: 1,
         last_page: 1,
         total: 0,
     });
 
-    const queryString = useMemo(() => {
-        const params = new URLSearchParams();
+    const queryParams = useMemo(() => {
+    const params = {
+        per_page: 20,
+    };
 
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value !== "" && value !== null && value !== undefined) {
-                params.append(key, value);
-            }
-        });
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+            params[key] = value;
+        }
+    });
 
-        params.append("per_page", "20");
-
-        return params.toString();
+    return params;
     }, [filters]);
+    const summaryParams = useMemo(() => ({
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+    }), [filters.date_from, filters.date_to]);
 
     async function loadSummary() {
         try {
             setSummaryLoading(true);
 
-            const query = new URLSearchParams();
+            const response = await getFailureExceptionSummary(summaryParams);
 
-            if (filters.date_from) {
-                query.append("date_from", filters.date_from);
-            }
-
-            if (filters.date_to) {
-                query.append("date_to", filters.date_to);
-            }
-
-            const data = await apiRequest(
-                `/failure-exceptions/summary?${query.toString()}`
-            );
-
-            setSummary(data);
+            setSummary(response.data);
         } catch (err) {
             console.error(err);
         } finally {
             setSummaryLoading(false);
         }
     }
-
     async function loadFailures(page = 1) {
         try {
             setLoading(true);
             setError("");
 
-            const separator = queryString ? "&" : "";
+            const response = await getFailureExceptions({
+                ...queryParams,
+                page,
+            });
 
-            const data = await apiRequest(
-                `/failure-exceptions?${queryString}${separator}page=${page}`
-            );
+            const data = response.data;
 
             setFailures(data.data || []);
 
@@ -244,7 +233,11 @@ export default function FailureExceptionsIndex() {
                 total: data.total || 0,
             });
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to load failure exceptions."
+            );
         } finally {
             setLoading(false);
         }
@@ -252,11 +245,8 @@ export default function FailureExceptionsIndex() {
 
     useEffect(() => {
         loadFailures(1);
-    }, [queryString]);
-
-    useEffect(() => {
         loadSummary();
-    }, [filters.date_from, filters.date_to]);
+    }, [queryParams, summaryParams]);
 
     function updateFilter(name, value) {
         setFilters((current) => ({
@@ -277,45 +267,30 @@ export default function FailureExceptionsIndex() {
     }
 
     async function retryFailure(failure) {
-        if (
-            !window.confirm(
-                `Retry failure #${failure.id}?`
-            )
-        ) {
+        if (!window.confirm(`Retry failure #${failure.id}?`)) {
             return;
         }
 
         try {
             setActionLoading(true);
 
-            await apiRequest(
-                `/failure-exceptions/${failure.id}/retry`,
-                {
-                    method: "POST",
-                }
-            );
+            await retryFailureException(failure.id);
 
             await loadFailures(pagination.current_page);
             await loadSummary();
 
             if (selectedFailure?.id === failure.id) {
-                const refreshed = await apiRequest(
-                    `/failure-exceptions/${failure.id}`
-                );
-
-                setSelectedFailure(refreshed);
+                const response = await getFailureException(failure.id);
+                setSelectedFailure(response.data);
             }
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
         }
     }
-
     async function resolveFailure() {
-        if (!selectedFailure) {
-            return;
-        }
+        if (!selectedFailure) return;
 
         if (!resolutionNotes.trim()) {
             alert("Please enter resolution notes.");
@@ -325,37 +300,25 @@ export default function FailureExceptionsIndex() {
         try {
             setActionLoading(true);
 
-            await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}/resolve`,
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        resolution_notes: resolutionNotes,
-                    }),
-                }
-            );
+            await resolveFailureException(selectedFailure.id, {
+                resolution_notes: resolutionNotes,
+            });
 
             setResolutionNotes("");
 
             await loadFailures(pagination.current_page);
             await loadSummary();
 
-            const refreshed = await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}`
-            );
-
-            setSelectedFailure(refreshed);
+            const response = await getFailureException(selectedFailure.id);
+            setSelectedFailure(response.data);
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
         }
     }
-
     async function ignoreFailure() {
-        if (!selectedFailure) {
-            return;
-        }
+        if (!selectedFailure) return;
 
         if (!resolutionNotes.trim()) {
             alert("Please enter a reason.");
@@ -365,58 +328,38 @@ export default function FailureExceptionsIndex() {
         try {
             setActionLoading(true);
 
-            await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}/ignore`,
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        resolution_notes: resolutionNotes,
-                    }),
-                }
-            );
+            await ignoreFailureException(selectedFailure.id, {
+                resolution_notes: resolutionNotes,
+            });
 
             setResolutionNotes("");
 
             await loadFailures(pagination.current_page);
             await loadSummary();
 
-            const refreshed = await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}`
-            );
-
-            setSelectedFailure(refreshed);
+            const response = await getFailureException(selectedFailure.id);
+            setSelectedFailure(response.data);
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
         }
     }
-
     async function reopenFailure() {
-        if (!selectedFailure) {
-            return;
-        }
+        if (!selectedFailure) return;
 
         try {
             setActionLoading(true);
 
-            await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}/reopen`,
-                {
-                    method: "POST",
-                }
-            );
+            await reopenFailureException(selectedFailure.id);
 
             await loadFailures(pagination.current_page);
             await loadSummary();
 
-            const refreshed = await apiRequest(
-                `/failure-exceptions/${selectedFailure.id}`
-            );
-
-            setSelectedFailure(refreshed);
+            const response = await getFailureException(selectedFailure.id);
+            setSelectedFailure(response.data);
         } catch (err) {
-            alert(err.message);
+            alert(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
         }

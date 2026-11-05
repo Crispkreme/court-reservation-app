@@ -3,8 +3,7 @@ import { Activity, CheckCircle2, CreditCard, DollarSign, RefreshCw, Wallet, Aler
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
-
-const API = "/api/v1";
+import { getPayments, createPayment as createPaymentRequest, createPaypalOrder, capturePaypalOrder, confirmManualPayment as confirmManualPaymentRequest, refundPayment as refundPaymentRequest, reconcilePayment as reconcilePaymentRequest } from "../../services/paymentService";
 
 export default function Payments() {
     const [payments, setPayments] = useState([]);
@@ -13,46 +12,21 @@ export default function Payments() {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
-
-    const [selectedPayment, setSelectedPayment] =
-        useState(null);
-
-    const paypalContainer =
-        useRef(null);
-
-    const token =
-        localStorage.getItem("auth_token");
-
-    const headers = {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-    };
+    const [selectedPayment, setSelectedPayment] = useState(null);
+    const paypalContainer = useRef(null);
 
     const loadPayments = async () => {
         try {
             setLoading(true);
+            setError("");
 
-            const response = await fetch(
-                `${API}/payments`,
-                {
-                    headers,
-                    credentials: "include",
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Unable to load payments."
-                );
-            }
-
-            setPayments(data.data || []);
+            const response = await getPayments();
+            setPayments(response.data.data || []);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to load payments."
+            );
         } finally {
             setLoading(false);
         }
@@ -62,87 +36,69 @@ export default function Payments() {
         loadPayments();
     }, []);
 
-    const createPayment = async (
-        bookingId,
-        paymentMethod
-    ) => {
-        const response = await fetch(
-            `${API}/payments`,
-            {
-                method: "POST",
-                headers,
-                credentials: "include",
-                body: JSON.stringify({
-                    booking_id: bookingId,
-                    payment_method:
-                        paymentMethod,
-                }),
-            }
-        );
+    const createPayment = async (bookingId, paymentMethod) => {
+        try {
+            const response = await createPaymentRequest(
+                bookingId,
+                paymentMethod
+            );
 
-        const data = await response.json();
-
-        if (!response.ok) {
+            return response.data.payment;
+        } catch (err) {
             throw new Error(
-                data.message ||
-                    "Unable to create payment."
+                err.response?.data?.message ||
+                "Unable to create payment."
             );
         }
-
-        return data.payment;
     };
 
     const loadPaypalSdk = () => {
-        return new Promise(
-            (resolve, reject) => {
+        return new Promise((resolve, reject) => {
+            if (window.paypal) {
+                resolve(window.paypal);
+                return;
+            }
+
+            const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+
+            if (!clientId) {
+                reject(
+                    new Error(
+                        "VITE_PAYPAL_CLIENT_ID is not configured."
+                    )
+                );
+                return;
+            }
+
+            const script = document.createElement("script");
+
+            script.src =
+                `https://www.sandbox.paypal.com/sdk/js?` +
+                `client-id=${clientId}` +
+                `&currency=USD` +
+                `&components=buttons`;
+
+            script.onload = () => {
                 if (window.paypal) {
                     resolve(window.paypal);
-                    return;
-                }
-
-                const clientId =
-                    import.meta.env
-                        .VITE_PAYPAL_CLIENT_ID;
-
-                if (!clientId) {
+                } else {
                     reject(
-                        new Error(
-                            "VITE_PAYPAL_CLIENT_ID is not configured."
-                        )
+                        new Error("PayPal SDK failed to initialize.")
                     );
-
-                    return;
                 }
+            };
 
-                const script =
-                    document.createElement("script");
+            script.onerror = () => {
+                reject(
+                    new Error("Unable to load PayPal Sandbox.")
+                );
+            };
 
-                script.src =
-                    `https://www.sandbox.paypal.com/sdk/js?` +
-                    `client-id=${clientId}` +
-                    `&currency=USD` +
-                    `&components=buttons`;
-
-                script.onload = () => {
-                    resolve(window.paypal);
-                };
-
-                script.onerror = () => {
-                    reject(
-                        new Error(
-                            "Unable to load PayPal Sandbox."
-                        )
-                    );
-                };
-
-                document.body.appendChild(script);
-            }
-        );
+            document.body.appendChild(script);
+        });
     };
 
-    const startPaypalPayment = async (
-        payment
-    ) => {
+    const startPaypalPayment = async (payment) => {
         try {
             setError("");
             setMessage("");
@@ -150,30 +106,13 @@ export default function Payments() {
 
             setSelectedPayment(payment);
 
-            const paypal =
-                await loadPaypalSdk();
+            const paypal = await loadPaypalSdk();
+            const createOrderResponse = await createPaypalOrder(payment.id);
+            const order = createOrderResponse.data;
 
-            const createOrderResponse =
-                await fetch(
-                    `${API}/payments/paypal/create-order`,
-                    {
-                        method: "POST",
-                        headers,
-                        credentials: "include",
-                        body: JSON.stringify({
-                            payment_id:
-                                payment.id,
-                        }),
-                    }
-                );
-
-            const order =
-                await createOrderResponse.json();
-
-            if (!createOrderResponse.ok) {
+            if (!order?.id) {
                 throw new Error(
-                    order.message ||
-                        "Unable to create PayPal order."
+                    "Unable to create PayPal order."
                 );
             }
 
@@ -183,48 +122,28 @@ export default function Payments() {
                         return order.id;
                     },
 
-                    onApprove: async (
-                        data
-                    ) => {
-                        const response =
-                            await fetch(
-                                `${API}/payments/paypal/capture-order`,
-                                {
-                                    method: "POST",
-                                    headers,
-                                    credentials:
-                                        "include",
-                                    body:
-                                        JSON.stringify(
-                                            {
-                                                payment_id:
-                                                    payment.id,
-                                                order_id:
-                                                    data.orderID,
-                                            }
-                                        ),
-                                }
+                    onApprove: async (data) => {
+                        try {
+                            const response = await capturePaypalOrder(
+                                payment.id,
+                                data.orderID
                             );
 
-                        const result =
-                            await response.json();
+                            const result = response.data;
 
-                        if (!response.ok) {
-                            throw new Error(
-                                result.message ||
-                                    "Payment capture failed."
+                            setMessage(
+                                "Payment completed successfully."
+                            );
+
+                            setSelectedPayment(result.payment);
+
+                            await loadPayments();
+                        } catch (err) {
+                            setError(
+                                err.response?.data?.message ||
+                                "Payment capture failed."
                             );
                         }
-
-                        setMessage(
-                            "Payment completed successfully."
-                        );
-
-                        setSelectedPayment(
-                            result.payment
-                        );
-
-                        await loadPayments();
                     },
 
                     onCancel: () => {
@@ -233,82 +152,57 @@ export default function Payments() {
                         );
                     },
 
-                    onError: (
-                        paypalError
-                    ) => {
-                        console.error(
-                            paypalError
-                        );
+                    onError: (paypalError) => {
+                        console.error(paypalError);
 
                         setError(
                             "PayPal payment failed. Please try again."
                         );
                     },
                 })
-                .render(
-                    paypalContainer.current
-                );
+                .render(paypalContainer.current);
+
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to start PayPal payment."
+            );
         } finally {
             setProcessing(false);
         }
     };
 
-    const confirmManualPayment = async (
-        payment
-    ) => {
+    const confirmManualPayment = async (payment) => {
         try {
             setProcessing(true);
             setError("");
 
-            const response =
-                await fetch(
-                    `${API}/payments/${payment.id}/manual-confirm`,
-                    {
-                        method: "POST",
-                        headers,
-                        credentials: "include",
-                        body: JSON.stringify({
-                            notes:
-                                "Confirmed by administrator.",
-                        }),
-                    }
-                );
-
-            const data =
-                await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Unable to confirm payment."
-                );
-            }
-
-            setMessage(
-                "Manual payment confirmed."
+            await confirmManualPaymentRequest(
+                payment.id,
+                "Confirmed by administrator."
             );
+
+            setMessage("Manual payment confirmed.");
 
             await loadPayments();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Unable to confirm payment."
+            );
         } finally {
             setProcessing(false);
         }
     };
 
-    const refundPayment = async (
-        payment
-    ) => {
+    const refundPayment = async (payment) => {
         const maxRefund =
             Number(payment.amount) -
             Number(payment.refunded_amount);
 
         const amount = window.prompt(
-            `Refund amount (maximum ${maxRefund.toFixed(
-                2
-            )}):`,
+            `Refund amount (maximum ${maxRefund.toFixed(2)}):`,
             maxRefund.toFixed(2)
         );
 
@@ -316,18 +210,14 @@ export default function Payments() {
             return;
         }
 
-        const numericAmount =
-            Number(amount);
+        const numericAmount = Number(amount);
 
         if (
             Number.isNaN(numericAmount) ||
             numericAmount <= 0 ||
             numericAmount > maxRefund
         ) {
-            setError(
-                "Invalid refund amount."
-            );
-
+            setError("Invalid refund amount.");
             return;
         }
 
@@ -335,74 +225,31 @@ export default function Payments() {
             setProcessing(true);
             setError("");
 
-            const response =
-                await fetch(
-                    `${API}/payments/${payment.id}/refund`,
-                    {
-                        method: "POST",
-                        headers,
-                        credentials: "include",
-                        body: JSON.stringify({
-                            amount:
-                                numericAmount,
-                            reason:
-                                "Court booking refund",
-                        }),
-                    }
-                );
-
-            const data =
-                await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Refund failed."
-                );
-            }
-
-            setMessage(
-                "Refund processed successfully."
+            await refundPaymentRequest(
+                payment.id,
+                numericAmount,
+                "Court booking refund"
             );
+
+            setMessage("Refund processed successfully.");
 
             await loadPayments();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Refund failed."
+            );
         } finally {
             setProcessing(false);
         }
     };
 
-    const reconcilePayment = async (
-        payment
-    ) => {
+    const reconcilePayment = async (payment) => {
         try {
             setProcessing(true);
             setError("");
 
-            const response =
-                await fetch(
-                    `${API}/payments/reconcile`,
-                    {
-                        method: "POST",
-                        headers,
-                        credentials: "include",
-                        body: JSON.stringify({
-                            payment_id:
-                                payment.id,
-                        }),
-                    }
-                );
-
-            const data =
-                await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Reconciliation failed."
-                );
-            }
+            await reconcilePaymentRequest(payment.id);
 
             setMessage(
                 "Payment reconciliation completed."
@@ -410,7 +257,10 @@ export default function Payments() {
 
             await loadPayments();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Reconciliation failed."
+            );
         } finally {
             setProcessing(false);
         }

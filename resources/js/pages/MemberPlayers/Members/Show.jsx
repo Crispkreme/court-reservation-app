@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import TableHead from '../../../components/table/TableHead';
+import { getMember } from "../../../services/memberService";
 
 export default function MembersShow() {
     const { id } = useParams();
@@ -11,28 +12,21 @@ export default function MembersShow() {
 
     const loadMember = async () => {
         try {
-            const response = await fetch(`/api/v1/members/${id}`, {
-                headers: {
-                    Accept: "application/json",
-                },
-                credentials: "include",
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message);
-            }
+            const response = await getMember(id);
+            const data = response.data;
 
             setMember(data.member);
 
             setHistory(
                 data.booking_history?.data ??
-                    data.booking_history ??
-                    []
+                data.booking_history ??
+                []
             );
         } catch (error) {
-            console.error(error);
+            console.error(
+                "Failed to load member:",
+                error.response?.data?.message || error.message
+            );
         } finally {
             setLoading(false);
         }

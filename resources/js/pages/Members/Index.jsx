@@ -3,7 +3,7 @@ import StatCard from '../../components/StatCard';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import MembershipCreateModal from "../../components/modal/MembershipCreateModal";
 import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
-import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
+import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics, renewMembership, changeMembershipStatus } from '../../services/membershipService';
 import { getMemberUsers } from '../../services/userService';
 import PageHeader from '../../components/PageHeader';
 import TableHead from '../../components/table/TableHead';
@@ -116,7 +116,6 @@ export default function Index() {
 
         try {
             await createMembership(form);
-
             setIsCreateModalOpen(false);
 
             setForm({
@@ -153,29 +152,9 @@ export default function Index() {
         setRenewError("");
 
         try {
-            const response = await fetch(
-                `/api/v1/memberships/${selectedMembership.id}/renew`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify({
-                        price_paid:
-                            selectedMembership.membership_type?.price,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setRenewError(
-                    data.message ?? "Failed to renew membership."
-                );
-                return;
-            }
+            await renewMembership(selectedMembership.id, {
+                price_paid: selectedMembership.membership_type?.price,
+            });
 
             setShowRenew(false);
             setSelectedMembership(null);
@@ -183,41 +162,26 @@ export default function Index() {
             await loadData();
         } catch (error) {
             console.error("Renew membership error:", error);
-            setRenewError("Something went wrong. Please try again.");
+
+            setRenewError(
+                error.response?.data?.message ??
+                "Failed to renew membership."
+            );
         } finally {
             setRenewLoading(false);
         }
     };
-    const changeStatus = async (membership,action) => {
+    const changeStatus = async (membership, action) => {
         if (!window.confirm(`Are you sure you want to ${action} this membership?`)) {
             return;
         }
 
         try {
-            const response = await fetch(
-                `/api/v1/memberships/${membership.id}/${action}`,
-                {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-
-                alert(
-                    error.message ??
-                        `Failed to ${action} membership.`
-                );
-
-                return;
-            }
-
+            await changeMembershipStatus(membership.id, action);
             await loadData();
         } catch (error) {
-            console.error(error);
+            console.error("Change membership status error:", error);
+            alert(error.response?.data?.message ?? `Failed to ${action} membership.`);
         }
     };
     const handleChange = (e) => {

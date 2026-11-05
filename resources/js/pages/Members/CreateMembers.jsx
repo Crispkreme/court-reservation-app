@@ -1,19 +1,9 @@
 import { useState, cloneElement } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
-import {
-    ArrowLeft,
-    UserRound,
-    Mail,
-    Phone,
-    CalendarDays,
-    MapPin,
-    CreditCard,
-    FileText,
-    Save,
-    AlertCircle,
-    CheckCircle2,
-} from "lucide-react";
+import { createMember } from "../../services/memberService";
+import { createPlayer } from "../../services/playerService";
+import { ArrowLeft, UserRound, Mail, Phone, MapPin, CreditCard, FileText, Save } from "lucide-react";
 import ErrorAlert from "../../components/ErrorAlert";
 
 const initialForm = {
@@ -31,8 +21,7 @@ const initialForm = {
     notes: "",
 };
 
-const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
 export default function CreateMembers() {
     const navigate = useNavigate();
@@ -52,37 +41,13 @@ export default function CreateMembers() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
-        setErrors({});
-        setSubmitError("");
 
         try {
-            const response = await fetch("/api/v1/members", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(form),
-            });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                setErrors(data.errors || {});
-                setSubmitError(data.message || "Unable to register member. Please check the fields and try again.");
-                return;
-            }
-
-            const memberId = data.member?.id ?? data.data?.id;
-            if (memberId) {
-                navigate(`/members/${memberId}`);
-            } else {
-                navigate("/members");
-            }
+            const response = await createPlayer(form);
+            navigate(`/players/${response.data.player.id}`);
         } catch (error) {
             console.error(error);
-            setSubmitError("Something went wrong while registering the member. Please try again.");
+            alert(error.response?.data?.message || "Something went wrong.");
         } finally {
             setSaving(false);
         }

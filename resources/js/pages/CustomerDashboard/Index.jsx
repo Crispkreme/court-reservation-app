@@ -1,59 +1,45 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TableHead from '../../components/table/TableHead';
-
-const API = "/api/v1";
+import { getCustomerDashboard } from "../../services/customerDashboardService";
+import { formatDate, formatTime, formatCurrency } from "../../utils/formatters";
 
 export default function CustomerDashboard() {
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [search, setSearch] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
-
-    const token = localStorage.getItem("auth_token");
 
     const fetchDashboard = async () => {
         setLoading(true);
         setError("");
 
         try {
-            const params = new URLSearchParams();
+            const params = {};
 
             if (search) {
-                params.append("search", search);
+                params.search = search;
             }
 
             if (dateFrom) {
-                params.append("date_from", dateFrom);
+                params.date_from = dateFrom;
             }
 
             if (dateTo) {
-                params.append("date_to", dateTo);
+                params.date_to = dateTo;
             }
 
-            const url = `${API}/customer-dashboard${
-                params.toString() ? `?${params.toString()}` : ""
-            }`;
+            const response = await getCustomerDashboard(params);
 
-            const response = await fetch(url, {
-                headers: {
-                    Accept: "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error("Unable to load customer dashboard.");
-            }
-
-            const data = await response.json();
-
-            setDashboard(data);
+            setDashboard(response.data);
         } catch (err) {
-            setError(err.message || "Something went wrong.");
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Something went wrong."
+            );
         } finally {
             setLoading(false);
         }
@@ -62,37 +48,6 @@ export default function CustomerDashboard() {
     useEffect(() => {
         fetchDashboard();
     }, []);
-
-    const formatDate = (date) => {
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(date).toLocaleDateString();
-    };
-
-    const formatTime = (time) => {
-        if (!time) {
-            return "-";
-        }
-
-        const [hours, minutes] = time.split(":");
-
-        const date = new Date();
-        date.setHours(Number(hours), Number(minutes), 0);
-
-        return date.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-        });
-    };
-
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat("en-PH", {
-            style: "currency",
-            currency: "PHP",
-        }).format(Number(value || 0));
-    };
 
     const clearFilters = () => {
         setSearch("");

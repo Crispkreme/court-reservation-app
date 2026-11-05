@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Users, CalendarDays, Clock3, MapPin, Search, UserPlus, X, CheckCircle2, AlertCircle } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import ErrorAlert from "../../components/ErrorAlert";
+import { getMatchmakingRequests, getMatchmakingBookings, getSportCategories, createMatchmakingRequest, getCompatiblePlayers, sendMatchmakingInvitations, closeMatchmakingRequest } from "../../services/matchmakingService";
 
 const initialForm = {
     booking_id: "",
@@ -20,15 +21,9 @@ export default function Matchmaking() {
     const [bookings, setBookings] = useState([]);
     const [sports, setSports] = useState([]);
     const [players, setPlayers] = useState([]);
-
     const [form, setForm] = useState(initialForm);
-
-    const [selectedRequest, setSelectedRequest] =
-        useState(null);
-
-    const [selectedPlayers, setSelectedPlayers] =
-        useState([]);
-
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [selectedPlayers, setSelectedPlayers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -41,11 +36,8 @@ export default function Matchmaking() {
 
     async function loadRequests() {
         try {
-            const response = await fetch(
-                "/api/v1/matchmaking"
-            );
-
-            const result = await response.json();
+            const response = await getMatchmakingRequests();
+            const result = response.data;
 
             if (result.success) {
                 setRequests(result.data);
@@ -54,14 +46,10 @@ export default function Matchmaking() {
             console.error(err);
         }
     }
-
     async function loadBookings() {
         try {
-            const response = await fetch(
-                "/api/v1/bookings"
-            );
-
-            const result = await response.json();
+            const response = await getMatchmakingBookings();
+            const result = response.data;
 
             if (result.success) {
                 setBookings(
@@ -74,20 +62,124 @@ export default function Matchmaking() {
             console.error(err);
         }
     }
-
     async function loadSports() {
         try {
-            const response = await fetch(
-                "/api/v1/sport-categories"
-            );
-
-            const result = await response.json();
+            const response = await getSportCategories();
+            const result = response.data;
 
             if (result.success) {
                 setSports(result.data);
             }
         } catch (err) {
             console.error(err);
+        }
+    }
+    async function createRequest(event) {
+        event.preventDefault();
+
+        setLoading(true);
+        setMessage("");
+        setError("");
+
+        try {
+            const response = await createMatchmakingRequest(form);
+            const result = response.data;
+
+            setMessage(
+                "Matchmaking request created successfully."
+            );
+
+            setForm(initialForm);
+
+            await loadRequests();
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Unable to create matchmaking request."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+    async function findPlayers(request) {
+        setSelectedRequest(request);
+        setSelectedPlayers([]);
+        setError("");
+        setMessage("");
+
+        try {
+            const response = await getCompatiblePlayers(request.id);
+
+            setPlayers(response.data.data ?? []);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Unable to find compatible players."
+            );
+        }
+    }
+    async function sendInvitations() {
+        if (!selectedRequest) {
+            return;
+        }
+
+        if (selectedPlayers.length === 0) {
+            setError("Select at least one player.");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+        setMessage("");
+
+        try {
+            const response = await sendMatchmakingInvitations(
+                selectedRequest.id,
+                {
+                    player_ids: selectedPlayers,
+                }
+            );
+
+            setMessage(response.data.message);
+
+            setSelectedPlayers([]);
+
+            await loadRequests();
+            await findPlayers(selectedRequest);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Unable to send invitations."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+    async function closeRequest(request) {
+        if (
+            !window.confirm(
+                "Close this matchmaking request?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+            await closeMatchmakingRequest(request.id);
+
+            setMessage("Matchmaking request closed.");
+
+            await loadRequests();
+
+            if (selectedRequest?.id === request.id) {
+                setSelectedRequest(null);
+                setPlayers([]);
+            }
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Unable to close request."
+            );
         }
     }
 
@@ -97,7 +189,6 @@ export default function Matchmaking() {
             [name]: value,
         }));
     }
-
     function handleBookingChange(bookingId) {
         const booking = bookings.find(
             (item) =>
@@ -117,77 +208,6 @@ export default function Matchmaking() {
                 booking?.end_time?.slice(0, 5) ?? "",
         }));
     }
-
-    async function createRequest(event) {
-        event.preventDefault();
-
-        setLoading(true);
-        setMessage("");
-        setError("");
-
-        try {
-            const response = await fetch(
-                "/api/v1/matchmaking",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify(form),
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to create matchmaking request."
-                );
-            }
-
-            setMessage(
-                "Matchmaking request created successfully."
-            );
-
-            setForm(initialForm);
-
-            await loadRequests();
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function findPlayers(request) {
-        setSelectedRequest(request);
-        setSelectedPlayers([]);
-        setError("");
-        setMessage("");
-
-        try {
-            const response = await fetch(
-                `/api/v1/matchmaking/${request.id}/compatible-players`
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to find compatible players."
-                );
-            }
-
-            setPlayers(result.data ?? []);
-        } catch (err) {
-            setError(err.message);
-        }
-    }
-
     function togglePlayer(playerId) {
         setSelectedPlayers((current) => {
             if (current.includes(playerId)) {
@@ -198,109 +218,6 @@ export default function Matchmaking() {
 
             return [...current, playerId];
         });
-    }
-
-    async function sendInvitations() {
-        if (!selectedRequest) {
-            return;
-        }
-
-        if (selectedPlayers.length === 0) {
-            setError(
-                "Select at least one player."
-            );
-            return;
-        }
-
-        setLoading(true);
-        setError("");
-        setMessage("");
-
-        try {
-            const response = await fetch(
-                `/api/v1/matchmaking/${selectedRequest.id}/invite`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify({
-                        player_ids:
-                            selectedPlayers,
-                    }),
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to send invitations."
-                );
-            }
-
-            setMessage(result.message);
-
-            setSelectedPlayers([]);
-
-            await loadRequests();
-            await findPlayers(
-                selectedRequest
-            );
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function closeRequest(request) {
-        if (
-            !window.confirm(
-                "Close this matchmaking request?"
-            )
-        ) {
-            return;
-        }
-
-        try {
-            const response = await fetch(
-                `/api/v1/matchmaking/${request.id}/close`,
-                {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                    },
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Unable to close request."
-                );
-            }
-
-            setMessage(
-                "Matchmaking request closed."
-            );
-
-            await loadRequests();
-
-            if (
-                selectedRequest?.id === request.id
-            ) {
-                setSelectedRequest(null);
-                setPlayers([]);
-            }
-        } catch (err) {
-            setError(err.message);
-        }
     }
 
     return (

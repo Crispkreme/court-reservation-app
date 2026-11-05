@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { createMember } from "../../../services/memberService";
 
 const initialForm = {
     first_name: "",
@@ -29,7 +30,6 @@ export default function CreateMembers() {
             [e.target.name]: e.target.value,
         });
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -37,28 +37,21 @@ export default function CreateMembers() {
         setErrors({});
 
         try {
-            const response = await fetch("/api/v1/members", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(form),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setErrors(data.errors || {});
-                alert(data.message || "Unable to register member.");
+            const response = await createMember(form);
+            navigate(`/members/${response.data.member.id}`);
+        } catch (error) {
+            if (error.response?.status === 422) {
+                setErrors(error.response.data.errors || {});
+                alert(error.response.data.message || "Unable to register member.");
                 return;
             }
 
-            navigate(`/members/${data.member.id}`);
-        } catch (error) {
             console.error(error);
-            alert("Something went wrong.");
+
+            alert(
+                error.response?.data?.message ||
+                "Something went wrong."
+            );
         } finally {
             setSaving(false);
         }

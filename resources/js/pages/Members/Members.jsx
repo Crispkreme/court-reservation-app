@@ -4,6 +4,7 @@ import Layout from "../../components/layout/Layout";
 import { Users, UserPlus, Search, RefreshCw, Eye, CalendarDays, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
+import { getMembers } from "../../services/memberService";
 
 export default function Members() {
     const [members, setMembers] = useState([]);
@@ -19,35 +20,29 @@ export default function Members() {
         setError("");
 
         try {
-            const params = new URLSearchParams();
+            const params = {
+                search: search.trim() || undefined,
+                status: status || undefined,
+            };
 
-            if (search.trim()) {
-                params.append("search", search.trim());
-            }
+            const response = await getMembers(params);
+            const data = response.data;
 
-            if (status) {
-                params.append("status", status);
-            }
-
-            const query = params.toString();
-            const response = await fetch(
-                `/api/v1/members${query ? `?${query}` : ""}`,
-                {
-                    headers: { Accept: "application/json" },
-                    credentials: "include",
-                }
+            setMembers(
+                Array.isArray(data.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : []
             );
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(data.message || "Failed to load members.");
-            }
-
-            setMembers(Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Failed to load members:", err);
-            setError(err.message || "Unable to load members. Please try again.");
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to load members. Please try again."
+            );
+
             setMembers([]);
         } finally {
             setLoading(false);

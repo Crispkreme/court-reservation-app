@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import TableHead from '../../components/table/TableHead';
-import ErrorAlert from "../../components/ErrorAlert";
 
-const API = "/api/v1";
+import React, { useEffect, useState } from "react";
+import TableHead from "../../components/table/TableHead";
+import ErrorAlert from "../../components/ErrorAlert";
+import { getOperationalControls, getOperationalControlSummary, createOperationalControl, cancelOperationalControl } from "../../services/operationalControlService";
 
 const CONTROL_TYPES = [
     { value: "manual_booking", label: "Manual Booking" },
@@ -24,6 +24,26 @@ const STATUS_OPTIONS = [
     "expired",
 ];
 
+const INITIAL_FORM = {
+    control_type: "court_block",
+    court_id: "",
+    booking_id: "",
+    status: "active",
+    starts_at: "",
+    ends_at: "",
+    minimum_advance_hours: "",
+    maximum_advance_days: "",
+    new_booking_date: "",
+    new_start_time: "",
+    new_duration_minutes: "",
+    refund_amount: "",
+    refund_reference: "",
+    reason: "",
+    notes: "",
+    allowed_roles: "admin,manager,operations",
+    override_rules: "",
+};
+
 export default function OperationalControls() {
     const [controls, setControls] = useState([]);
     const [summary, setSummary] = useState(null);
@@ -37,102 +57,51 @@ export default function OperationalControls() {
         status: "",
     });
 
-    const [form, setForm] = useState({
-        control_type: "court_block",
-        court_id: "",
-        booking_id: "",
-        status: "active",
-        starts_at: "",
-        ends_at: "",
-        minimum_advance_hours: "",
-        maximum_advance_days: "",
-        new_booking_date: "",
-        new_start_time: "",
-        new_duration_minutes: "",
-        refund_amount: "",
-        refund_reference: "",
-        reason: "",
-        notes: "",
-        allowed_roles: "admin,manager,operations",
-        override_rules: "",
-    });
+    const [form, setForm] = useState(INITIAL_FORM);
 
-    const token = localStorage.getItem("auth_token");
-
-    const headers = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-    };
-
+    // Load operational controls
     const loadControls = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const params = new URLSearchParams();
+            const response = await getOperationalControls({
+                control_type: filters.control_type || undefined,
+                status: filters.status || undefined,
+            });
 
-            if (filters.control_type) {
-                params.append(
-                    "control_type",
-                    filters.control_type
-                );
-            }
-
-            if (filters.status) {
-                params.append(
-                    "status",
-                    filters.status
-                );
-            }
-
-            const response = await fetch(
-                `${API}/operational-controls?${params.toString()}`,
-                {
-                    headers,
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(
-                    "Failed to load operational controls."
-                );
-            }
-
-            const data = await response.json();
-
-            setControls(data.data || []);
+            setControls(response.data.data || []);
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Failed to load operational controls."
+            );
         } finally {
             setLoading(false);
         }
     };
 
+    // Load operational controls summary
     const loadSummary = async () => {
         try {
-            const response = await fetch(
-                `${API}/operational-controls/summary`,
-                {
-                    headers,
-                }
-            );
-
-            if (!response.ok) {
-                return;
-            }
-
-            setSummary(await response.json());
+            const response = await getOperationalControlSummary();
+            setSummary(response.data);
         } catch {
             // Summary failure should not prevent page usage.
         }
     };
 
+    // Load controls when filters change
     useEffect(() => {
         loadControls();
-        loadSummary();
     }, [filters.control_type, filters.status]);
 
+    // Load summary only once when component mounts
+    useEffect(() => {
+        loadSummary();
+    }, []);
+
+    // Update form fields
     const updateField = (field, value) => {
         setForm((current) => ({
             ...current,
@@ -140,6 +109,7 @@ export default function OperationalControls() {
         }));
     };
 
+    // Create operational control
     const submit = async (event) => {
         event.preventDefault();
 
@@ -151,9 +121,7 @@ export default function OperationalControls() {
 
             if (form.override_rules.trim()) {
                 try {
-                    overrideRules = JSON.parse(
-                        form.override_rules
-                    );
+                    overrideRules = JSON.parse(form.override_rules);
                 } catch {
                     throw new Error(
                         "Override Rules must contain valid JSON."
@@ -163,92 +131,68 @@ export default function OperationalControls() {
 
             const payload = {
                 control_type: form.control_type,
+
                 court_id: form.court_id
                     ? Number(form.court_id)
                     : null,
+
                 booking_id: form.booking_id
                     ? Number(form.booking_id)
                     : null,
+
                 status: form.status,
                 starts_at: form.starts_at || null,
                 ends_at: form.ends_at || null,
+
                 minimum_advance_hours:
                     form.minimum_advance_hours
                         ? Number(form.minimum_advance_hours)
                         : null,
+
                 maximum_advance_days:
                     form.maximum_advance_days
                         ? Number(form.maximum_advance_days)
                         : null,
-                new_booking_date:
-                    form.new_booking_date || null,
-                new_start_time:
-                    form.new_start_time || null,
+
+                new_booking_date: form.new_booking_date || null,
+                new_start_time: form.new_start_time || null,
+
                 new_duration_minutes:
                     form.new_duration_minutes
                         ? Number(form.new_duration_minutes)
                         : null,
-                refund_amount:
-                    form.refund_amount || null,
-                refund_reference:
-                    form.refund_reference || null,
+
+                refund_amount: form.refund_amount || null,
+                refund_reference: form.refund_reference || null,
                 reason: form.reason || null,
                 notes: form.notes || null,
+
                 allowed_roles: form.allowed_roles
                     .split(",")
                     .map((role) => role.trim())
                     .filter(Boolean),
+
                 override_rules: overrideRules,
             };
 
-            const response = await fetch(
-                `${API}/operational-controls`,
-                {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify(payload),
-                }
-            );
+            await createOperationalControl(payload);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Failed to create operational control."
-                );
-            }
-
-            setForm({
-                control_type: "court_block",
-                court_id: "",
-                booking_id: "",
-                status: "active",
-                starts_at: "",
-                ends_at: "",
-                minimum_advance_hours: "",
-                maximum_advance_days: "",
-                new_booking_date: "",
-                new_start_time: "",
-                new_duration_minutes: "",
-                refund_amount: "",
-                refund_reference: "",
-                reason: "",
-                notes: "",
-                allowed_roles:
-                    "admin,manager,operations",
-                override_rules: "",
-            });
+            setForm({ ...INITIAL_FORM });
 
             await loadControls();
             await loadSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to create operational control."
+            );
         } finally {
             setSaving(false);
         }
     };
 
+    // Cancel operational control
     const cancelControl = async (id) => {
         if (
             !window.confirm(
@@ -259,30 +203,21 @@ export default function OperationalControls() {
         }
 
         try {
-            const response = await fetch(
-                `${API}/operational-controls/${id}`,
-                {
-                    method: "DELETE",
-                    headers,
-                }
-            );
+            setError("");
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Failed to cancel control."
-                );
-            }
+            await cancelOperationalControl(id);
 
             await loadControls();
             await loadSummary();
         } catch (err) {
-            setError(err.message);
+            setError(
+                err.response?.data?.message ||
+                "Failed to cancel control."
+            );
         }
     };
 
+    // Format control type
     const formatType = (type) => {
         return (
             CONTROL_TYPES.find(
@@ -332,16 +267,12 @@ export default function OperationalControls() {
 
                         <SummaryCard
                             label="Cancellations"
-                            value={
-                                summary.manual_cancellations
-                            }
+                            value={summary.manual_cancellations}
                         />
 
                         <SummaryCard
                             label="Reschedules"
-                            value={
-                                summary.manual_reschedules
-                            }
+                            value={summary.manual_reschedules}
                         />
 
                         <SummaryCard
@@ -357,6 +288,7 @@ export default function OperationalControls() {
                 )}
 
                 <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Create Operational Control */}
                     <div className="rounded-xl bg-white p-6 shadow-sm lg:col-span-1">
                         <h2 className="mb-4 text-lg font-semibold">
                             Create Operational Control
@@ -368,9 +300,7 @@ export default function OperationalControls() {
                         >
                             <Field label="Control Type">
                                 <select
-                                    value={
-                                        form.control_type
-                                    }
+                                    value={form.control_type}
                                     onChange={(e) =>
                                         updateField(
                                             "control_type",
@@ -379,20 +309,14 @@ export default function OperationalControls() {
                                     }
                                     className="input"
                                 >
-                                    {CONTROL_TYPES.map(
-                                        (type) => (
-                                            <option
-                                                key={
-                                                    type.value
-                                                }
-                                                value={
-                                                    type.value
-                                                }
-                                            >
-                                                {type.label}
-                                            </option>
-                                        )
-                                    )}
+                                    {CONTROL_TYPES.map((type) => (
+                                        <option
+                                            key={type.value}
+                                            value={type.value}
+                                        >
+                                            {type.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </Field>
 
@@ -430,9 +354,7 @@ export default function OperationalControls() {
                                 <Field label="Starts At">
                                     <input
                                         type="datetime-local"
-                                        value={
-                                            form.starts_at
-                                        }
+                                        value={form.starts_at}
                                         onChange={(e) =>
                                             updateField(
                                                 "starts_at",
@@ -446,9 +368,7 @@ export default function OperationalControls() {
                                 <Field label="Ends At">
                                     <input
                                         type="datetime-local"
-                                        value={
-                                            form.ends_at
-                                        }
+                                        value={form.ends_at}
                                         onChange={(e) =>
                                             updateField(
                                                 "ends_at",
@@ -465,9 +385,7 @@ export default function OperationalControls() {
                                     <input
                                         type="number"
                                         min="0"
-                                        value={
-                                            form.minimum_advance_hours
-                                        }
+                                        value={form.minimum_advance_hours}
                                         onChange={(e) =>
                                             updateField(
                                                 "minimum_advance_hours",
@@ -482,9 +400,7 @@ export default function OperationalControls() {
                                     <input
                                         type="number"
                                         min="0"
-                                        value={
-                                            form.maximum_advance_days
-                                        }
+                                        value={form.maximum_advance_days}
                                         onChange={(e) =>
                                             updateField(
                                                 "maximum_advance_days",
@@ -499,9 +415,7 @@ export default function OperationalControls() {
                             <Field label="New Booking Date">
                                 <input
                                     type="date"
-                                    value={
-                                        form.new_booking_date
-                                    }
+                                    value={form.new_booking_date}
                                     onChange={(e) =>
                                         updateField(
                                             "new_booking_date",
@@ -515,9 +429,7 @@ export default function OperationalControls() {
                             <Field label="New Start Time">
                                 <input
                                     type="time"
-                                    value={
-                                        form.new_start_time
-                                    }
+                                    value={form.new_start_time}
                                     onChange={(e) =>
                                         updateField(
                                             "new_start_time",
@@ -533,9 +445,7 @@ export default function OperationalControls() {
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    value={
-                                        form.refund_amount
-                                    }
+                                    value={form.refund_amount}
                                     onChange={(e) =>
                                         updateField(
                                             "refund_amount",
@@ -549,9 +459,7 @@ export default function OperationalControls() {
                             <Field label="Refund Reference">
                                 <input
                                     type="text"
-                                    value={
-                                        form.refund_reference
-                                    }
+                                    value={form.refund_reference}
                                     onChange={(e) =>
                                         updateField(
                                             "refund_reference",
@@ -565,9 +473,7 @@ export default function OperationalControls() {
                             <Field label="Allowed Roles">
                                 <input
                                     type="text"
-                                    value={
-                                        form.allowed_roles
-                                    }
+                                    value={form.allowed_roles}
                                     onChange={(e) =>
                                         updateField(
                                             "allowed_roles",
@@ -608,9 +514,7 @@ export default function OperationalControls() {
 
                             <Field label="Override Rules JSON">
                                 <textarea
-                                    value={
-                                        form.override_rules
-                                    }
+                                    value={form.override_rules}
                                     onChange={(e) =>
                                         updateField(
                                             "override_rules",
@@ -634,6 +538,7 @@ export default function OperationalControls() {
                         </form>
                     </div>
 
+                    {/* Operational History */}
                     <div className="rounded-xl bg-white p-6 shadow-sm lg:col-span-2">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <h2 className="text-lg font-semibold">
@@ -642,18 +547,12 @@ export default function OperationalControls() {
 
                             <div className="flex gap-2">
                                 <select
-                                    value={
-                                        filters.control_type
-                                    }
+                                    value={filters.control_type}
                                     onChange={(e) =>
-                                        setFilters(
-                                            (current) => ({
-                                                ...current,
-                                                control_type:
-                                                    e.target
-                                                        .value,
-                                            })
-                                        )
+                                        setFilters((current) => ({
+                                            ...current,
+                                            control_type: e.target.value,
+                                        }))
                                     }
                                     className="rounded-lg border px-3 py-2 text-sm"
                                 >
@@ -661,33 +560,23 @@ export default function OperationalControls() {
                                         All Types
                                     </option>
 
-                                    {CONTROL_TYPES.map(
-                                        (type) => (
-                                            <option
-                                                key={
-                                                    type.value
-                                                }
-                                                value={
-                                                    type.value
-                                                }
-                                            >
-                                                {type.label}
-                                            </option>
-                                        )
-                                    )}
+                                    {CONTROL_TYPES.map((type) => (
+                                        <option
+                                            key={type.value}
+                                            value={type.value}
+                                        >
+                                            {type.label}
+                                        </option>
+                                    ))}
                                 </select>
 
                                 <select
                                     value={filters.status}
                                     onChange={(e) =>
-                                        setFilters(
-                                            (current) => ({
-                                                ...current,
-                                                status:
-                                                    e.target
-                                                        .value,
-                                            })
-                                        )
+                                        setFilters((current) => ({
+                                            ...current,
+                                            status: e.target.value,
+                                        }))
                                     }
                                     className="rounded-lg border px-3 py-2 text-sm"
                                 >
@@ -695,16 +584,14 @@ export default function OperationalControls() {
                                         All Statuses
                                     </option>
 
-                                    {STATUS_OPTIONS.map(
-                                        (status) => (
-                                            <option
-                                                key={status}
-                                                value={status}
-                                            >
-                                                {status}
-                                            </option>
-                                        )
-                                    )}
+                                    {STATUS_OPTIONS.map((status) => (
+                                        <option
+                                            key={status}
+                                            value={status}
+                                        >
+                                            {status}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
@@ -728,91 +615,86 @@ export default function OperationalControls() {
                                             "Period",
                                             "Status",
                                             "Reason",
-                                            { label: "Actions", align: "right" },
+                                            {
+                                                label: "Actions",
+                                                align: "right",
+                                            },
                                         ]}
                                     />
+
                                     <tbody>
-                                        {controls.map(
-                                            (control) => (
-                                                <tr
-                                                    key={
-                                                        control.id
-                                                    }
-                                                    className="border-b last:border-0"
-                                                >
-                                                    <td className="px-3 py-3 font-medium">
-                                                        {formatType(
-                                                            control.control_type
-                                                        )}
-                                                    </td>
+                                        {controls.map((control) => (
+                                            <tr
+                                                key={control.id}
+                                                className="border-b last:border-0"
+                                            >
+                                                <td className="px-3 py-3 font-medium">
+                                                    {formatType(
+                                                        control.control_type
+                                                    )}
+                                                </td>
 
-                                                    <td className="px-3 py-3">
-                                                        {control.court
-                                                            ?.name ||
-                                                            control.court_id ||
-                                                            "—"}
-                                                    </td>
+                                                <td className="px-3 py-3">
+                                                    {control.court?.name ||
+                                                        control.court_id ||
+                                                        "—"}
+                                                </td>
 
-                                                    <td className="px-3 py-3">
-                                                        {control.booking
-                                                            ?.booking_reference ||
-                                                            control.booking_id ||
-                                                            "—"}
-                                                    </td>
+                                                <td className="px-3 py-3">
+                                                    {control.booking
+                                                        ?.booking_reference ||
+                                                        control.booking_id ||
+                                                        "—"}
+                                                </td>
 
-                                                    <td className="px-3 py-3 whitespace-nowrap">
-                                                        {formatDate(
-                                                            control.starts_at
-                                                        )}
+                                                <td className="px-3 py-3 whitespace-nowrap">
+                                                    {formatDate(
+                                                        control.starts_at
+                                                    )}
 
-                                                        {control.ends_at && (
-                                                            <>
-                                                                <br />
-                                                                <span className="text-gray-500">
-                                                                    to{" "}
-                                                                    {formatDate(
-                                                                        control.ends_at
-                                                                    )}
-                                                                </span>
-                                                            </>
-                                                        )}
-                                                    </td>
+                                                    {control.ends_at && (
+                                                        <>
+                                                            <br />
+                                                            <span className="text-gray-500">
+                                                                to{" "}
+                                                                {formatDate(
+                                                                    control.ends_at
+                                                                )}
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </td>
 
-                                                    <td className="px-3 py-3">
-                                                        <StatusBadge
-                                                            status={
-                                                                control.status
+                                                <td className="px-3 py-3">
+                                                    <StatusBadge
+                                                        status={control.status}
+                                                    />
+                                                </td>
+
+                                                <td className="max-w-xs px-3 py-3">
+                                                    <div className="truncate">
+                                                        {control.reason}
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-3 py-3">
+                                                    {control.status ===
+                                                        "active" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                cancelControl(
+                                                                    control.id
+                                                                )
                                                             }
-                                                        />
-                                                    </td>
-
-                                                    <td className="max-w-xs px-3 py-3">
-                                                        <div className="truncate">
-                                                            {
-                                                                control.reason
-                                                            }
-                                                        </div>
-                                                    </td>
-
-                                                    <td className="px-3 py-3">
-                                                        {control.status ===
-                                                            "active" && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    cancelControl(
-                                                                        control.id
-                                                                    )
-                                                                }
-                                                                className="rounded bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            )
-                                        )}
+                                                            className="rounded bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -840,6 +722,7 @@ export default function OperationalControls() {
     );
 }
 
+// Reusable Field component
 function Field({ label, children }) {
     return (
         <div>
@@ -851,6 +734,7 @@ function Field({ label, children }) {
     );
 }
 
+// Summary card component
 function SummaryCard({ label, value }) {
     return (
         <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -865,6 +749,7 @@ function SummaryCard({ label, value }) {
     );
 }
 
+// Status badge component
 function StatusBadge({ status }) {
     const classes = {
         active: "bg-green-100 text-green-700",
@@ -885,6 +770,7 @@ function StatusBadge({ status }) {
     );
 }
 
+// Format date
 function formatDate(value) {
     if (!value) {
         return "—";

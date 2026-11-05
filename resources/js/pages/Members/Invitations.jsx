@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { RefreshCw, Mail, CheckCircle2, Clock3, XCircle, Timer } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
+import { formatDate, formatTime, formatCurrency } from "../../utils/formatters";
+import { getPlayerInvitations } from "../../services/playerInvitationService";
 
 export default function Invitations() {
     const [invitations, setInvitations] = useState([]);
@@ -13,26 +15,19 @@ export default function Invitations() {
         setError("");
 
         try {
-            /*
-             * GET /api/v1/player-invitations
-             */
-            const response = await fetch("/api/v1/player-invitations", {
-                headers: {
-                    Accept: "application/json",
-                },
-                credentials: "include",
-            });
+            const response = await getPlayerInvitations();
 
-            if (!response.ok) {
-                throw new Error("Failed to load invitations.");
-            }
-
-            const data = await response.json();
+            const data = response.data;
             const records = data.data ?? data.invitations ?? [];
+
             setInvitations(Array.isArray(records) ? records : []);
         } catch (err) {
             console.error(err);
-            setError(err.message || "Unable to load invitations.");
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to load invitations."
+            );
         } finally {
             setLoading(false);
         }
@@ -55,12 +50,6 @@ export default function Invitations() {
             default:
                 return "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200";
         }
-    };
-
-    const formatDate = (date) => {
-        if (!date) return "—";
-        const parsed = new Date(date);
-        return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleString();
     };
 
     const counts = {

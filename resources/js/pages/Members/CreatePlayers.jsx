@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { createPlayer } from "../../services/playerService";
 
 export default function CreatePlayers() {
     const navigate = useNavigate();
@@ -27,27 +28,11 @@ export default function CreatePlayers() {
         setSaving(true);
 
         try {
-            const response = await fetch("/api/v1/players", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(form),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.message || "Unable to create player.");
-                return;
-            }
-
-            navigate(`/players/${data.player.id}`);
+            const response = await createPlayer(form);
+            navigate(`/players/${response.data.player.id}`);
         } catch (error) {
             console.error(error);
-            alert("Something went wrong.");
+            alert(error.response?.data?.message || "Something went wrong.");
         } finally {
             setSaving(false);
         }

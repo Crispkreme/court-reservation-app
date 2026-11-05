@@ -1,21 +1,14 @@
 import api from "./api";
 
-export const createParticipant = async (payload) => {
-    const response = await api.post("/players", payload);
-    return response.data;
-};
+// Player
+export const getPlayers = (params = {}) =>api.get("/players", { params });
+export const getPlayer = (id) =>api.get(`/players/${id}`);
+export const createPlayer = (data) =>api.post("/players", data);
+export const updatePlayer = (id, data) =>api.put(`/players/${id}`, data);
+export const deletePlayer = (id) =>api.delete(`/players/${id}`);
 
-export const updateParticipant = async (id, payload) => {
-    const response = await api.put(`/players/${id}`, payload);
-    return response.data;
-};
-
-export const getParticipants = async (params = {}) => {
-    const response = await api.get("/bookings/participants", { params });
-    return response.data;
-};
-
-export const deleteParticipant = async (id) => {
-    const response = await api.delete(`/players/${id}`);
-    return response.data;
-};
+// Booking Participant
+export const getParticipants = (params = {}) =>api.get("/bookings/participants", { params });
+export const createParticipant = (data) =>api.post("/players", data);
+export const updateParticipant = (id, data) =>api.put(`/players/${id}`, data);
+export const deleteParticipant = (id) =>api.delete(`/players/${id}`);

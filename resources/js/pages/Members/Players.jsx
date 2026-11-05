@@ -4,6 +4,7 @@ import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
 import { Users, UserPlus, Search, RefreshCw, Eye, UserRound, UserCheck, UserX, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import ErrorAlert from "../../components/ErrorAlert";
+import { getPlayers } from "../../services/playerService";
 
 export default function Players() {
     const [players, setPlayers] = useState([]);
@@ -19,30 +20,29 @@ export default function Players() {
         setError("");
 
         try {
-            const params = new URLSearchParams();
+            const params = {
+                search: search.trim() || undefined,
+                type: type || undefined,
+            };
 
-            if (search.trim()) params.append("search", search.trim());
-            if (type) params.append("type", type);
+            const response = await getPlayers(params);
+            const data = response.data;
 
-            const query = params.toString();
-            const response = await fetch(
-                `/api/v1/players${query ? `?${query}` : ""}`,
-                {
-                    headers: { Accept: "application/json" },
-                    credentials: "include",
-                }
+            setPlayers(
+                Array.isArray(data.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : []
             );
-
-            const data = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(data.message || "Failed to load players.");
-            }
-
-            setPlayers(Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Failed to load players:", err);
-            setError(err.message || "Unable to load players. Please try again.");
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to load players. Please try again."
+            );
+
             setPlayers([]);
         } finally {
             setLoading(false);
@@ -50,12 +50,13 @@ export default function Players() {
     };
 
     useEffect(() => {
-        const timer = setTimeout(loadPlayers, 300);
-        return () => clearTimeout(timer);
-    }, [search, type]);
-
-    useEffect(() => {
         setPage(1);
+
+        const timer = setTimeout(() => {
+            loadPlayers();
+        }, 300);
+
+        return () => clearTimeout(timer);
     }, [search, type]);
 
     const totalPlayers = players.length;

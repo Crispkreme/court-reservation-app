@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
+import { formatDate, formatTime, formatCurrency } from "../../utils/formatters";
+import { getMembershipTypes, getMemberships, createMembershipType, updateMembershipType, deleteMembershipType, createMembership, renewMembership as renewMembershipRequest } from "../../services/membershipService";
+import { getMembers } from "../../services/memberService";
 
 const emptyType = {
     name: "",
@@ -35,49 +38,18 @@ const emptyMembership = {
 
 export default function Memberships() {
     const [tab, setTab] = useState("memberships");
-
     const [membershipTypes, setMembershipTypes] = useState([]);
     const [memberships, setMemberships] = useState([]);
     const [members, setMembers] = useState([]);
-
     const [loading, setLoading] = useState(true);
-
     const [typeModal, setTypeModal] = useState(false);
-    const [membershipModal, setMembershipModal] =
-        useState(false);
-
+    const [membershipModal, setMembershipModal] = useState(false);
     const [editingType, setEditingType] = useState(null);
-
     const [typeForm, setTypeForm] = useState(emptyType);
-    const [membershipForm, setMembershipForm] =
-        useState(emptyMembership);
-
+    const [membershipForm, setMembershipForm] = useState(emptyMembership);
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
-
     const [saving, setSaving] = useState(false);
-
-    const api = async (url, options = {}) => {
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                ...(options.headers || {}),
-            },
-            credentials: "include",
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.message || "Request failed."
-            );
-        }
-
-        return data;
-    };
 
     const loadData = async () => {
         setLoading(true);
@@ -85,39 +57,140 @@ export default function Memberships() {
         try {
             const [typesResponse, membershipsResponse, membersResponse] =
                 await Promise.all([
-                    api("/api/v1/membership-types"),
-                    api(
-                        `/api/v1/memberships?${new URLSearchParams({
-                            ...(search
-                                ? { search }
-                                : {}),
-                            ...(status
-                                ? { status }
-                                : {}),
-                        }).toString()}`
-                    ),
-                    api("/api/v1/members?per_page=100"),
+                    getMembershipTypes(),
+                    getMemberships({
+                        search: search || undefined,
+                        status: status || undefined,
+                    }),
+                    getMembers({ per_page: 100 }),
                 ]);
 
-            setMembershipTypes(
-                typesResponse.data ?? []
-            );
-
-            setMemberships(
-                membershipsResponse.data ?? []
-            );
-
-            setMembers(
-                membersResponse.data ?? []
-            );
+            setMembershipTypes(typesResponse.data.data ?? []);
+            setMemberships(membershipsResponse.data.data ?? []);
+            setMembers(membersResponse.data.data ?? []);
         } catch (error) {
             console.error(error);
-            alert(error.message);
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to load membership data."
+            );
         } finally {
             setLoading(false);
         }
     };
+    const saveType = async (event) => {
+        event.preventDefault();
 
+        setSaving(true);
+
+        try {
+            const payload = {
+                ...typeForm,
+                price: Number(typeForm.price || 0),
+                discount_value: Number(typeForm.discount_value || 0),
+                duration_days: Number(typeForm.duration_days),
+                benefits: typeForm.benefits.filter(
+                    (benefit) => benefit.trim() !== ""
+                ),
+            };
+
+            if (editingType) {
+                await updateMembershipType(editingType.id, payload);
+            } else {
+                await createMembershipType(payload);
+            }
+
+            setTypeModal(false);
+
+            await loadData();
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to save membership type."
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+    const deleteType = async (type) => {
+        if (!window.confirm(`Delete membership type "${type.name}"?`)) {
+            return;
+        }
+
+        try {
+            await deleteMembershipType(type.id);
+
+            await loadData();
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to delete membership type."
+            );
+        }
+    };
+    const saveMembership = async (event) => {
+        event.preventDefault();
+
+        setSaving(true);
+
+        try {
+            const payload = {
+                ...membershipForm,
+                member_id: Number(membershipForm.member_id),
+                membership_type_id: Number(membershipForm.membership_type_id),
+                discount_value: membershipForm.discount_value
+                    ? Number(membershipForm.discount_value)
+                    : null,
+            };
+
+            await createMembership(payload);
+
+            setMembershipModal(false);
+            setMembershipForm(emptyMembership);
+
+            await loadData();
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to save membership."
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+    const renewMembership = async (membership) => {
+        const startDate = window.prompt(
+            "Renewal start date (YYYY-MM-DD):",
+            new Date().toISOString().split("T")[0]
+        );
+
+        if (!startDate) {
+            return;
+        }
+
+        try {
+            await renewMembershipRequest(membership.id, {
+                start_date: startDate,
+                status: "active",
+            });
+
+            await loadData();
+        } catch (error) {
+            console.error(error);
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to renew membership."
+            );
+        }
+    };
     useEffect(() => {
         const timer = setTimeout(() => {
             loadData();
@@ -211,140 +284,6 @@ export default function Memberships() {
         setTypeModal(true);
     };
 
-    const saveType = async (event) => {
-        event.preventDefault();
-
-        setSaving(true);
-
-        try {
-            const payload = {
-                ...typeForm,
-                price: Number(typeForm.price || 0),
-                discount_value: Number(
-                    typeForm.discount_value || 0
-                ),
-                duration_days: Number(
-                    typeForm.duration_days
-                ),
-                benefits: typeForm.benefits.filter(
-                    (benefit) => benefit.trim() !== ""
-                ),
-            };
-
-            if (editingType) {
-                await api(
-                    `/api/v1/membership-types/${editingType.id}`,
-                    {
-                        method: "PUT",
-                        body: JSON.stringify(payload),
-                    }
-                );
-            } else {
-                await api(
-                    "/api/v1/membership-types",
-                    {
-                        method: "POST",
-                        body: JSON.stringify(payload),
-                    }
-                );
-            }
-
-            setTypeModal(false);
-            await loadData();
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const deleteType = async (type) => {
-        if (
-            !confirm(
-                `Delete membership type "${type.name}"?`
-            )
-        ) {
-            return;
-        }
-
-        try {
-            await api(
-                `/api/v1/membership-types/${type.id}`,
-                {
-                    method: "DELETE",
-                }
-            );
-
-            loadData();
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
-    const saveMembership = async (event) => {
-        event.preventDefault();
-
-        setSaving(true);
-
-        try {
-            await api("/api/v1/memberships", {
-                method: "POST",
-                body: JSON.stringify({
-                    ...membershipForm,
-                    member_id: Number(
-                        membershipForm.member_id
-                    ),
-                    membership_type_id: Number(
-                        membershipForm.membership_type_id
-                    ),
-                    discount_value:
-                        membershipForm.discount_value
-                            ? Number(
-                                  membershipForm.discount_value
-                              )
-                            : null,
-                }),
-            });
-
-            setMembershipModal(false);
-            setMembershipForm(emptyMembership);
-
-            await loadData();
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const renewMembership = async (membership) => {
-        const startDate = prompt(
-            "Renewal start date (YYYY-MM-DD):",
-            new Date().toISOString().split("T")[0]
-        );
-
-        if (!startDate) {
-            return;
-        }
-
-        try {
-            await api(
-                `/api/v1/memberships/${membership.id}/renew`,
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        start_date: startDate,
-                        status: "active",
-                    }),
-                }
-            );
-
-            await loadData();
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
     const statusClass = (membershipStatus) => {
         switch (membershipStatus) {
             case "active":
@@ -366,25 +305,6 @@ export default function Memberships() {
                 return "bg-slate-100 text-slate-700";
         }
     };
-
-    const formatDate = (date) => {
-        if (!date) {
-            return "—";
-        }
-
-        return new Date(date).toLocaleDateString();
-    };
-
-    const formatMoney = (amount) => {
-        return new Intl.NumberFormat(
-            undefined,
-            {
-                style: "currency",
-                currency: "PHP",
-            }
-        ).format(Number(amount || 0));
-    };
-
     const activeTypes = useMemo(
         () =>
             membershipTypes.filter(
@@ -599,7 +519,7 @@ export default function Memberships() {
                                                     </td>
 
                                                     <td className="px-6 py-4">
-                                                        {formatMoney(
+                                                        {formatCurrency(
                                                             membership.final_price
                                                         )}
                                                     </td>
@@ -700,7 +620,7 @@ export default function Memberships() {
                                         </p>
 
                                         <p className="font-semibold">
-                                            {formatMoney(
+                                            {formatCurrency(
                                                 type.price
                                             )}
                                         </p>
@@ -1271,7 +1191,7 @@ export default function Memberships() {
                                         value={type.id}
                                     >
                                         {type.name} —{" "}
-                                        {formatMoney(
+                                        {formatCurrency(
                                             type.price
                                         )}
                                     </option>

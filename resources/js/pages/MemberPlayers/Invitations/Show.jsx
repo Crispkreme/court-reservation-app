@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { getPlayerInvitations, respondToPlayerInvitation } from "../../../services/playerInvitationService";
 
 export default function InvitationsShow() {
     const { token } = useParams();
@@ -12,74 +13,43 @@ export default function InvitationsShow() {
     useEffect(() => {
         const loadInvitation = async () => {
             try {
-                /*
-                 * This requires a GET endpoint:
-                 * GET /api/v1/player-invitations/{token}
-                 */
-                const response = await fetch(
-                    `/api/v1/player-invitations/${token}`,
-                    {
-                        headers: {
-                            Accept: "application/json",
-                        },
-                    }
-                );
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.message ||
-                            "Invitation not found."
-                    );
-                }
-
-                setInvitation(data.invitation);
+                const response = await getPlayerInvitations(token);
+                setInvitation(response.data.invitation);
             } catch (error) {
-                setMessage(error.message);
+                setMessage(
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Invitation not found."
+                );
             } finally {
                 setLoading(false);
             }
         };
 
-        loadInvitation();
+        if (token) {
+            loadInvitation();
+        } else {
+            setMessage("Invalid invitation link.");
+            setLoading(false);
+        }
     }, [token]);
-
     const respond = async (status) => {
         setResponding(true);
         setMessage("");
 
         try {
-            const response = await fetch(
-                `/api/v1/player-invitations/${token}/respond`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify({
-                        status,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        "Unable to respond to invitation."
-                );
-            }
-
-            setMessage(data.message);
+            const response = await respondToPlayerInvitation(token, status);
+            setMessage(response.data.message);
             setInvitation((current) => ({
                 ...current,
                 status,
             }));
         } catch (error) {
-            setMessage(error.message);
+            setMessage(
+                error.response?.data?.message ||
+                error.message ||
+                "Unable to respond to invitation."
+            );
         } finally {
             setResponding(false);
         }

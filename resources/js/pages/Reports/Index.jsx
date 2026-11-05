@@ -3,8 +3,7 @@ import { Activity, CalendarDays, Download, FileBarChart, FileSpreadsheet, FileTe
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
-
-const API = "/api/v1";
+import { getReport, getReportExportUrl } from "../../services/reportService";
 
 const REPORTS = [
     {
@@ -60,29 +59,6 @@ const REPORTS = [
         label: "Booking Activity / History",
     },
 ];
-
-function token() {
-    return localStorage.getItem("auth_token");
-}
-
-async function request(url) {
-    const response = await fetch(`${API}${url}`, {
-        headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token()}`,
-        },
-    });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || "Unable to load report."
-        );
-    }
-
-    return data;
-}
 
 function money(value) {
     return Number(value || 0).toLocaleString(
@@ -174,43 +150,23 @@ export default function Reports() {
             setLoading(true);
             setError("");
 
-            const params =
-                new URLSearchParams();
+            const params = {
+                report,
+                date_from: dateFrom || undefined,
+                date_to: dateTo || undefined,
+                status: status || undefined,
+            };
 
-            params.append(
-                "report",
-                report
+            const response = await getReport(params);
+
+            setData(response.data.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Unable to load report."
             );
 
-            if (dateFrom) {
-                params.append(
-                    "date_from",
-                    dateFrom
-                );
-            }
-
-            if (dateTo) {
-                params.append(
-                    "date_to",
-                    dateTo
-                );
-            }
-
-            if (status) {
-                params.append(
-                    "status",
-                    status
-                );
-            }
-
-            const result =
-                await request(
-                    `/reports?${params.toString()}`
-                );
-
-            setData(result.data);
-        } catch (err) {
-            setError(err.message);
             setData(null);
         } finally {
             setLoading(false);
@@ -222,50 +178,18 @@ export default function Reports() {
     }, [report]);
 
     function buildExportUrl(type) {
-        const params =
-            new URLSearchParams();
-
-        params.append(
-            "report",
-            report
-        );
-
-        if (dateFrom) {
-            params.append(
-                "date_from",
-                dateFrom
-            );
-        }
-
-        if (dateTo) {
-            params.append(
-                "date_to",
-                dateTo
-            );
-        }
-
-        if (status) {
-            params.append(
-                "status",
-                status
-            );
-        }
-
-        return `${API}/reports/${type}?${params.toString()}`;
+        return getReportExportUrl(type, {
+            report,
+            date_from: dateFrom,
+            date_to: dateTo,
+            status,
+        });
     }
-
     function exportCsv() {
-        window.open(
-            buildExportUrl("csv"),
-            "_blank"
-        );
+        window.open(buildExportUrl("csv"), "_blank");
     }
-
     function exportPdf() {
-        window.open(
-            buildExportUrl("pdf"),
-            "_blank"
-        );
+        window.open(buildExportUrl("pdf"), "_blank");
     }
 
     const rows = data?.rows || [];

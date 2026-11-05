@@ -40,19 +40,30 @@ export default function BookingParticipants() {
     const [form, setForm] = useState(emptyForm);
     const [formErrors, setFormErrors] = useState({});
 
-    async function loadParticipants() {
-        setLoading(true);
-        setError("");
-
+    const loadParticipants = async () => {
         try {
-            const result = await getParticipants();
-            setParticipants(result.data ?? []);
-        } catch (err) {
-            setError(err.response?.data?.message || err.message || "Unable to load participants.");
+            setLoading(true);
+
+            const response = await getParticipants();
+
+            const result = response.data;
+
+            const participantList = Array.isArray(result)
+                ? result
+                : Array.isArray(result.data)
+                    ? result.data
+                    : Array.isArray(result.data?.data)
+                        ? result.data.data
+                        : [];
+
+            setParticipants(participantList);
+        } catch (error) {
+            console.error("Failed to load participants:", error);
+            setParticipants([]);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         loadParticipants();
@@ -61,24 +72,30 @@ export default function BookingParticipants() {
     const filteredParticipants = useMemo(() => {
         const term = search.trim().toLowerCase();
 
-        return participants.filter((participant) => {
-            const fullName = `${participant.first_name ?? ""} ${participant.last_name ?? ""}`.trim().toLowerCase();
-            const matchesSearch =
-                !term ||
-                fullName.includes(term) ||
-                String(participant.member_id ?? "").toLowerCase().includes(term) ||
-                String(participant.email ?? "").toLowerCase().includes(term) ||
-                String(participant.phone ?? "").toLowerCase().includes(term) ||
-                String(participant.location ?? "").toLowerCase().includes(term);
+        return (Array.isArray(participants) ? participants : []).filter(
+            (participant) => {
+                const fullName = `${participant.first_name ?? ""} ${participant.last_name ?? ""}`
+                    .trim()
+                    .toLowerCase();
 
-            const active = Boolean(participant.is_active);
-            const matchesStatus =
-                statusFilter === "all" ||
-                (statusFilter === "active" && active) ||
-                (statusFilter === "inactive" && !active);
+                const matchesSearch =
+                    !term ||
+                    fullName.includes(term) ||
+                    String(participant.member_id ?? "").toLowerCase().includes(term) ||
+                    String(participant.email ?? "").toLowerCase().includes(term) ||
+                    String(participant.phone ?? "").toLowerCase().includes(term) ||
+                    String(participant.location ?? "").toLowerCase().includes(term);
 
-            return matchesSearch && matchesStatus;
-        });
+                const active = Boolean(participant.is_active);
+
+                const matchesStatus =
+                    statusFilter === "all" ||
+                    (statusFilter === "active" && active) ||
+                    (statusFilter === "inactive" && !active);
+
+                return matchesSearch && matchesStatus;
+            }
+        );
     }, [participants, search, statusFilter]);
 
     const stats = useMemo(

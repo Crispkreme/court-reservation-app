@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import ErrorAlert from '../../components/ErrorAlert';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
@@ -75,11 +76,7 @@ export default function Login() {
                     </p>
                 </div>
 
-                {error && (
-                    <div className="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 <form onSubmit={handleSubmit} className="space-y-5">
 

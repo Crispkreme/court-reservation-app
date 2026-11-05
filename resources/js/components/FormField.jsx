@@ -1,3 +1,5 @@
+import SuccessAlert from "../components/SuccessAlert";
+import ErrorAlert from "../components/ErrorAlert";
 
 export default function FormField({
     label,
@@ -24,11 +26,9 @@ export default function FormField({
 
             {children}
 
-            {error && (
-                <p className="text-sm text-red-600">
-                    {error}
-                </p>
-            )}
+            <ErrorAlert message={error} />
+            <SuccessAlert message={success} />
+              
         </div>
     );
 }

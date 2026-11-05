@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../services/authService';
+import ErrorAlert from '../../components/ErrorAlert';
 
 export default function Register() {
     const navigate = useNavigate();
@@ -78,12 +79,7 @@ export default function Register() {
 
                 </div>
 
-                {/* Error */}
-                {error && (
-                    <div className="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 <form
                     onSubmit={handleSubmit}

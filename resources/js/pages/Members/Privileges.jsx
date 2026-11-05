@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
-import { ShieldCheck, CalendarClock, Crown, Clock, Users, CalendarDays, Save, X, Pencil, Trash2, AlertCircle, CheckCircle2, Settings2 } from "lucide-react";
+import { ShieldCheck, CalendarClock, Crown, Save, X, Pencil, Trash2, CheckCircle2, Settings2 } from "lucide-react";
 import TableHead from '../../components/TableHead';
+import ErrorAlert from '../../components/ErrorAlert';
 
 const emptyForm = {
     membership_type_id: "",
@@ -324,12 +325,7 @@ export default function Privileges() {
                         <SummaryCard label="Premium Court Access" value={premiumCount} icon={<Crown size={19} />} />
                     </div>
 
-                    {error && (
-                        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                            <span>{error}</span>
-                        </div>
-                    )}
+                    <ErrorAlert message={error} />
 
                     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                         <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">

@@ -14,6 +14,7 @@ import {
     AlertCircle,
     CheckCircle2,
 } from "lucide-react";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const initialForm = {
     first_name: "",
@@ -120,12 +121,7 @@ export default function CreateMembers() {
                         </div>
                     </div>
 
-                    {submitError && (
-                        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                            <span>{submitError}</span>
-                        </div>
-                    )}
+                    <ErrorAlert message={submitError} />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

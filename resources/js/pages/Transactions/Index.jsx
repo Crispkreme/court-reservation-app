@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import TableHead from '../../components/TableHead';
 import { Activity, AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, RefreshCw, Search, Wallet } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -226,12 +227,7 @@ export default function TransactionHistory() {
                 </button>
             </div>
 
-            {error && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                    <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                </div>
-            )}
+            <ErrorAlert message={error} />
 
             {/* Summary */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

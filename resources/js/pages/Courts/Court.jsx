@@ -80,14 +80,8 @@ export default function Court() {
             String(value ?? "").toLowerCase().includes(query)
         );
 
-        const matchesStatus =
-            statusFilter === "all" ||
-            court.status?.toLowerCase() === statusFilter.toLowerCase();
-
-        const matchesSport =
-            sportFilter === "all" ||
-            court.sport_category?.name === sportFilter;
-
+        const matchesStatus = statusFilter === "all" || court.status?.toLowerCase() === statusFilter.toLowerCase();
+        const matchesSport = sportFilter === "all" || court.sport_category?.name === sportFilter;
         return matchesSearch && matchesStatus && matchesSport;
     });
 
@@ -156,11 +150,7 @@ export default function Court() {
             await loadData();
         } catch (err) {
             console.error(err);
-
-            setError(
-                err.response?.data?.message ||
-                "Unable to save court."
-            );
+            setError(err.response?.data?.message || "Unable to save court.");
         } finally {
             setLoading(false);
         }
@@ -207,7 +197,6 @@ export default function Court() {
             await loadData();
         } catch (err) {
             console.error(err);
-
             setError(err.response?.data?.message ||"Unable to delete court.");
         }
     };
@@ -225,7 +214,7 @@ export default function Court() {
                 <ErrorAlert message={error} />
                 <SuccessAlert message={success} />
 
-                <CourtModal isOpen={isModalOpen} editingId={editingId} form={form} categories={categories} loading={loading} error={error} onChange={handleChange} onSubmit={handleSubmit} onClose={cancelEdit} />
+                <CourtModal isOpen={isModalOpen} editingId={editingId} form={form} categories={categories} loading={loading} error={error} onChange={handleChange} onSubmit={handleSubmit} onClose={cancelEdit} success={success}/>
 
                 <Header title="Court" description="Manage court details, sports categories, availability, and court status." icon={Trophy}/>
 
@@ -352,12 +341,8 @@ export default function Court() {
                                                     {formattedStatus}
                                                 </span>
                                             </td>
-                                            
-                                            {/* Actions */}
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center justify-end gap-2">
-
-                                                    {/* Edit Button */}
                                                     <button
                                                         type="button"
                                                         onClick={() => handleEdit(court)}
@@ -379,8 +364,6 @@ export default function Court() {
                                                             <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
                                                         </svg>
                                                     </button>
-
-                                                    {/* Delete Button */}
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDelete(court.id)}
@@ -405,10 +388,8 @@ export default function Court() {
                                                             <path d="M14 11v5" />
                                                         </svg>
                                                     </button>
-
                                                 </div>
                                             </td>
-
                                         </tr>
                                     );
                                 })}
@@ -419,7 +400,6 @@ export default function Court() {
                                             <p className="font-semibold text-slate-800">
                                                 {courts.length === 0 ? "No courts available" : "No matching courts found"}
                                             </p>
-
                                             <p className="mt-1 text-sm text-slate-500">
                                                 {courts.length === 0 ? "Courts will appear here once they are added." : "Try changing your search or filters."}
                                             </p>
@@ -451,7 +431,6 @@ export default function Court() {
                         totalItems={filteredCourts.length}
                         pageSize={perPage}
                     />
-
                 </div>
             </div>
         </Layout>

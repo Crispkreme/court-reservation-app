@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/TableHead';
 import { Users, UserPlus, Search, RefreshCw, Eye, UserRound, UserCheck, UserX, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import ErrorAlert from "../../components/ErrorAlert";
 
 export default function Players() {
     const [players, setPlayers] = useState([]);
@@ -137,12 +138,7 @@ export default function Players() {
                             </select>
                         </div>
 
-                        {error && (
-                            <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        <ErrorAlert message={error} />
 
                         <div className="overflow-hidden rounded-xl border border-slate-200">
                             {loading ? (

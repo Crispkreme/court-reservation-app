@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import { X, RefreshCw } from "lucide-react";
+import ErrorAlert from "../ErrorAlert";
 
 export default function SportCategoryModal({
     isOpen,
@@ -35,8 +36,7 @@ export default function SportCategoryModal({
 
     if (!isOpen) return null;
 
-    const inputClass =
-        "w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+    const inputClass = "w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
     return (
         <div
@@ -52,44 +52,20 @@ export default function SportCategoryModal({
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900">
-                            {editingCategory
-                                ? "Edit Sport Category"
-                                : "Add Sport Category"}
-                        </h2>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                            Enter the sport category details below.
-                        </p>
+                        <h2 className="text-lg font-bold text-slate-900">{editingCategory ? "Edit Sport Category" : "Add Sport Category"}</h2>
+                        <p className="mt-1 text-xs text-slate-500">Enter the sport category details below.</p>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={saving}
-                        className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
-                    >
+                    <button type="button" onClick={onClose} disabled={saving} className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50">
                         <X size={20} />
                     </button>
                 </div>
-
-                {/* Form */}
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-4 p-5">
 
-                        {/* Error */}
-                        {formError && (
-                            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                                {formError}
-                            </div>
-                        )}
+                        <ErrorAlert message={formError} />
 
-                        {/* Category Name */}
                         <label className="block">
-                            <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                Sport Category Name
-                            </span>
-
+                            <span className="mb-1.5 block text-xs font-medium text-slate-600">Sport Category Name</span>
                             <input
                                 type="text"
                                 value={form.name}
@@ -104,13 +80,8 @@ export default function SportCategoryModal({
                                 className={inputClass}
                             />
                         </label>
-
-                        {/* Description */}
                         <label className="block">
-                            <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                Description
-                            </span>
-
+                            <span className="mb-1.5 block text-xs font-medium text-slate-600">Description</span>
                             <textarea
                                 rows={3}
                                 value={form.description}
@@ -124,13 +95,8 @@ export default function SportCategoryModal({
                                 className={`${inputClass} resize-none`}
                             />
                         </label>
-
-                        {/* Status */}
                         <label className="block">
-                            <span className="mb-1.5 block text-xs font-medium text-slate-600">
-                                Status
-                            </span>
-
+                            <span className="mb-1.5 block text-xs font-medium text-slate-600">Status</span>
                             <select
                                 value={form.status}
                                 onChange={(e) =>
@@ -146,8 +112,6 @@ export default function SportCategoryModal({
                             </select>
                         </label>
                     </div>
-
-                    {/* Footer */}
                     <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:justify-end">
                         <button
                             type="button"
@@ -157,7 +121,6 @@ export default function SportCategoryModal({
                         >
                             Cancel
                         </button>
-
                         <button
                             type="submit"
                             disabled={saving}
@@ -169,7 +132,6 @@ export default function SportCategoryModal({
                                     className="animate-spin"
                                 />
                             )}
-
                             {saving
                                 ? "Saving..."
                                 : editingCategory

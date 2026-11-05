@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableHead from '../../components/TableHead';
+import ErrorAlert from "../../components/ErrorAlert";
 const API = "/api/v1";
 
 const FAILURE_TYPES = [
@@ -618,12 +619,7 @@ export default function FailureExceptionsIndex() {
                     </div>
                 </div>
 
-                {/* Error */}
-                {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 {/* Table */}
                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

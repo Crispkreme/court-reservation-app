@@ -8,6 +8,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import ScheduleDetailsModal from '../../components/modal/ScheduleDetailsModal';
 import { getCourts, getCourtCalendar, getCourtNameById } from '../../services/courtService';
+import ErrorAlert from '../../components/ErrorAlert';
 
 export default function Calendar() {
     const [courts, setCourts] = useState([]);
@@ -167,12 +168,7 @@ export default function Calendar() {
                         )}
                     </div>
 
-                    {error && (
-                        <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                            <span>{error}</span>
-                        </div>
-                    )}
+                    <ErrorAlert message={error} />
 
                     <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 rounded-xl bg-slate-50 px-3 py-3">
                         <Legend color="bg-green-500" label="Available" />

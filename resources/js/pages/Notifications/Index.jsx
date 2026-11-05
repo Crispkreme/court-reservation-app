@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Layout from "../../components/layout/Layout";
 import { Bell, CheckCheck, Plus, RefreshCw, Search, Trash2, X, Mail, Clock3, CheckCircle2, AlertCircle, Send, Eye } from "lucide-react";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -396,12 +397,7 @@ export default function Notifications() {
                     </div>
                 </div>
 
-                {error && (
-                    <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                        <span>{error}</span>
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 {/* Summary */}
                 <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7">

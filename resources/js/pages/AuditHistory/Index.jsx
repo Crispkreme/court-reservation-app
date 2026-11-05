@@ -2,51 +2,8 @@ import React, { useEffect, useState} from "react";
 import TableHead from '../../components/TableHead';
 import { AUDIT_MODULE_OPTIONS, AUDIT_ACTION_OPTIONS } from "../../enums/enum";
 import { getAuditLogs, getAuditLogSummary } from "../../services/auditLogService";
-import {
-    formatDate,
-    titleCase,
-    formatValues,
-} from "../../utils/formatters";
-const API = "/api/v1";
-function authHeaders() {
-    return {
-        Accept: "application/json",
-        Authorization:
-            `Bearer ${localStorage.getItem(
-                "auth_token"
-            )}`,
-    };
-}
-
-function titleCase(value) {
-    return String(value)
-        .replaceAll("_", " ")
-        .replace(
-            /\b\w/g,
-            (character) =>
-                character.toUpperCase()
-        );
-}
-
-function formatDate(value) {
-    if (!value) {
-        return "-";
-    }
-
-    return new Date(value).toLocaleString();
-}
-
-function formatValues(values) {
-    if (!values) {
-        return "-";
-    }
-
-    return JSON.stringify(
-        values,
-        null,
-        2
-    );
-}
+import { formatDate, titleCase, formatValues } from "../../utils/formatters";
+import ErrorAlert from "../../components/ErrorAlert";
 
 export default function AuditHistoryIndex() {
     const [logs, setLogs] = useState([]);
@@ -134,9 +91,6 @@ export default function AuditHistoryIndex() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="mx-auto max-w-7xl">
-
-                {/* Header */}
-
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">
                         Audit & History
@@ -149,49 +103,15 @@ export default function AuditHistoryIndex() {
                     </p>
                 </div>
 
-                {/* Summary */}
-
                 <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
-
-                    <SummaryCard
-                        label="Total"
-                        value={summary.total}
-                    />
-
-                    <SummaryCard
-                        label="Created"
-                        value={summary.created}
-                    />
-
-                    <SummaryCard
-                        label="Updated"
-                        value={summary.updated}
-                    />
-
-                    <SummaryCard
-                        label="Cancelled"
-                        value={summary.cancelled}
-                    />
-
-                    <SummaryCard
-                        label="Rescheduled"
-                        value={summary.rescheduled}
-                    />
-
-                    <SummaryCard
-                        label="Refunded"
-                        value={summary.refunded}
-                    />
-
-                    <SummaryCard
-                        label="Blocked"
-                        value={summary.blocked}
-                    />
-
-                    <SummaryCard
-                        label="Deleted"
-                        value={summary.deleted}
-                    />
+                    <SummaryCard label="Total" value={summary.total} />
+                    <SummaryCard label="Created" value={summary.created} />
+                    <SummaryCard label="Updated" value={summary.updated} />
+                    <SummaryCard label="Cancelled" value={summary.cancelled} />
+                    <SummaryCard label="Rescheduled" value={summary.rescheduled} />
+                    <SummaryCard label="Refunded" value={summary.refunded} />
+                    <SummaryCard label="Blocked" value={summary.blocked} />
+                    <SummaryCard label="Deleted" value={summary.deleted} />
                 </div>
                 <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -225,76 +145,32 @@ export default function AuditHistoryIndex() {
                                 ))}
                             </select>
                         </div>
-
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                Date From
-                            </label>
-
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Date From</label>
                             <input
                                 type="date"
                                 value={dateFrom}
-                                onChange={(event) =>
-                                    setDateFrom(
-                                        event.target.value
-                                    )
-                                }
+                                onChange={(event) => setDateFrom(event.target.value)}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
                         </div>
-
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                Date To
-                            </label>
-
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Date To</label>
                             <input
                                 type="date"
                                 value={dateTo}
-                                onChange={(event) =>
-                                    setDateTo(
-                                        event.target.value
-                                    )
-                                }
+                                onChange={(event) => setDateTo(event.target.value)}
                                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
                         </div>
-
                     </div>
-
                     <div className="mt-4 flex gap-3">
-
-                        <button
-                            onClick={
-                                applyFilters
-                            }
-                            className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800"
-                        >
-                            Apply Filters
-                        </button>
-
-                        <button
-                            onClick={
-                                clearFilters
-                            }
-                            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Clear
-                        </button>
-
+                        <button onClick={applyFilters} className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800">Apply Filters</button>
+                        <button onClick={clearFilters}className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Clear</button>
                     </div>
-
                 </div>
-
-                {/* Error */}
-
-                {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
-
-                {/* Table */}
+                
+                <ErrorAlert message={error} />
 
                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
 

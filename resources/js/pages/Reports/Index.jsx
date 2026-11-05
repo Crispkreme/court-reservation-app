@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Activity, CalendarDays, Download, FileBarChart, FileSpreadsheet, FileText, RefreshCw, Search, AlertCircle } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/TableHead';
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -406,16 +407,7 @@ export default function Reports() {
                     </div>
                 </div>
 
-                {/* Error */}
-
-                {error && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                    </div>
-                )}
-
-                {/* Report title */}
+                <ErrorAlert message={error} />
 
                 <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-slate-900">

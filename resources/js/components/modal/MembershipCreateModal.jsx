@@ -1,8 +1,9 @@
 import FormField from "../FormField";
+import SuccessAlert from "../SuccessAlert";
+import ErrorAlert from "../ErrorAlert";
 import { X, Users, CreditCard, CalendarDays, Info, AlertCircle, Plus } from "lucide-react";
 
-const inputClass =
-  "w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50";
+const inputClass = "w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50";
 
 export default function MembershipCreateModal({
   isOpen,
@@ -12,6 +13,7 @@ export default function MembershipCreateModal({
   loadingMembers = false,
   loading,
   error,
+  success,
   onChange,
   onSubmit,
   onClose,
@@ -19,21 +21,14 @@ export default function MembershipCreateModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:p-6"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-3 backdrop-blur-sm sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !loading) {
           onClose();
         }
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="membership-create-title"
-        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
-      >
-        {/* Header */}
+      <div role="dialog" aria-modal="true" aria-labelledby="membership-create-title" className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
           <div>
             <div className="mb-1 flex items-center gap-2 text-blue-700">
@@ -66,15 +61,9 @@ export default function MembershipCreateModal({
 
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="overflow-y-auto bg-slate-50/60 p-5 sm:p-6">
-            {error && (
-              <div
-                role="alert"
-                className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-              >
-                <AlertCircle size={17} className="mt-0.5 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
+
+            <ErrorAlert message={error} />
+            <SuccessAlert message={success} />
 
             <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
               <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-3">

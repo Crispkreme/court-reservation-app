@@ -1,4 +1,5 @@
 import { X, Users, CalendarClock, CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
+import ErrorAlert from "../ErrorAlert";
 
 export default function MembershipRenewModal({
   isOpen,
@@ -58,73 +59,39 @@ export default function MembershipRenewModal({
 
         {/* Membership Details */}
         <div className="overflow-y-auto bg-slate-50/60 p-5 sm:p-6">
-          {error && (
-            <div
-              role="alert"
-              className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-            >
-              <AlertCircle size={17} className="mt-0.5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          
+          <ErrorAlert message={error} />
 
           <div className="space-y-4">
             <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
-              <h3 className="mb-4 text-sm font-semibold text-slate-800">
-                Current membership
-              </h3>
-
+              <h3 className="mb-4 text-sm font-semibold text-slate-800">Current membership</h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Member
-                  </p>
-                  <p className="mt-1 text-base font-bold text-slate-900">
-                    {selectedMembership.user?.name || "Unknown member"}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Member</p>
+                  <p className="mt-1 text-base font-bold text-slate-900">{selectedMembership.user?.name || "Unknown member"}</p>
                 </div>
-
                 <div className="border-t border-slate-100 pt-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Membership Type
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-800">
-                    {selectedMembership.membership_type?.name || "—"}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Membership Type</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-800">{selectedMembership.membership_type?.name || "—"}</p>
                 </div>
-
                 <div className="border-t border-slate-100 pt-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Current Expiration
-                  </p>
-                  <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
-                    <CalendarClock size={16} className="text-slate-400" />
-                    {selectedMembership.expiration_date || "—"}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current Expiration</p>
+                  <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-800"><CalendarClock size={16} className="text-slate-400" />{selectedMembership.expiration_date || "—"}</p>
                 </div>
               </div>
             </div>
 
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
-                  <RotateCcw size={18} />
-                </div>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700"><RotateCcw size={18} /></div>
                 <div>
-                  <p className="text-sm font-semibold text-blue-900">
-                    Confirm Membership Renewal
-                  </p>
-                  <p className="mt-1 text-sm leading-5 text-blue-800">
-                    A new membership period will be created using the current
-                    membership type and duration.
-                  </p>
+                  <p className="text-sm font-semibold text-blue-900">Confirm Membership Renewal</p>
+                  <p className="mt-1 text-sm leading-5 text-blue-800">A new membership period will be created using the current membership type and duration.</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Footer */}
         <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
           <button
             type="button"
@@ -134,7 +101,6 @@ export default function MembershipRenewModal({
           >
             Cancel
           </button>
-
           <button
             type="button"
             onClick={onRenew}

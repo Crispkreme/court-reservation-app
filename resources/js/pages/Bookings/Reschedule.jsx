@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const initialForm = {
   user_id: "",
@@ -546,14 +547,7 @@ export default function CreateBooking() {
             </Field>
           </Section>
 
-          {submitError && (
-            <div
-              role="alert"
-              className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
-            >
-              {submitError}
-            </div>
-          )}
+          <ErrorAlert message={submitError}  />
 
           <div className="flex flex-col-reverse gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <p className="text-xs text-slate-500">

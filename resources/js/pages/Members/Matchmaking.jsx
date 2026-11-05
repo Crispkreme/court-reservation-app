@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Users, CalendarDays, Clock3, MapPin, Search, UserPlus, X, CheckCircle2, AlertCircle } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import ErrorAlert from "../../components/ErrorAlert";
 
 const initialForm = {
     booking_id: "",
@@ -322,11 +323,7 @@ export default function Matchmaking() {
                 </div>
             )}
 
-            {error && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error}
-                </div>
-            )}
+            <ErrorAlert message={error} />
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 <form

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Activity, CheckCircle2, CreditCard, DollarSign, RefreshCw, Wallet, AlertCircle, Check, X, RotateCcw, ExternalLink } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import TableHead from '../../components/TableHead';
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -516,15 +517,7 @@ export default function Payments() {
                         </div>
                     )}
 
-                    {error && (
-                        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                            <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                            <p className="flex-1">{error}</p>
-                            <button type="button" onClick={() => setError("")} className="rounded p-1 hover:bg-red-100" aria-label="Dismiss error">
-                                <X size={16} />
-                            </button>
-                        </div>
-                    )}
+                    <ErrorAlert message={error} />
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

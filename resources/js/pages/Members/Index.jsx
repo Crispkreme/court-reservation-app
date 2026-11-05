@@ -22,30 +22,24 @@ export default function Index() {
     const [members, setMembers] = useState([]);
     const [types, setTypes] = useState([]);
     const [statistics, setStatistics] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
-
     const [showCreate, setShowCreate] = useState(false);
     const [showRenew, setShowRenew] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedMembership, setSelectedMembership] = useState(null);
-
     const [createLoading, setCreateLoading] = useState(false);
     const [renewLoading, setRenewLoading] = useState(false);
-
     const [createError, setCreateError] = useState("");
+    const [success, setSuccess] = useState("");
     const [renewError, setRenewError] = useState("");
-
     const [loadingMembers, setLoadingMembers] = useState(false);
 
     const [form, setForm] = useState({
         member_id: "",
         membership_type_id: "",
-        start_date: new Date()
-            .toISOString()
-            .split("T")[0],
+        start_date: new Date().toISOString().split("T")[0],
         status: "active",
         price_paid: "",
         notes: "",
@@ -137,18 +131,13 @@ export default function Index() {
             await loadData();
         } catch (error) {
             console.error('Create membership error:', error);
-
-            setCreateError(
-                error.response?.data?.message ??
-                'Failed to create membership. Please try again.'
-            );
+            setCreateError(error.response?.data?.message ??'Failed to create membership. Please try again.');
         } finally {
             setCreateLoading(false);
         }
     };
     const handleCreateCloseModal = () => {
         setIsCreateModalOpen(false);
-
         setForm({
             user_id: '',
             membership_type_id: '',
@@ -199,15 +188,8 @@ export default function Index() {
             setRenewLoading(false);
         }
     };
-    const changeStatus = async (
-        membership,
-        action
-    ) => {
-        if (
-            !window.confirm(
-                `Are you sure you want to ${action} this membership?`
-            )
-        ) {
+    const changeStatus = async (membership,action) => {
+        if (!window.confirm(`Are you sure you want to ${action} this membership?`)) {
             return;
         }
 
@@ -255,6 +237,7 @@ export default function Index() {
                 form={form}
                 types={membershipTypes}
                 members={members}
+                success={success}
                 loadingMembers={loadingMembers}
                 loading={loading}
                 error={createError}
@@ -277,54 +260,13 @@ export default function Index() {
 
             {statistics && (
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard
-                        label="Total Memberships"
-                        value={statistics.total}
-                        type="total"
-                        description="All registered memberships"
-                    />
-
-                    <StatCard
-                        label="Active"
-                        value={statistics.active}
-                        type="active"
-                        description="Currently active memberships"
-                    />
-
-                    <StatCard
-                        label="Pending"
-                        value={statistics.pending}
-                        type="pending"
-                        description="Awaiting activation"
-                    />
-
-                    <StatCard
-                        label="Expired"
-                        value={statistics.expired}
-                        type="expired"
-                        description="Memberships past expiration"
-                    />
-
-                    <StatCard
-                        label="Suspended"
-                        value={statistics.suspended}
-                        type="suspended"
-                        description="Temporarily suspended"
-                    />
-
-                    <StatCard
-                        label="Cancelled"
-                        value={statistics.cancelled}
-                        type="cancelled"
-                        description="Cancelled memberships"
-                    />
-
-                    <StatCard
-                        label="Expiring Soon"
-                        value={statistics.expiring_7_days}
-                        type="expiring"
-                        description="Expiring within 7 days"
-                    />
+                    <StatCard label="Total Memberships" value={statistics.total} type="total" description="All registered memberships" />
+                    <StatCard label="Active" value={statistics.active} type="active" description="Currently active memberships" />
+                    <StatCard label="Pending" value={statistics.pending} type="pending" description="Awaiting activation" />
+                    <StatCard label="Expired" value={statistics.expired} type="expired" description="Memberships past expiration" />
+                    <StatCard label="Suspended" value={statistics.suspended} type="suspended" description="Temporarily suspended" />
+                    <StatCard label="Cancelled" value={statistics.cancelled} type="cancelled" description="Cancelled memberships" />
+                    <StatCard label="Expiring Soon" value={statistics.expiring_7_days} type="expiring" description="Expiring within 7 days" />
                 </div>
             )}
 

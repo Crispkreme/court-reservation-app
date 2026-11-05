@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import TableHead from '../../components/TableHead';
+import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";
 
@@ -305,11 +306,7 @@ export default function OperationalControls() {
                     </p>
                 </div>
 
-                {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 {summary && (
                     <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">

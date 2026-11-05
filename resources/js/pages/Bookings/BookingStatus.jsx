@@ -9,6 +9,7 @@ import {
     getBookingStatusHistory,
     updateBookingStatus,
 } from "../../services/bookingStatusService";
+import ErrorAlert from "../../components/ErrorAlert";
 
 export default function BookingStatus() {
     const [bookings, setBookings] = useState([]);
@@ -161,11 +162,7 @@ export default function BookingStatus() {
                     </button>
                 </div>
 
-                {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
-                    </div>
-                )}
+                <ErrorAlert message={error} />
 
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

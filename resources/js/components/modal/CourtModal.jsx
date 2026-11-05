@@ -1,8 +1,8 @@
-import { X, Building2, MapPin, Users, Clock3, CircleDollarSign, CalendarClock, Activity, Save, Plus, Info, AlertCircle } from "lucide-react";
-
+import { X, Building2, Save, Plus, Info, AlertCircle } from "lucide-react";
+import SuccessAlert from "../SuccessAlert";
+import ErrorAlert from "../ErrorAlert";
 
 const inputClass = "w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50";
-
 const labelClass = "mb-1.5 block text-sm font-semibold text-slate-700";
 
 function FormField({ label, children }) {
@@ -21,6 +21,7 @@ export default function CourtModal({
     categories,
     loading,
     error,
+    success,
     onChange,
     onSubmit,
     onClose,
@@ -45,17 +46,13 @@ export default function CourtModal({
                 aria-labelledby="court-modal-title"
                 className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
             >
-                {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
                     <div>
                         <div className="mb-1 flex items-center gap-2 text-blue-700">
                             <Building2 size={17} />
                             <span className="text-xs font-semibold uppercase tracking-wider">Court management</span>
                         </div>
-                        <h2
-                            id="court-modal-title"
-                            className="text-lg font-bold tracking-tight text-slate-900"
-                        >
+                        <h2 id="court-modal-title" className="text-lg font-bold tracking-tight text-slate-900">
                             {editingId ? "Edit Court" : "Add New Court"}
                         </h2>
                         <p className="mt-1 text-sm text-slate-500">
@@ -74,23 +71,18 @@ export default function CourtModal({
                     </button>
                 </div>
 
-                {/* Form */}
-                <form
-                    onSubmit={onSubmit}
-                    className="flex min-h-0 flex-1 flex-col"
-                >
+                <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
                     <div className="overflow-y-auto bg-slate-50/60 p-5 sm:p-6">
-                        {error && (
-                            <div
-                                role="alert"
-                                className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-                            >
-                                <AlertCircle size={17} className="mt-0.5 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
+                        
+                        <ErrorAlert message={error} />
+                        <SuccessAlert message={success} />
 
-                        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3"><Info size={17} className="text-blue-600" /><h3 className="text-sm font-semibold text-slate-800">Court details</h3></div><div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+                            <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <Info size={17} className="text-blue-600" />
+                                <h3 className="text-sm font-semibold text-slate-800">Court details</h3>
+                            </div>
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             <FormField label="Sport Category">
                                 <select
                                     name="sport_category_id"
@@ -307,8 +299,6 @@ export default function CourtModal({
                         </div>
                     </div>
                     </div>
-
-                    {/* Footer */}
                     <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
                         <button
                             type="button"

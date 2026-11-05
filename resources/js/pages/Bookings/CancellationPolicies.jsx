@@ -5,8 +5,8 @@ import CancellationPolicyModal from "../../components/modal/CancellationPolicyMo
 import LoadingState from "../../components/LoadingState";
 import EmptyState from "../../components/EmptyState";
 import StatCard from "../../components/StatCard";
-import TableHead from '../../components/TableHead';
-import TableHeader from "../../components/TableHeader";
+import TableHead from '../../components/table/TableHead';
+import TableHeader from "../../components/table/TableHeader";
 import { getCancellationPolicies, createCancellationPolicy, updateCancellationPolicy, deleteCancellationPolicy } from "../../services/cancellationPolicyService";
 import { updateFormField, toggleFormArrayItem, resetFormState, getFieldError } from "../../utils/formatters";
 

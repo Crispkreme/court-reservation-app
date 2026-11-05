@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import { Activity, AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, RefreshCw, Search, Wallet } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import ErrorAlert from "../../components/ErrorAlert";

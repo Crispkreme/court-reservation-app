@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import { formatCurrency, formatDate, formatTime } from "@/utils/formatters";
 import { InfoPanel, SectionHeader, EmptyState, StatusBadge, SummaryCard, StatusCard, StatBox } from "@/components";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import { Activity, CalendarDays, Filter, History, RefreshCw, ShieldCheck } from "lucide-react";
 import { BOOKING_STATUS, BOOKING_STATUS_OPTIONS, getBookingStatusClass } from "../../enums/enum";
 import StatusBadge from "../../components/StatusBadge";

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Activity, CheckCircle2, CreditCard, DollarSign, RefreshCw, Wallet, AlertCircle, Check, X, RotateCcw, ExternalLink } from "lucide-react";
 import Layout from "../../components/layout/Layout";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";

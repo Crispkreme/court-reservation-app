@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, Mail, CheckCircle2, Clock3, XCircle, Timer } from "lucide-react";
 import Layout from "../../components/layout/Layout";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 export default function Invitations() {
     const [invitations, setInvitations] = useState([]);

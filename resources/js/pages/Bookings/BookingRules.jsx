@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { ShieldCheck, Plus, Pencil, Trash2, CheckCircle2, XCircle } from "lucide-react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import Layout from "../../components/layout/Layout";
 import BookingRuleModal from "../../components/modal/BookingRuleModal";
 import LoadingState from "../../components/LoadingState";

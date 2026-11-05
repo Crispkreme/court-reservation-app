@@ -7,7 +7,7 @@ import { getDayName } from '../../utils/formatters';
 import ErrorAlert from "../../components/ErrorAlert";
 import SuccessAlert from "../../components/SuccessAlert";
 import BadgeCard from '../../components/BadgeCard';
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 const DAYS = DAYS_OF_WEEK_OPTIONS;
 const STATUSES = COURT_STATUS_OPTIONS;

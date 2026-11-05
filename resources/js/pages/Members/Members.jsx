@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
 import { Users, UserPlus, Search, RefreshCw, Eye, CalendarDays, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
 
 export default function Members() {

@@ -8,7 +8,7 @@ import { InfoPanel, SectionHeader, FilterField, EmptyState, StatusBadge, Summary
 import { getAdminDashboard } from "../../services/adminService";
 import BadgeCard from '../../components/BadgeCard';
 import { ClipboardCheck, ClipboardClock, ClipboardList, ClipboardMinus, ClipboardX } from "lucide-react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 export default function Dashboard() {
 

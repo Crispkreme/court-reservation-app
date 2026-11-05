@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
 import { ShieldCheck, CalendarClock, Crown, Save, X, Pencil, Trash2, CheckCircle2, Settings2 } from "lucide-react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import ErrorAlert from '../../components/ErrorAlert';
 
 const emptyForm = {

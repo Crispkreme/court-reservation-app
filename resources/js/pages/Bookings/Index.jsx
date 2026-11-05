@@ -6,7 +6,7 @@ import StatusBadge from "../../components/StatusBadge";
 import { getBookings } from "../../services/bookingService";
 import { formatCurrency, formatDate, formatTime } from "../../utils/formatters";
 import SummaryCard from "../../components/SummaryCard";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 function FilterSelect({ label, value, onChange, children }) {
   return (

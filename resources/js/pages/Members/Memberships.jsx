@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../components/layout/Layout";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 const emptyType = {
     name: "",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import TableHead from '../../../components/TableHead';
+import TableHead from '../../../components/table/TableHead';
 
 export default function MembersIndex() {
     const [members, setMembers] = useState([]);

@@ -9,7 +9,7 @@ import SuccessAlert from "../../components/SuccessAlert";
 import { formatDate } from '../../utils/formatters';
 import { COURT_OVERRIDE_STATUS_OPTIONS, getGeneralStatusClass } from "../../enums/enum";
 import CourtScheduleOverrideModal from '../../components/modal/CourtScheduleOverrideModal';
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 const emptyForm = {
     court_id: '',

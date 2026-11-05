@@ -4,10 +4,10 @@ import { Tags, Plus, Search, SlidersHorizontal, Pencil, Trash2, ChevronLeft, Che
 import Layout from "../../components/layout/Layout";
 import SummaryCard from "../../components/SummaryCard";
 import LoadingState from "../../components/LoadingState";
-import TableHeader from "../../components/TableHeader";
-import TablePagination from "../../components/TablePagination";
+import TableHeader from "../../components/table/TableHeader";
+import TablePagination from "../../components/table/TablePagination";
 import EmptyState from "../../components/EmptyState";
-import TableHead from "../../components/TableHead";
+import TableHead from "../../components/table/TableHead";
 import SportCategoryModal from "../../components/modal/SportCategoryModal";
 import FilterPanel from "../../components/FilterPanel";
 

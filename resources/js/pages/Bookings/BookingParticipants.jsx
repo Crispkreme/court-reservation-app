@@ -11,7 +11,7 @@ import SuccessAlert from "../../components/SuccessAlert";
 import { readErrorMessage } from "../../utils/formatters";
 import { PLAYER_TYPES, SKILL_LEVELS } from "../../enums/enum";
 import { getParticipants, createParticipant, updateParticipant } from "../../services/playerService";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 const API = "/api/v1";
 const emptyForm = {

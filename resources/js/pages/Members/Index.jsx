@@ -6,7 +6,7 @@ import MembershipRenewModal from "../../components/modal/MembershipRenewModal";
 import { createMembership, getMemberships, getMembershipTypes, getMembershipStatistics } from '../../services/membershipService';
 import { getMemberUsers } from '../../services/userService';
 import PageHeader from '../../components/PageHeader';
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 
 const statusClasses = {
     active: "bg-green-100 text-green-700",

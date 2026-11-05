@@ -1,5 +1,5 @@
 import React, { useEffect, useState} from "react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import { AUDIT_MODULE_OPTIONS, AUDIT_ACTION_OPTIONS } from "../../enums/enum";
 import { getAuditLogs, getAuditLogSummary } from "../../services/auditLogService";
 import { formatDate, titleCase, formatValues } from "../../utils/formatters";

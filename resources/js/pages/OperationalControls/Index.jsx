@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import TableHead from '../../components/TableHead';
+import TableHead from '../../components/table/TableHead';
 import ErrorAlert from "../../components/ErrorAlert";
 
 const API = "/api/v1";

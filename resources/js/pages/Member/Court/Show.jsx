@@ -5,7 +5,7 @@ import { ArrowLeft, MapPin, Users, Clock3, Trophy, House, Sun, CalendarDays, Cal
 
 import { getCourt } from "@services/courtService";
 import { getCourtMaintenancePeriods } from "@services/courtMaintenanceService";
-import { formatPrice, getBookingDurations, calculatePrice, formatDuration, getOperatingStatus, formatOperatingTime, getCurrentUaeTime, formatDateTime } from "@utils/index";
+import { formatPrice, getBookingDurations, calculatePrice, formatDuration, getOperatingStatus, formatOperatingTime, getCurrentUaeTime, formatDateTime } from "@utils";
 import { statusConfig } from "@data/init/court"
 
 export default function MemberCourtShow() {

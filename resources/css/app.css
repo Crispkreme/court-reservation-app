@@ -9,3 +9,13 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+html {
+    scroll-behavior: auto;
+}
+
+/* Hide Microsoft Edge's default password visibility icon */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}

@@ -7,10 +7,10 @@
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 
-    <title>Court Reservation System</title>
+    <title>Online Court Reservation</title>
 </head>
 
-<body>
+<body styles="scroll-behavior: auto;">
     <div id="app"></div>
 </body>
 </html>

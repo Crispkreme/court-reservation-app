@@ -2,104 +2,116 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Requests\Court\StoreCourtRequest;
+use App\Http\Requests\Court\UpdateCourtRequest;
+use App\Interfaces\CourtRepositoryInterface;
 use App\Models\Court;
-use Illuminate\Validation\Rule;
-
-use App\Http\Requests\IndexCourtRequest;
-use App\Http\Requests\UpdateCourtRequest;
-use App\Http\Requests\StoreCourtRequest;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class CourtController extends Controller
 {
-    public function index(IndexCourtRequest $request)
+    public function __construct(
+        private CourtRepositoryInterface $courts
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $validated = $request->validated();
-        $query = Court::with('sportCategory');
-        $query->when(
-            !empty($validated['sport_category_id']),
-            fn ($query) => $query->where(
-                'sport_category_id',
-                $validated['sport_category_id']
-            )
-        );
+        $user = $request->user();
 
-        $query->when(
-            !empty($validated['status']),
-            fn ($query) => $query->where(
-                'status',
-                $validated['status']
-            )
-        );
+        if ($user->role === 'admin') {
+            $courts = $this->courts->all();
+        } else {
+            $courts = Court::query()
+                ->with('sportCategory')
+                ->whereHas('sportCategory', function ($query) {
+                    $query->where('status', 'active');
+                })
+                ->orderBy('name')
+                ->get();
+        }
 
-        $query->when(
-            !empty($validated['branch']),
-            fn ($query) => $query->where(
-                'branch',
-                $validated['branch']
-            )
-        );
+        $now = Carbon::now(Court::TIME_ZONE);
 
-        $query->when(
-            !empty($validated['search']),
-            function ($query) use ($validated) {
-                $search = $validated['search'];
-                $query->where(function ($q) use ($search) {
-                    $q->where('name','like',"%{$search}%")
-                      ->orWhere('court_number','like',"%{$search}%")
-                      ->orWhere('branch','like',"%{$search}%")
-                      ->orWhere('location','like',"%{$search}%");
-                });
-            }
-        );
-
-        return response()->json(
-            $query->latest()
-                  ->paginate($validated['per_page'] ?? 15)
-        );
-    }
-
-    public function store(StoreCourtRequest $request)
-    {
-        $validated = $request->validated();
-
-        $court = Court::create($validated);
+        $courts->each(function (Court $court) use ($now) {
+            $this->appendCourtDetails($court, $now);
+        });
 
         return response()->json([
-            'message' => 'Court created successfully.',
-            'data' => $court->load('sportCategory'),
-        ], 201);
-    }
-
-    public function show(Court $court)
-    {
-        return response()->json(
-            $court->load([
-                'sportCategory',
-                'pricings',
-                'maintenancePeriods',
-            ])
-        );
-    }
-
-    public function update(UpdateCourtRequest $request, Court $court)
-    {
-        $validated = $request->validated();
-
-        $court->update($validated);
-
-        return response()->json([
-            'message' => 'Court updated successfully.',
-            'data' => $court->fresh()->load('sportCategory'),
+            'data' => $courts,
         ]);
     }
 
-    public function destroy(Court $court)
-    {
-        $court->delete();
+    public function show(Request $request, Court $court): JsonResponse {
+        if ($request->user()->role !== 'admin') {
+            abort_unless(
+                $court->sportCategory()
+                    ->where('status', 'active')
+                    ->exists(),
+                404
+            );
+        }
+
+        $court->load('sportCategory');
+        $this->appendCourtDetails($court, Carbon::now(Court::TIME_ZONE));
+
+        return response()->json([
+            'data' => $court,
+        ]);
+    }
+
+    public function store(StoreCourtRequest $request): JsonResponse {
+        abort_unless($request->user()->role === 'admin', 403);
+
+        $court = $this->courts->create($request->validated());
+        $court->load('sportCategory');
+
+        $this->appendCourtDetails($court, Carbon::now(Court::TIME_ZONE));
+
+        return response()->json([
+            'message' => 'Court created successfully.',
+            'data' => $court,
+        ], 201);
+    }
+
+    public function update(UpdateCourtRequest $request,Court $court): JsonResponse {
+        abort_unless($request->user()->role === 'admin',403);
+
+        $court = $this->courts->update($court,$request->validated());
+        $court->load('sportCategory');
+
+        $this->appendCourtDetails($court,Carbon::now(Court::TIME_ZONE));
+
+        return response()->json([
+            'message' => 'Court updated successfully.',
+            'data' => $court,
+        ]);
+    }
+
+    public function destroy(Request $request, Court $court): JsonResponse {
+        abort_unless($request->user()->role === 'admin',403);
+
+        if (method_exists($court, 'bookings') && $court->bookings()->exists()) {
+            return response()->json([
+                'message' => 'This court has bookings. Change its status to Closed instead.',
+            ], 409);
+        }
+
+        $this->courts->delete($court);
 
         return response()->json([
             'message' => 'Court deleted successfully.',
         ]);
+    }
+
+    private function appendCourtDetails(Court $court, Carbon $now): void {
+        $operatingStatus = $court->getOperatingStatus($now);
+
+        $court->setAttribute('operating_status',$operatingStatus);
+        $court->setAttribute('is_open_now',$court->isOpenNow($now));
+        $court->setAttribute('has_valid_booking_configuration',$court->hasValidBookingConfiguration());
+        $court->setAttribute('allowed_booking_durations',$court->getAllowedBookingDurations());
     }
 }

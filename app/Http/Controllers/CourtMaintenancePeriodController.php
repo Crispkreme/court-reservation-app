@@ -2,55 +2,87 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Requests\CourtMaintenancePeriod\StoreCourtMaintenancePeriodRequest;
+use App\Http\Requests\CourtMaintenancePeriod\UpdateCourtMaintenancePeriodRequest;
+use App\Interfaces\CourtMaintenancePeriodInterface;
 use App\Models\Court;
 use App\Models\CourtMaintenancePeriod;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
-use App\Http\Requests\StoreCourtMaintenanceRequest;
-use App\Http\Requests\UpdateCourtMaintenanceRequest;
 
 class CourtMaintenancePeriodController extends Controller
 {
-    public function index(Court $court)
+    public function __construct(
+        private readonly CourtMaintenancePeriodInterface $service
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            $court->maintenancePeriods()
-                ->orderBy('maintenance_date')
-                ->orderBy('start_time')
-                ->get()
-        );
-    }
+        $request->validate([
+            'court_id' => ['nullable', 'integer', 'exists:courts,id'],
+        ]);
 
-    public function store(StoreCourtMaintenanceRequest $request,Court $court) {
-        $validated = $request->validated();
-
-        $maintenance = $court
-            ->maintenancePeriods()
-            ->create($validated);
+        $courtId = $request->filled('court_id')
+            ? $request->integer('court_id')
+            : null;
 
         return response()->json([
-            'message' => 'Maintenance period created successfully.',
-            'data' => $maintenance,
-        ], 201);
-    }
-
-    public function update(UpdateCourtMaintenanceRequest $request,CourtMaintenancePeriod $maintenancePeriod) {
-        $validated = $request->validated();
-
-        $maintenancePeriod->update($validated);
-
-        return response()->json([
-            'message' => 'Maintenance period updated successfully.',
-            'data' => $maintenancePeriod->fresh(),
+            'data' => $this->service->getAll($courtId),
         ]);
     }
 
-    public function destroy(CourtMaintenancePeriod $maintenancePeriod) {
-        $maintenancePeriod->delete();
+    public function store(
+        StoreCourtMaintenancePeriodRequest $request
+    ): JsonResponse {
+        $period = $this->service->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Maintenance period created successfully.',
+            'data' => $period,
+        ], 201);
+    }
+
+    public function show(
+        CourtMaintenancePeriod $maintenancePeriod
+    ): JsonResponse {
+        return response()->json([
+            'data' => $this->service->findById(
+                $maintenancePeriod->id
+            ),
+        ]);
+    }
+
+    public function update(
+        UpdateCourtMaintenancePeriodRequest $request,
+        CourtMaintenancePeriod $maintenancePeriod
+    ): JsonResponse {
+        $period = $this->service->update(
+            $maintenancePeriod,
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Maintenance period updated successfully.',
+            'data' => $period,
+        ]);
+    }
+
+    public function destroy(
+        CourtMaintenancePeriod $maintenancePeriod
+    ): JsonResponse {
+        $this->service->delete($maintenancePeriod);
 
         return response()->json([
             'message' => 'Maintenance period deleted successfully.',
+        ]);
+    }
+
+    public function byCourt(Court $court): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->service->getByCourt($court->id),
         ]);
     }
 }

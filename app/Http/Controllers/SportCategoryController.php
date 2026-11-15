@@ -2,72 +2,105 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\SportCategory;
+use App\Http\Requests\SportCategories\StoreSportCategoryRequest;
+use App\Http\Requests\SportCategories\UpdateSportCategoryRequest;
+use App\Interfaces\SportCategoryRepositoryInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-
-use App\Http\Requests\StoreSportCategoryRequest;
-use App\Http\Requests\UpdateSportCategoryRequest;
+use Illuminate\Validation\Rule;
 
 class SportCategoryController extends Controller
 {
-    public function index()
+    public function __construct(
+        private SportCategoryRepositoryInterface $categories
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            SportCategory::withCount('courts')
-                ->latest()
-                ->paginate(15)
-        );
-    }
-
-    public function store(StoreSportCategoryRequest $request)
-    {
-        $validated = $request->validated();
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-
-        $category = SportCategory::create($validated);
+        $filters = $request->validate([
+            'search' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'status' => [
+                'sometimes',
+                'nullable',
+                Rule::in(['active', 'inactive']),
+            ],
+        ]);
 
         return response()->json([
+            'success' => true,
+            'data' => $this->categories->all($filters),
+        ]);
+    }
+
+    public function show(int $sportCategory): JsonResponse
+    {
+        $category = $this->categories->find($sportCategory);
+
+        if (!$category) {
+            return $this->notFound();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $category,
+        ]);
+    }
+
+    public function store(
+        StoreSportCategoryRequest $request
+    ): JsonResponse {
+        $category = $this->categories->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
             'message' => 'Sport category created successfully.',
             'data' => $category,
         ], 201);
     }
 
-    public function show(SportCategory $sportCategory)
-    {
-        return response()->json(
-            $sportCategory->load('courts')
-        );
-    }
-
     public function update(
         UpdateSportCategoryRequest $request,
-        SportCategory $sportCategory
-    ) {
-        $validated = $request->validated();
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
-        $sportCategory->update($validated);
+        int $sportCategory
+    ): JsonResponse {
+        $category = $this->categories->update(
+            $sportCategory,
+            $request->validated()
+        );
+
+        if (!$category) {
+            return $this->notFound();
+        }
 
         return response()->json([
+            'success' => true,
             'message' => 'Sport category updated successfully.',
-            'data' => $sportCategory->fresh(),
+            'data' => $category,
         ]);
     }
 
-    public function destroy(SportCategory $sportCategory)
+    public function destroy(int $sportCategory): JsonResponse
     {
-        if ($sportCategory->courts()->exists()) {
-            return response()->json([
-                'message' => 'Cannot delete a sport category that has courts.',
-            ], 422);
+        $category = $this->categories->find($sportCategory);
+
+        if (!$category) {
+            return $this->notFound();
         }
 
-        $sportCategory->delete();
+        $this->categories->delete($sportCategory);
 
         return response()->json([
+            'success' => true,
             'message' => 'Sport category deleted successfully.',
         ]);
+    }
+
+    private function notFound(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Sport category not found.',
+        ], 404);
     }
 }

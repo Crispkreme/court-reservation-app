@@ -1,0 +1,1 @@
+export { useApplicationSettings } from '../context/ApplicationSettingsContext';

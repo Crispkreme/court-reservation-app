@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+
 import {
     login as loginService,
     register as registerService,
@@ -53,16 +54,30 @@ export function AuthProvider({ children }) {
     const logout = async () => {
         try {
             await logoutService();
+
+        } catch (error) {
+            console.error("Logout API failed:", error);
+
         } finally {
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("auth_user");
+
+            // Reset authentication state
             setUser(null);
             setToken(null);
         }
     };
 
+    // Authentication status
     const isAuthenticated = !!token && !!user;
-    const role = user?.role?.toLowerCase() || null;
 
-    // Role checking
+    // Role disabled - application does not use roles
+    const role = user?.role?.toLowerCase() || null;
+    const department = user?.department ?? null;
+    const position = user?.position ?? null;
+    const status = user?.status ?? null;
+
+    // Role checking disabled
     const hasRole = (requiredRole) => {
         return role === requiredRole.toLowerCase();
     };
@@ -94,17 +109,20 @@ export function AuthProvider({ children }) {
                 user,
                 token,
                 role,
-                authLoading,
-                isAuthenticated,
+                position,
+                status,
+                department,
                 isAdmin,
                 isMember,
                 hasRole,
+                authLoading,
+                isAuthenticated,
                 login,
                 register,
                 logout,
                 refreshUser,
                 syncAuth,
-                setUser
+                setUser,
             }}
         >
             {children}

@@ -1,0 +1,85 @@
+.commercial-invoice-page { color: #1b271d; }
+.commercial-invoice-page .ci-toolbar { margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.commercial-invoice-page .ci-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 13px; border-radius: 9px; font-size: 13px; font-weight: 650; cursor: pointer; transition: background .15s; }
+.commercial-invoice-page .ci-btn-light { background: #fff; border: 1px solid #d6dfd4; color: #21452d; }
+.commercial-invoice-page .ci-btn-light:hover { background: #eef5ec; }
+.commercial-invoice-page .ci-btn-primary { background: #176b3a; color: #fff; }
+.commercial-invoice-page .ci-btn-primary:hover { background: #11512c; }
+.commercial-invoice-page .ci-paper-scroll { max-width: 100%; overflow-x: auto; padding: 4px 4px 18px; }
+.commercial-invoice-page .ci-paper { box-sizing: border-box; margin: 0 auto; min-height: 297mm; padding: 15mm 14mm 14mm; background: white; box-shadow: 0 14px 45px rgb(26 54 35 / 11%); color: #1c261c; font-family: Arial, Helvetica, sans-serif; font-size: 9px; line-height: 1.36; }
+.commercial-invoice-page .ci-paper * { box-sizing: border-box; }
+.commercial-invoice-page .ci-top { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,.80fr) minmax(0,1.3fr); align-items: start; gap: 10px; }
+.commercial-invoice-page .ci-company h2 { margin: 0 0 7px; color: #2d6710; font-size: 12px; line-height: 1.18; font-weight: 800; }
+.commercial-invoice-page .ci-company p { margin: 0 0 3px; }
+.commercial-invoice-page .ci-logo-slot { display: flex; justify-content: center; align-items: flex-start; padding-top: 22px; min-width: 0; }
+.commercial-invoice-page .ci-logo { display: block; max-width: 100%; width: 95px; height: 75px; object-fit: contain; }
+.commercial-invoice-page .ci-document h2 { color: #2d6710; text-align: right; margin: 0 0 17px; font-size: 15px; font-weight: 800; line-height: 1.15; }
+.commercial-invoice-page .ci-document-fields { display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 3px 4px; align-items: center; font-size: 8px; font-weight: 600; }
+.commercial-invoice-page .ci-edit { display: block; min-width: 0; width: 100%; background: #f7f9f6; border: 1px solid #cad5c8; padding: 3px 4px; font: inherit; font-weight: 400; color: #192719; outline: none; border-radius: 2px; }
+.commercial-invoice-page .ci-edit:focus { border-color: #168547; background: #fff; box-shadow: 0 0 0 1px #168547; }
+.commercial-invoice-page .ci-edit::placeholder { color: #a9b3a7; }
+.commercial-invoice-page textarea.ci-edit { resize: vertical; min-height: 20px; }
+.commercial-invoice-page .ci-info-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.commercial-invoice-page .ci-bar { background: #2d6710; color: #fff; font-size: 9px; font-weight: 750; padding: 5px 6px; margin: 0 0 7px; letter-spacing: .02em; }
+.commercial-invoice-page .ci-info-col { min-width: 0; }
+.commercial-invoice-page .ci-line-field { display: flex; min-width: 0; align-items: flex-start; gap: 5px; margin-bottom: 7px; }
+.commercial-invoice-page .ci-field-label { flex: 0 0 56px; padding-top: 3px; font-size: 8px; font-weight: 700; }
+.commercial-invoice-page .ci-line-field .ci-edit { border-width: 0 0 1px; border-color: #a8b6a6; background: transparent; border-radius: 0; }
+.commercial-invoice-page .ci-validity { margin: 11px 0 8px auto; display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.commercial-invoice-page .ci-validity strong { font-size: 14px; }
+.commercial-invoice-page .ci-validity .ci-edit { width: 190px; background: #e8ece5; padding: 8px; }
+.commercial-invoice-page .ci-items-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #43513e; font-size: 9px; }
+.commercial-invoice-page .ci-items-table th { color: white; background: #2d6710; padding: 7px 2px; text-align: center; border: 1px solid #43513e; font-weight: 700; }
+.commercial-invoice-page .ci-items-table td { position: relative; padding: 2px; height: 34px; border: 1px solid #596555; vertical-align: middle; }
+.commercial-invoice-page .ci-items-table .ci-edit { padding: 4px 3px; width: 100%; border: 1px solid transparent; background: transparent; }
+.commercial-invoice-page .ci-items-table .ci-edit:focus { border-color: #19854b; background: #f7faf6; }
+.commercial-invoice-page .ci-items-table textarea.ci-edit { min-height: 26px; }
+.commercial-invoice-page .ci-num-input { text-align: right; }
+.commercial-invoice-page .ci-serial { text-align: center; }
+.commercial-invoice-page .ci-remove { display: none; position: absolute; top: 0; right: 0; color: #ae4343; background: #fff; border-radius: 4px; cursor: pointer; }
+.commercial-invoice-page .ci-serial:hover .ci-remove, .commercial-invoice-page .ci-remove:focus-visible { display: block; }
+.commercial-invoice-page .ci-money { padding-right: 5px !important; text-align: right; font-variant-numeric: tabular-nums; }
+.commercial-invoice-page .ci-add-row { display: inline-flex; gap: 4px; align-items: center; color: #176b3a; font-size: 10px; padding: 7px 0; font-weight: 700; cursor: pointer; }
+.commercial-invoice-page .ci-bottom { margin-top: 10px; display: grid; grid-template-columns: minmax(0,1.7fr) minmax(0,1fr); align-items: start; gap: 24px; }
+.commercial-invoice-page .ci-terms h4 { font-weight: 700; margin: 14px 0 5px; }
+.commercial-invoice-page .ci-terms .ci-field-label { flex-basis: 83px; }
+.commercial-invoice-page .ci-bank { padding: 5px 6px; border-top: 1px solid #84917f; }
+.commercial-invoice-page .ci-bank-1 { background: #f4f2e9; }
+.commercial-invoice-page .ci-bank-2 { background: #ecefec; border-bottom: 1px solid #84917f; }
+.commercial-invoice-page .ci-bank-line { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.commercial-invoice-page .ci-bank-line span { white-space: nowrap; font-size: 8px; }
+.commercial-invoice-page .ci-bank-line .ci-edit { border: 0; border-bottom: 1px solid #bbc6b6; background: transparent; padding: 1px 2px; font-size: 8px; }
+.commercial-invoice-page .ci-currency-row { display: grid; grid-template-columns: auto 52px auto 47px; align-items: center; gap: 6px; margin-top: 12px; }
+.commercial-invoice-page .ci-currency-select { background: #e7eae5; }
+.commercial-invoice-page .ci-vat-toggle { display: flex; gap: 3px; align-items: center; white-space: nowrap; font-weight: 700; font-size: 8px; }
+.commercial-invoice-page .ci-vat-entry { display: flex; align-items: center; gap: 2px; }
+.commercial-invoice-page .ci-small-trn { margin-top: 7px; }
+.commercial-invoice-page textarea.ci-notes { margin-top: 7px; border: none; background: transparent; font-size: 8px; line-height: 1.35; }
+.commercial-invoice-page .ci-totals { border-collapse: collapse; width: 100%; font-size: 9px; }
+.commercial-invoice-page .ci-totals th, .commercial-invoice-page .ci-totals td { border: 1px solid #818a7f; padding: 6px 5px; }
+.commercial-invoice-page .ci-totals th { text-align: left; font-weight: 600; width: 60%; }
+.commercial-invoice-page .ci-totals td { text-align: right; font-variant-numeric: tabular-nums; background: #eff1ed; }
+.commercial-invoice-page .ci-totals tr:nth-child(odd) td { background: #e1e5de; }
+.commercial-invoice-page .ci-totals .ci-edit { border: 0; background: transparent; padding: 0; }
+.commercial-invoice-page .ci-totals .ci-grand th { color: #fff; background: #2d6710; font-size: 10px; }
+.commercial-invoice-page .ci-totals .ci-grand td { font-size: 11px; font-weight: 800; background: #d9e7d3; }
+.commercial-invoice-page .ci-signature { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: end; margin-top: 25px; }
+.commercial-invoice-page .ci-signature-area { text-align: center; }
+.commercial-invoice-page .ci-signature-box { display: flex; height: 63px; justify-content: center; align-items: end; border-bottom: 1px solid #889b85; padding-bottom: 7px; color: #788577; font-size: 8px; }
+.commercial-invoice-page .ci-signature-area p { font-size: 8px; margin-top: 5px; }
+.commercial-invoice-page .ci-certs { display: flex; justify-content: end; gap: 8px; }
+.commercial-invoice-page .ci-certs span { display: grid; place-items: center; width: 46px; height: 35px; border: 1px dashed #d0d8ce; color: #8b9887; font-size: 8px; text-align: center; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  .commercial-invoice-page { padding: 0 !important; background: #fff !important; }
+  .commercial-invoice-page .ci-paper-scroll { overflow: visible !important; padding: 0 !important; }
+  .commercial-invoice-page .ci-paper { margin: 0 !important; box-shadow: none !important; padding: 15mm 14mm 14mm !important; }
+  .commercial-invoice-page .ci-paper, .commercial-invoice-page .ci-paper * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .commercial-invoice-page .ci-edit { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+  .commercial-invoice-page .ci-line-field .ci-edit { border-bottom-color: #a8b6a6 !important; }
+  .commercial-invoice-page .ci-validity .ci-edit { background: #e8ece5 !important; }
+  .commercial-invoice-page .ci-currency-select { appearance: none; }
+  .commercial-invoice-page .ci-items-table tr, .commercial-invoice-page .ci-totals tr, .commercial-invoice-page .ci-bank { break-inside: avoid; }
+  .commercial-invoice-page .ci-remove, .commercial-invoice-page .ci-add-row, .commercial-invoice-page .ci-toolbar { display: none !important; }
+}

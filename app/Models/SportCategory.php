@@ -3,25 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SportCategory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
 
     protected $fillable = [
         'name',
-        'slug',
         'description',
-        'is_active',
+        'status',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
 
-    public function courts()
+    public function courts(): HasMany
     {
         return $this->hasMany(Court::class);
     }

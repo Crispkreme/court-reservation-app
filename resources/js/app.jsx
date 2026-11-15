@@ -1,118 +1,100 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
 
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import Court from './pages/Courts/Court';
-import CourtSchedules from './pages/Courts/Schedules';
-import CourtScheduleOverrides from './pages/Courts/Overrides';
-import CourtCalendar from './pages/Courts/Calendar';
-import Booking from './pages/Bookings/Index';
-import CreateBooking from './pages/Bookings/CreateBooking';
-import BookingRules from './pages/Bookings/BookingRules';
-import Reschedule from './pages/Bookings/Reschedule';
-import BookingHolds from './pages/Bookings/BookingHolds';
-import BookingStatus from './pages/Bookings/BookingStatus';
-import BookingParticipants from './pages/Bookings/BookingParticipants';
-import CancellationPolicies from './pages/Bookings/CancellationPolicies';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Members from './pages/Members/Members';
-import Players from './pages/Members/Players';
-import CreateMembers from './pages/Members/CreateMembers';
-import MembersShow from './pages/MemberPlayers/Members/Show';
+// Authentication
+import { AuthProvider } from "@context/AuthContext";
 
-import PlayersCreate from './pages/Members/CreatePlayers';
-import PlayersShow from './pages/MemberPlayers/Players/Show';
-import Invitations from './pages/Members/Invitations';
-import InvitationsShow from './pages/MemberPlayers/Invitations/Show';
-import ParticipantsShow from './pages/MemberPlayers/Participants/Show';
-import Memberships from './pages/Members/Memberships';
-import Privileges from './pages/Members/Privileges';
-import Matchmaking from './pages/Members/Matchmaking';
-import Payments from './pages/Payments/Payments';
-import TransactionHistory from './pages/Transactions/Index';
-import Settings from "./pages/Settings";
-import OperationalControls from './pages/OperationalControls/Index';
-import Notifications from './pages/Notifications/Index';
-import CustomerDashboard from './pages/CustomerDashboard/Index';
-import Dashboard from './pages/Dashboard/Index';
-import MemberDashboard from './pages/MemberDashboard/Index';
-import FailureExceptionsIndex from './pages/FailureExceptions/Index';
-import Reports from './pages/Reports/Index';
-import AuditHistoryIndex from './pages/AuditHistory/Index';
-import Home from "./pages/Home";
-import SportCategories from './pages/SportCategories/Index';
+// Public Pages
+import LandingPage from "@pages/Index";
+import Login from "@pages/Auth/Login";
+import Register from "@pages/Auth/Register";
 
-function ProtectedRoute({ children }) {
-    const token = localStorage.getItem('auth_token');
+// Layout
+import Layout from "@components/layout/Index";
+import ProtectedRoute from "@components/layout/ProtectedRoute";
 
-    if (!token) {
-        return <Navigate to="/login" replace />;
-    }
+// Admin Pages
+import AdminDashboard from "@pages/Admin/Dashboard";
+import AdminSportCategories from "@pages/Admin/SportCategory/Index";
+import AdminCourt from "@pages/Admin/Court/Index";
+import AdminCourtMaintenance from "@pages/Admin/Court/maintenance/Index";
+import AdminCourtUtilization from "@pages/Admin/Court/Utilization/Index";
 
-    return children;
-}
+// Member Pages
+import MemberDashboard from "@pages/Member/Dashboard";
+import MemberCourtIndex from "@pages/Member/Court/Index";
+import MemberCourtShow from "@pages/Member/Court/Show";
+import MemberCourtUtilization from "@pages/Member/Court/Utilization/Index";
+
+// Navigation
+import { adminMenu, memberMenu } from "@config/navigation";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<Login />}/>
-                <Route path="/" element={<Home />} />
-                <Route path="/register" element={<Register />}/>
-                <Route path="/settings" element={<Settings />} />
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-                <Route path="/courts" element={<ProtectedRoute><Court /></ProtectedRoute>}/>
-                <Route path="/courts/schedules" element={<ProtectedRoute><CourtSchedules /></ProtectedRoute>}/>
-                <Route path="/courts/overrides" element={<ProtectedRoute><CourtScheduleOverrides /></ProtectedRoute>}/>
-                <Route path="/courts/calendar" element={<ProtectedRoute><CourtCalendar /></ProtectedRoute>}/>
-                <Route path="/sport/categories" element={<ProtectedRoute><SportCategories /></ProtectedRoute>}/>
+            {/* Admin Routes */}
+            <Route element={<ProtectedRoute allowedRole="admin" />}>
+                <Route
+                    path="/admin"
+                    element={
+                        <Layout
+                            basePath="/admin"
+                            title="CourtBook Admin"
+                            menuItems={adminMenu}
+                        />
+                    }
+                >
+                    <Route index element={<Navigate to="dashboard" replace />}/>
+                    <Route path="dashboard" element={<AdminDashboard />}/>
+                    <Route path="sport-categories" element={<AdminSportCategories />}/>
+                    <Route path="courts" element={<AdminCourt />} />
+                    <Route path="court-maintenance" element={<AdminCourtMaintenance />} />
+                    <Route path="court-utilization" element={<AdminCourtUtilization />} />
+                </Route>
+            </Route>
 
-                <Route path="/bookings" element={<ProtectedRoute><Booking /></ProtectedRoute>}/>
-                <Route path="/bookings/create" element={<ProtectedRoute><CreateBooking /></ProtectedRoute>}/>
-                <Route path="/bookings/:id/reschedule" element={<ProtectedRoute><Reschedule /></ProtectedRoute>}/>
-                <Route path="/bookings/:id/participants" element={<ProtectedRoute><ParticipantsShow /></ProtectedRoute>}/>
-                <Route path="/booking-holds" element={<ProtectedRoute><BookingHolds /></ProtectedRoute>}/>
-                <Route path="/booking-status" element={<ProtectedRoute><BookingStatus /></ProtectedRoute>}/>
-                <Route path="/booking-rules" element={<ProtectedRoute><BookingRules /></ProtectedRoute>}/>
-                <Route path="/bookings/cancellation-policies" element={<ProtectedRoute><CancellationPolicies /></ProtectedRoute>}/>
-                <Route path="/bookings/participants" element={<ProtectedRoute><BookingParticipants /></ProtectedRoute>}/>
+            {/* Member Routes */}
+            <Route element={<ProtectedRoute allowedRole="member" />}>
+                <Route
+                    path="/member"
+                    element={
+                        <Layout
+                            basePath="/member"
+                            title="CourtBook"
+                            menuItems={memberMenu}
+                        />
+                    }
+                >
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<MemberDashboard />} />
+                    <Route path="courts" element={<MemberCourtIndex />} />
+                    <Route path="courts/:id" element={<MemberCourtShow />} />
+                    <Route path="court-utilization" element={<MemberCourtUtilization />}/>
+                </Route>
+            </Route>
 
-                <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>}/>
-                <Route path="/members/create" element={<ProtectedRoute><CreateMembers /></ProtectedRoute>}/>
-                <Route path="/members/:id" element={<ProtectedRoute><MembersShow /></ProtectedRoute>}/>
-                <Route path="/member/players" element={<ProtectedRoute><Players /></ProtectedRoute>}/>
-                <Route path="/members/privileges" element={<ProtectedRoute><Privileges /></ProtectedRoute>}/>
-                <Route path="/players/create" element={<ProtectedRoute><PlayersCreate /></ProtectedRoute>}/>
-                <Route path="/players/:id" element={<ProtectedRoute><PlayersShow /></ProtectedRoute>}/>
-                <Route path="/invitations" element={<ProtectedRoute><Invitations /></ProtectedRoute>}/>
-                <Route path="/invitations/:token" element={<ProtectedRoute><InvitationsShow /></ProtectedRoute>}/>
-                <Route path="/members/memberships" element={<ProtectedRoute><Memberships /></ProtectedRoute>}/>
-                <Route path="/matchmaking" element={<ProtectedRoute><Matchmaking /></ProtectedRoute>}/>
-
-                <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>}/>
-                <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>}/>
-                <Route path="/admin/operational-controls" element={<ProtectedRoute><OperationalControls /></ProtectedRoute>}/>
-                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>}/>
-                <Route path="/customer-dashboard" element={<ProtectedRoute><CustomerDashboard /></ProtectedRoute>}/>
-                <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
-                <Route path="/member-dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>}/>
-                <Route path="/failure-exceptions" element={<ProtectedRoute><FailureExceptionsIndex /></ProtectedRoute>}/>
-                <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>}/>
-                <Route path="/audit-history" element={<ProtectedRoute><AuditHistoryIndex /></ProtectedRoute>}/>
-                <Route path="/" element={<Navigate to="/courts" replace/>}/>
-                <Route path="*" element={<Navigate to="/" replace/>}/>
-            </Routes>
-        </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     );
 }
 
-createRoot(document.getElementById('app')).render(
-    <React.StrictMode>
-        <AuthProvider>
-            <App />
-        </AuthProvider>
-    </React.StrictMode>
-);
+const container = document.getElementById("app");
+
+if (container) {
+    createRoot(container).render(
+        <React.StrictMode>
+            <BrowserRouter>
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            </BrowserRouter>
+        </React.StrictMode>
+    );
+}

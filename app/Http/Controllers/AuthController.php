@@ -2,56 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
-use App\Http\Requests\LoginRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\LogoutRequest;
+use App\Http\Requests\Auth\UserRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\LogoutRequest;
-use App\Http\Requests\UserRequest;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request)
+
+    private function formatUser(User $user): array
+    {
+        return $user->only([
+            'id',
+            'name',
+            'email',
+            'phone',
+            'role',
+            'status',
+            'email_verified_at',
+            'created_at',
+            'updated_at',
+        ]);
+    }
+
+    public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'member',
+            'email' => strtolower(trim($validated['email'])),
+            'phone' => $validated['phone'] ?? null,
+            'password' => $validated['password'],
         ]);
-
-        $token = $user
-            ->createToken('court-reservation-app')
-            ->plainTextToken;
 
         return response()->json([
             'success' => true,
-            'message' => 'Registration successful.',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
-            'token' => $token,
+            'message' => 'Registration successful. Please log in.',
+            'user' => $this->formatUser($user),
         ], 201);
     }
 
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->validated();
-
         $user = User::where('email', $credentials['email'])->first();
 
-        if (
-            !$user ||
-            !Hash::check($credentials['password'], $user->password)
-        ) {
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        if (!$user->isActive() || (!$user->isAdmin() && !$user->isMember())) {
             throw ValidationException::withMessages([
                 'email' => [
                     'The provided credentials are incorrect.'
@@ -60,46 +69,37 @@ class AuthController extends Controller
         }
 
         $token = $user
-            ->createToken('court-reservation-app')
+            ->createToken('courtbook-auth')
             ->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
+            'user' => $this->formatUser($user),
             'token' => $token,
-        ]);
+        ], 200);
     }
 
-    public function logout(LogoutRequest $request)
+    public function logout(LogoutRequest $request): JsonResponse
     {
-        $request->user()
-            ->currentAccessToken()
-            ->delete();
+        $token = $request->user()->currentAccessToken();
+
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Logged out successfully.',
-        ]);
+        ], 200);
     }
 
-    public function user(UserRequest $request)
+    public function user(UserRequest $request): JsonResponse
     {
-        $user = $request->user();
-
         return response()->json([
             'success' => true,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ],
-        ]);
+            'message' => 'User information retrieved successfully.',
+            'user' => $this->formatUser($request->user()),
+        ], 200);
     }
 }

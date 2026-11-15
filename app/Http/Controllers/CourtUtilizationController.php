@@ -2,48 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Interfaces\CourtUtilizationInterface;
+use App\Models\Court;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CourtUtilizationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function __construct(
+        private readonly CourtUtilizationInterface $repository
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        //
-    }
+        $validated = $request->validate([
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d'],
+            'court_id' => ['nullable', 'integer', 'exists:courts,id'],
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $user = $request->user();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        if (!$user || !in_array($user->role, ['admin', 'member'], true)) {
+            return response()->json([
+                'message' => 'Unauthorized access.',
+            ], 403);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $today = CarbonImmutable::now(Court::TIME_ZONE);
+        $start = $validated['start_date'] ?? $today->startOfMonth()->toDateString();
+        $end = $validated['end_date'] ?? $today->toDateString();
+
+        $startDate = CarbonImmutable::createFromFormat(
+            '!Y-m-d',
+            $start,
+            Court::TIME_ZONE
+        );
+
+        $endDate = CarbonImmutable::createFromFormat(
+            '!Y-m-d',
+            $end,
+            Court::TIME_ZONE
+        );
+
+        if ($endDate->lessThan($startDate)) {
+            throw ValidationException::withMessages([
+                'end_date' => [
+                    'End date must be on or after start date.',
+                ],
+            ]);
+        }
+
+        if ($startDate->diffInDays($endDate) > 366) {
+            throw ValidationException::withMessages([
+                'end_date' => [
+                    'Date range cannot exceed 366 days.',
+                ],
+            ]);
+        }
+
+        $courtId = $validated['court_id'] ?? null;
+
+        $data = $this->repository->summary(
+            $start,
+            $end,
+            $courtId
+        );
+
+        return response()->json([
+            'data' => $data,
+        ]);
     }
 }

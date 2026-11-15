@@ -1,222 +1,190 @@
 
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Bell,
-  Menu,
-  Search,
-  ChevronDown,
-  User,
-  Settings,
-  LogOut,
-  X,
-} from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Menu, Bell, CircleUserRound, ChevronDown, UserRound, LogOut } from 'lucide-react';
+
+import { useAuth } from '../../context/AuthContext';
 
 export default function Header({
-  title = "Admin Dashboard",
-  onMenuClick,
-  onSearch,
-  onProfileClick,
-  onSettingsClick,
-  onLogout,
+    title = 'Dashboard',
+    user,
+    onMenuClick,
 }) {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [activeDropdown, setActiveDropdown] = useState(null);
-  const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setActiveDropdown(null);
-      }
-    }
+    const navigate = useNavigate();
+    const { logout } = useAuth();
 
-    document.addEventListener("mousedown", handleClickOutside);
+    const role = user?.role?.toLowerCase();
+    const basePath = role === 'admin' ? '/admin' : role === 'member' ? '/member' : '';
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setProfileOpen(false);
+            }
+        };
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                setProfileOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, []);
+
+    const handleLogout = async () => {
+        if (loggingOut) return;
+
+        setLoggingOut(true);
+
+        try {
+            await logout();
+
+            navigate('/login', {
+                replace: true,
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setLoggingOut(false);
+        }
     };
-  }, []);
 
-  // Search handler
-  function handleSearch(event) {
-    event.preventDefault();
-    onSearch?.(search.trim());
-  }
+    const handleProfile = () => {
+        setProfileOpen(false);
+        navigate(`${basePath}/account`);
+    };
 
-  function toggleDropdown(name) {
-    setActiveDropdown((current) => (current === name ? null : name));
-  }
+    return (
+        <header className="sticky top-0 z-30 flex h-20 shrink-0 items-center justify-between border-b border-[#E2EBDF] bg-white px-4 sm:px-6 lg:px-8">
 
-  function handleAction(callback) {
-    setActiveDropdown(null);
-    callback?.();
-  }
-
-  return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
-      {/* Left section */}
-      <div className="flex min-w-0 items-center gap-3">
-        <button
-          type="button"
-          aria-label="Open navigation"
-          onClick={onMenuClick}
-          className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100"
-        >
-          <Menu size={20} />
-        </button>
-
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-800">
-            {title}
-          </p>
-          <p className="hidden text-xs text-slate-500 sm:block">
-            Court reservation management
-          </p>
-        </div>
-      </div>
-
-      {/* Right section */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        {/* Notifications */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            type="button"
-            aria-label="Notifications"
-            aria-expanded={activeDropdown === "notifications"}
-            onClick={() => toggleDropdown("notifications")}
-            className="relative rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
-          >
-            <Bell size={19} />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </button>
-
-          {activeDropdown === "notifications" && (
-            <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div className="flex min-w-0 items-center gap-4">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setActiveDropdown(null);
-                    navigate("/notifications");
-                  }}
-                  className="text-sm font-semibold text-slate-800 hover:text-blue-600"
+                    type="button"
+                    onClick={onMenuClick}
+                    aria-label="Open navigation menu"
+                    aria-controls="portal-sidebar"
+                    className="rounded-lg p-2 text-[#176B3A] transition hover:bg-[#EDF5EB] lg:hidden"
                 >
-                  See Notifications
+                    <Menu size={24} />
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveDropdown(null)}
-                  className="text-slate-400 hover:text-slate-700"
-                  aria-label="Close notifications"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+                <div className="min-w-0">
+                    <h2 className="truncate text-lg font-bold text-[#153D29] sm:text-xl">
+                        {title}
+                    </h2>
 
-              <div className="p-4">
-                <div className="flex gap-3">
-                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">
-                      Welcome to OnlineCourtReservation
+                    <p className="hidden text-xs text-[#87988A] sm:block">
+                        Company Management Portal
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Your dashboard is ready.
-                    </p>
-                  </div>
                 </div>
-              </div>
+            </div>
 
-              <div className="border-t border-slate-100 p-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveDropdown(null)}
-                  className="w-full rounded-lg py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50"
+            <div className="flex items-center gap-3 sm:gap-5">
+
+                <div
+                    title="Notifications coming soon"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-[#52705B]"
                 >
-                  Close notifications
-                </button>
-              </div>
+                    <Bell size={21} />
+                </div>
+
+                <div className="hidden h-8 w-px bg-[#E2EBDF] sm:block" />
+
+                <div className="relative" ref={dropdownRef}>
+
+                    <button
+                        type="button"
+                        onClick={() => setProfileOpen((prev) => !prev)}
+                        aria-expanded={profileOpen}
+                        aria-haspopup="menu"
+                        aria-label="Open profile menu"
+                        className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-[#F0F7EE]"
+                    >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#CDE5C9] bg-[#E4F2E1] text-[#176B3A]">
+                            <CircleUserRound size={24} />
+                        </div>
+
+                        <div className="hidden min-w-0 text-left sm:block">
+                            <p className="max-w-36 truncate text-sm font-semibold text-[#254A32]">
+                                {user?.name || 'Portal User'}
+                            </p>
+
+                            <p className="text-xs capitalize text-[#8A9C8F]">
+                                {user?.role || 'Employee'}
+                            </p>
+                        </div>
+
+                        <ChevronDown
+                            size={16}
+                            className={`hidden text-[#789A7E] transition-transform sm:block ${
+                                profileOpen ? 'rotate-180' : ''
+                            }`}
+                        />
+                    </button>
+
+                    {profileOpen && (
+                        <div className="absolute right-0 top-full z-50 mt-3 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#E2EBDF] bg-white shadow-[0_15px_40px_rgba(18,75,38,0.15)]">
+                            <div className="border-b border-[#E7EEE4] bg-[#F7FBF5] px-4 py-4">
+                                <p className="truncate text-sm font-bold text-[#153D29]">
+                                    {user?.name || 'Portal User'}
+                                </p>
+
+                                <p className="mt-1 truncate text-xs text-gray-500">
+                                    {user?.email || 'No email available'}
+                                </p>
+
+                                <span className="mt-3 inline-block rounded-full bg-[#E4F2E1] px-3 py-1 text-[11px] font-semibold capitalize text-[#176B3A]">
+                                    {user?.role || 'Employee'}
+                                </span>
+                            </div>
+
+                            <div className="p-2">
+
+                                <button
+                                    type="button"
+                                    onClick={handleProfile}
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-[#294634] transition hover:bg-[#EDF6EA]"
+                                >
+                                    <UserRound
+                                        size={19}
+                                        className="text-[#176B3A]"
+                                    />
+                                    My Profile
+                                </button>
+
+                                <div className="my-2 border-t border-[#E7EEE4]" />
+
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    disabled={loggingOut}
+                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <LogOut size={19} />
+
+                                    {loggingOut ? 'Logging out...' : 'Logout'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
-          )}
-
-          {/* Profile dropdown */}
-          {activeDropdown === "profile" && (
-            <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-xl">
-              <div className="border-b border-slate-100 px-4 py-3">
-                <p className="text-sm font-semibold text-slate-800">Admin</p>
-                <p className="text-xs text-slate-500">Administrator</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleAction(onProfileClick)}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
-              >
-                <User size={16} />
-                My Profile
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAction(() => navigate("/settings"));
-                }}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
-              >
-                <Settings size={16} />
-                Settings
-              </button>
-
-              <div className="my-1 border-t border-slate-100" />
-
-              <button
-                type="button"
-                onClick={() => handleAction(onLogout)}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Admin profile button */}
-        <button
-          type="button"
-          aria-label="Admin profile menu"
-          aria-expanded={activeDropdown === "profile"}
-          onClick={() => toggleDropdown("profile")}
-          className="flex items-center gap-2 rounded-lg p-1.5 transition hover:bg-slate-50"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-            AD
-          </span>
-
-          <span className="hidden text-left sm:block">
-            <span className="block text-xs font-semibold text-slate-800">
-              Admin
-            </span>
-            <span className="block text-[10px] text-slate-500">
-              Administrator
-            </span>
-          </span>
-
-          <ChevronDown
-            size={15}
-            className={`hidden text-slate-400 transition sm:block ${
-              activeDropdown === "profile" ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-      </div>
-    </header>
-  );
+        </header>
+    );
 }

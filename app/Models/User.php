@@ -2,48 +2,33 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_MEMBER = 'member';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
-        'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -52,48 +37,48 @@ class User extends Authenticatable
         ];
     }
 
-    public function bookings()
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isMember(): bool
+    {
+        return $this->role === self::ROLE_MEMBER;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isInactive(): bool
+    {
+        return $this->status === self::STATUS_INACTIVE;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', self::STATUS_INACTIVE);
+    }
+
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', self::ROLE_ADMIN);
+    }
+
+    public function scopeMembers($query)
+    {
+        return $query->where('role', self::ROLE_MEMBER);
+    }
+
+    public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
-    }
-
-    public function customerDashboardSetting(): HasOne
-    {
-        return $this->hasOne(CustomerDashboardSetting::class);
-    }
-
-    public function membershipTier(): BelongsTo
-    {
-        return $this->belongsTo(
-            MembershipTier::class
-        );
-    }
-
-    public function memberships(): HasMany
-    {
-        return $this->hasMany(Membership::class);
-    }
-
-    public function activeMembership()
-    {
-        return $this->hasOne(Membership::class)
-            ->where('status', 'active')
-            ->whereDate('expiration_date', '>=', today())
-            ->latestOfMany();
-    }
-
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(Transaction::class);
-    }
-
-    public function reservationNotifications(): HasMany
-    {
-        return $this->hasMany(ReservationNotification::class);
-    }
-
-    public function adminDashboardSetting()
-    {
-        return $this->hasOne(AdminDashboardSetting::class);
     }
 }

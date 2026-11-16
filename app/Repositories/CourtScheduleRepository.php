@@ -232,7 +232,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
         }
 
         if ($court->status === 'temporarily_blocked') {
-            return 'temporarily_blocked';
+            return 'blocked';
         }
 
         if ($court->status !== 'available') {
@@ -248,7 +248,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
         }
 
         if ($court->bookings->contains($overlaps)) {
-            return 'booked';
+            return 'reserved';
         }
 
         if ($start->lte($now)) {
@@ -257,4 +257,5 @@ class CourtScheduleRepository implements CourtScheduleInterface
 
         return 'available';
     }
+
 }

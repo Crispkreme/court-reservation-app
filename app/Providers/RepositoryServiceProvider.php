@@ -7,7 +7,9 @@ use App\Interfaces\SportCategoryRepositoryInterface;
 use App\Interfaces\CourtRepositoryInterface;
 use App\Interfaces\CourtMaintenancePeriodInterface;
 use App\Interfaces\CourtUtilizationInterface;
+use App\Interfaces\CourtScheduleInterface;
 
+use App\Repositories\CourtScheduleRepository;
 use App\Repositories\CourtUtilizationRepository;
 use App\Repositories\CourtMaintenancePeriodRepository;
 use App\Repositories\CourtRepository;
@@ -24,6 +26,7 @@ class RepositoryServiceProvider extends ServiceProvider
         CourtMaintenancePeriodInterface::class => CourtMaintenancePeriodRepository::class,
         CourtRepositoryInterface::class => CourtRepository::class,
         CourtUtilizationInterface::class => CourtUtilizationRepository::class,
+        CourtScheduleInterface::class => CourtScheduleRepository::class,
     ];
     
     /**

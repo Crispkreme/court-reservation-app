@@ -272,4 +272,10 @@ class Court extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function schedules(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CourtSchedule::class);
+    }
+
 }

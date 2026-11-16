@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
                 CourtSeeder::class,
                 CourtMaintenancePeriodSeeder::class,
                 BookingSeeder::class,
+                CourtScheduleSeeder::class,
             ]);
         });
     }

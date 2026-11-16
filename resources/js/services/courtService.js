@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 const ENDPOINT = "/courts";
@@ -15,8 +14,8 @@ const getCourtEndpoint = (id) => {
     return `${ENDPOINT}/${encodeURIComponent(String(id))}`;
 };
 
-export const getCourts = async () => {
-    const response = await api.get(ENDPOINT);
+export const getCourts = async (params = {}) => {
+    const response = await api.get(ENDPOINT, { params });
 
     return response.data;
 };
@@ -45,6 +44,18 @@ export const updateCourt = async (id, data) => {
 export const deleteCourt = async (id) => {
     const response = await api.delete(
         getCourtEndpoint(id)
+    );
+
+    return response.data;
+};
+
+export const getCourtAvailability = async (
+    courtId,
+    params = {}
+) => {
+    const response = await api.get(
+        `${getCourtEndpoint(courtId)}/availability`,
+        { params }
     );
 
     return response.data;

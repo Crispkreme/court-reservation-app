@@ -24,6 +24,7 @@ import AdminCourtUtilization from "@pages/Admin/Court/Utilization/Index";
 import AdminCourtSchedule from "@/pages/Admin/Court/CourtSchedule/Index";
 import AdminCourtRecurringSchedule from "@/pages/Admin/Court/CourtRecurringSchedule/Index";
 import AdminCourtScheduleOverride from "@/pages/Admin/Court/CourtScheduleOverride/Index";
+import AdminBooking from "@/pages/Admin/Booking/Index";
 
 // Member Pages
 import MemberDashboard from "@pages/Member/Dashboard";
@@ -31,6 +32,9 @@ import MemberCourtIndex from "@pages/Member/Court/Index";
 import MemberCourtShow from "@pages/Member/Court/Show";
 import MemberCourtSchedule from "@/pages/Member/Court/CourtSchedule/Index";
 import MemberCourtUtilization from "@pages/Member/Court/Utilization/Index";
+import MemberBookingIndex from "@/pages/Member/Booking/Index";
+import MemberBookingCreate from "@/pages/Member/Booking/Create";
+import MemberBookingShow from "@/pages/Member/Booking/Show";
 
 // Navigation
 import { adminMenu, memberMenu } from "@config/navigation";
@@ -64,6 +68,7 @@ function App() {
                     <Route path="court-schedules" element={<AdminCourtSchedule />} />
                     <Route path="court-recurring-schedules" element={<AdminCourtRecurringSchedule />} />
                     <Route path="court-schedule-overrides" element={<AdminCourtScheduleOverride />} />
+                    <Route path="bookings" element={<AdminBooking />} />
                 </Route>
             </Route>
 
@@ -85,6 +90,9 @@ function App() {
                     <Route path="courts/:id" element={<MemberCourtShow />} />
                     <Route path="court-utilization" element={<MemberCourtUtilization />}/>
                     <Route path="court-schedules" element={<MemberCourtSchedule />} />
+                    <Route path="bookings" element={<MemberBookingIndex />} />
+                    <Route path="bookings/create" element={<MemberBookingCreate />} />
+                    <Route path="bookings/:id" element={<MemberBookingShow />} />
                 </Route>
             </Route>
 

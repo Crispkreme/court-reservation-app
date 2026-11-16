@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -14,8 +15,19 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
     public const ROLE_MEMBER = 'member';
+
+    public const ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_MEMBER,
+    ];
+
     public const STATUS_ACTIVE = 'active';
     public const STATUS_INACTIVE = 'inactive';
+
+    public const STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_INACTIVE,
+    ];
 
     protected $fillable = [
         'name',
@@ -35,6 +47,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
     }
 
     public function isAdmin(): bool
@@ -57,28 +74,41 @@ class User extends Authenticatable
         return $this->status === self::STATUS_INACTIVE;
     }
 
-    public function scopeActive($query)
+    public function canAccessAdminCalendar(): bool
+    {
+        return $this->isAdmin() && $this->isActive();
+    }
+
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);
     }
 
-    public function scopeInactive($query)
+    public function scopeInactive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_INACTIVE);
     }
 
-    public function scopeAdmins($query)
+    public function scopeAdmins(Builder $query): Builder
     {
         return $query->where('role', self::ROLE_ADMIN);
     }
 
-    public function scopeMembers($query)
+    public function scopeMembers(Builder $query): Builder
     {
         return $query->where('role', self::ROLE_MEMBER);
     }
 
-    public function bookings(): HasMany
-    {
-        return $this->hasMany(Booking::class);
+    public function scopeWithBookingsBetween(
+        Builder $query,
+        string $start,
+        string $end
+    ): Builder {
+        return $query->with([
+            'bookings' => fn (Builder $bookingQuery) =>
+                $bookingQuery
+                    ->betweenDates($start, $end)
+                    ->orderBy('start_at'),
+        ]);
     }
 }

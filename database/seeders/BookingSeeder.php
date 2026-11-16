@@ -12,124 +12,119 @@ class BookingSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = User::query()
-            ->where('role', 'member')
-            ->pluck('id');
+        $courts = Court::query()
+            ->where('status', Court::STATUS_AVAILABLE)
+            ->get();
 
-        if ($users->isEmpty()) {
+        $members = User::query()
+            ->members()
+            ->active()
+            ->get();
+
+        if ($courts->isEmpty() || $members->isEmpty()) {
+            $this->command?->warn(
+                'BookingSeeder requires available courts and active members.'
+            );
+
             return;
         }
 
-        $courts = Court::query()
-            ->where('status', Court::STATUS_AVAILABLE)
-            ->with('maintenancePeriods')
-            ->get();
+        $today = Carbon::today(Court::TIME_ZONE);
+        $created = 0;
 
         foreach ($courts as $court) {
             if (
-                ! $court->hasValidOperatingHours() ||
-                ! $court->hasValidBookingConfiguration()
+                ! $court->hasValidOperatingHours()
+                || ! $court->hasValidBookingConfiguration()
             ) {
                 continue;
             }
 
             $durations = $court->getAllowedBookingDurations();
+            $duration = $durations[0] ?? null;
 
-            $openingTime = $court->opening_time;
-            $closingTime = $court->closing_time;
+            if ($duration === null) {
+                continue;
+            }
 
-            for ($day = -20; $day <= 10; $day++) {
-                $date = Carbon::now(Court::TIME_ZONE)
-                    ->startOfDay()
-                    ->addDays($day);
+            for ($dayOffset = -7; $dayOffset <= 7; $dayOffset++) {
+                $date = $today->copy()->addDays($dayOffset);
+                $schedule = $court->getEffectiveSchedule($date);
+
+                if ($schedule['status'] !== Court::OPERATING_OPEN) {
+                    continue;
+                }
 
                 $opening = Carbon::parse(
-                    $date->toDateString() . ' ' . $openingTime,
+                    $date->toDateString() . ' ' . $schedule['opening_time'],
                     Court::TIME_ZONE
                 );
 
                 $closing = Carbon::parse(
-                    $date->toDateString() . ' ' . $closingTime,
+                    $date->toDateString() . ' ' . $schedule['closing_time'],
                     Court::TIME_ZONE
                 );
 
-                $cursor = $opening->copy();
+                $interval = (int) $court->booking_interval_minutes;
 
-                while ($cursor->lt($closing)) {
-                    $duration = $durations[array_rand($durations)];
+                $slots = [
+                    0,
+                    2,
+                    4,
+                ];
 
-                    $end = $cursor->copy()->addMinutes($duration);
+                foreach ($slots as $slotIndex) {
+                    $start = $opening->copy()->addMinutes(
+                        $slotIndex * $interval
+                    );
+
+                    $end = $start->copy()->addMinutes($duration);
 
                     if ($end->gt($closing)) {
-                        break;
-                    }
-
-                    $startUtc = $cursor->copy()->utc();
-                    $endUtc = $end->copy()->utc();
-
-                    $maintenanceOverlap = $court->maintenancePeriods
-                        ->contains(function ($period) use (
-                            $startUtc,
-                            $endUtc
-                        ) {
-                            return $period->start_at->lt($endUtc)
-                                && $period->end_at->gt($startUtc);
-                        });
-
-                    if ($maintenanceOverlap) {
-                        $cursor->addMinutes(
-                            $court->booking_interval_minutes
-                        );
-
                         continue;
                     }
 
-                    $bookingOverlap = Booking::query()
-                        ->where('court_id', $court->id)
-                        ->whereIn('status', [
-                            Booking::STATUS_PENDING,
-                            Booking::STATUS_CONFIRMED,
-                            Booking::STATUS_COMPLETED,
-                        ])
-                        ->where('start_at', '<', $endUtc)
-                        ->where('end_at', '>', $startUtc)
+                    $overlap = Booking::query()
+                        ->forCourt($court->id)
+                        ->active()
+                        ->betweenDates($start, $end)
                         ->exists();
 
-                    if ($bookingOverlap) {
-                        $cursor->addMinutes(
-                            $court->booking_interval_minutes
-                        );
-
+                    if ($overlap) {
                         continue;
                     }
 
-                    if (random_int(1, 100) <= 55) {
-                        $status = $endUtc->isPast()
-                            ? Booking::STATUS_COMPLETED
-                            : Booking::STATUS_CONFIRMED;
+                    $member = $members->random();
 
-                        Booking::firstOrCreate(
-                            [
-                                'court_id' => $court->id,
-                                'start_at' => $startUtc->format('Y-m-d H:i:s'),
-                                'end_at' => $endUtc->format('Y-m-d H:i:s'),
-                            ],
-                            [
-                                'user_id' => $users->random(),
-                                'duration_minutes' => $duration,
-                                'total_price' => $court->calculateBookingPrice(
-                                    $duration
-                                ),
-                                'status' => $status,
-                            ]
-                        );
-                    }
+                    $status = match (true) {
+                        $end->lte(Carbon::now(Court::TIME_ZONE)) =>
+                            Booking::STATUS_COMPLETED,
 
-                    $cursor->addMinutes(
-                        $court->booking_interval_minutes
-                    );
+                        default => [
+                            Booking::STATUS_PENDING,
+                            Booking::STATUS_CONFIRMED,
+                        ][($dayOffset + $slotIndex + 21) % 2],
+                    };
+
+                    Booking::create([
+                        'court_id' => $court->id,
+                        'user_id' => $member->id,
+                        'start_at' => $start,
+                        'end_at' => $end,
+                        'duration_minutes' => $duration,
+                        'total_price' => $court->calculateBookingPrice(
+                            $duration
+                        ),
+                        'status' => $status,
+                    ]);
+
+                    $created++;
                 }
             }
         }
+
+        $this->command?->info(
+            "BookingSeeder created {$created} sample bookings."
+        );
     }
 }

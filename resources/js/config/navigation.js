@@ -1,4 +1,4 @@
-import { LayoutDashboard, ChartNoAxesColumn, CalendarDays, CalendarCheck, Clock3, Users, UserRound, Wrench, Tags, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, CalendarClock, ChartNoAxesColumn, CalendarDays, CalendarCheck, Clock3, Users, UserRound, Wrench, Tags, LayoutGrid } from "lucide-react";
 
 export const adminMenu = [
     {
@@ -36,6 +36,11 @@ export const adminMenu = [
         icon: ChartNoAxesColumn,
         path: "court-utilization",
         end: true,
+    },
+    {
+        label: "Recurring Schedules",
+        path: "/admin/court-recurring-schedules",
+        icon: CalendarClock,
     },
     {
         label: "Reservations",

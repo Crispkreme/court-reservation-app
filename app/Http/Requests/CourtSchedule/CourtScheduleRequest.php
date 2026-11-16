@@ -26,11 +26,7 @@ class CourtScheduleRequest extends FormRequest
                 'date_format:Y-m-d',
             ],
 
-            'view' => [
-                'sometimes',
-                'required',
-                Rule::in(['daily', 'weekly']),
-            ],
+            'view' => ['nullable', Rule::in(['daily', 'weekly', 'monthly'])],
 
             'court_id' => [
                 'sometimes',

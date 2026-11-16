@@ -18,7 +18,7 @@ import TableLoader from "@components/common/table/TableLoader";
 import CourtModal from "./modal/CourtModal";
 import { courtColumns } from "@data/tableColumns/courtColumns";
 import { filterData, paginate } from "@utils/pagination";
-import { getCurrentUaeTime } from "@utils/index.js";
+import { getCurrentPhilippineTime } from "@utils/index";
 
 const statusOptions = [
     {
@@ -55,7 +55,7 @@ export default function CourtIndex() {
     const [message, setMessage] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-    const [currentTime, setCurrentTime] = useState(getCurrentUaeTime);
+    const [currentTime, setCurrentTime] = useState(getCurrentPhilippineTime);
 
     const loadCourts = useCallback(async () => {
         try {
@@ -77,7 +77,7 @@ export default function CourtIndex() {
 
     useEffect(() => {
         const updateTime = () => {
-            setCurrentTime(getCurrentUaeTime());
+            setCurrentTime(getCurrentPhilippineTime());
         };
 
         updateTime();

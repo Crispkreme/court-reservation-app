@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Users, Clock3, Trophy, House, Sun, ArrowRight, LayoutGrid, RefreshCw, CalendarClock } from "lucide-react";
 
 import { getCourts } from "@services/courtService";
-import { getOperatingStatus, getCurrentUaeTime, hasValidBookingConfiguration, formatDuration, formatPrice, formatOperatingTime } from "@utils/index";
+import { getOperatingStatus, getCurrentPhilippineTime, hasValidBookingConfiguration, formatDuration, formatPrice, TIME_ZONE, formatOperatingTime } from "@utils/Index";
 import { statusConfig, statusOptions, operatingOptions } from "@data/init/court"
 
 import PageHeader from "@components/common/PageHeader";
@@ -241,7 +241,7 @@ export default function MemberCourtIndex() {
     // Live UAE time updates
     useEffect(() => {
         const updateTime = () => {
-            setCurrentTime(getCurrentUaeTime());
+            setCurrentTime(getCurrentPhilippineTime());
         };
 
         updateTime();

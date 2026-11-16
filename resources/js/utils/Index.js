@@ -1,18 +1,20 @@
-export const TIME_ZONE = "Asia/Dubai";
+export const TIME_ZONE = "Asia/Manila";
+
 export const BOOKING_INTERVALS = [15, 30, 60];
 export const MAX_BOOKING_MINUTES = 1440;
+
+const PHILIPPINE_UTC_OFFSET = "+08:00";
 
 export const numeric = (value) => {
     if (value === null || value === undefined || value === "") {
         return 0;
     }
-
     const number = Number(value);
 
     return Number.isFinite(number) ? number : 0;
 };
 
-export const getCurrentUaeTime = () => {
+export const getCurrentPhilippineTime = () => {
     return new Intl.DateTimeFormat("en-GB", {
         timeZone: TIME_ZONE,
         hour: "2-digit",
@@ -21,23 +23,20 @@ export const getCurrentUaeTime = () => {
     }).format(new Date());
 };
 
-export const startUaeTimeUpdates = (
-    setCurrentTime,
-    intervalMs = 30000
-) => {
+export const startPhilippineTimeUpdates = (setCurrentTime,intervalMs = 30000) => {
     const updateCurrentTime = () => {
-        setCurrentTime(getCurrentUaeTime());
+        setCurrentTime(getCurrentPhilippineTime());
     };
 
     updateCurrentTime();
-
-    const interval = setInterval(
-        updateCurrentTime,
-        intervalMs
-    );
+    const interval = setInterval(updateCurrentTime,intervalMs);
 
     return () => clearInterval(interval);
 };
+
+// Backward compatibility for existing imports
+export const getCurrentUaeTime = getCurrentPhilippineTime;
+export const startUaeTimeUpdates = startPhilippineTimeUpdates;
 
 export const formatMoney = (amount) => {
     return numeric(amount).toLocaleString("en-AE", {
@@ -55,11 +54,21 @@ export const isValidTime = (time) => {
 };
 
 export const getLocalDate = (date = new Date()) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    const parsedDate = date instanceof Date ? date : new Date(date);
 
-    return `${year}-${month}-${day}`;
+    if (Number.isNaN(parsedDate.getTime())) {
+        return "";
+    }
+
+    const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(parsedDate);
+    const getPart = (type) => parts.find((part) => part.type === type)?.value ?? "";
+
+    return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
 };
 
 export const formatTime = (time) => {
@@ -137,13 +146,10 @@ export const getAllowedBookingDurations = (court) => {
     const interval = Number(court.booking_interval_minutes);
     const minimum = Number(court.min_booking_minutes);
     const maximum = Number(court.max_booking_minutes);
+
     const durations = [];
 
-    for (
-        let duration = minimum;
-        duration <= maximum;
-        duration += interval
-    ) {
+    for (let duration = minimum;duration <= maximum;duration += interval) {
         durations.push(duration);
     }
 
@@ -154,63 +160,35 @@ export const getBookingDurations = (court) => {
     return getAllowedBookingDurations(court);
 };
 
-export const calculateBookingPrice = (
-    pricePerHour,
-    durationMinutes
-) => {
+export const calculateBookingPrice = (pricePerHour,durationMinutes) => {
+    
     const price = Number(pricePerHour);
     const duration = Number(durationMinutes);
 
-    if (
-        pricePerHour === null ||
-        pricePerHour === undefined ||
-        pricePerHour === "" ||
-        !Number.isFinite(price) ||
-        price < 0 ||
-        !Number.isInteger(duration) ||
-        duration <= 0
-    ) {
+    if (pricePerHour === null || pricePerHour === undefined || pricePerHour === "" || !Number.isFinite(price) || price < 0 || !Number.isInteger(duration) || duration <= 0) {
         return 0;
     }
 
     const total = price * (duration / 60);
-
     return Math.round((total + Number.EPSILON) * 100) / 100;
 };
 
 export const calculatePrice = (hourlyRate, minutes) => {
-    if (
-        hourlyRate === null ||
-        hourlyRate === undefined ||
-        hourlyRate === ""
-    ) {
+    if (hourlyRate === null ||hourlyRate === undefined ||hourlyRate === "") {
         return null;
     }
 
     const rate = Number(hourlyRate);
     const duration = Number(minutes);
 
-    if (
-        !Number.isFinite(rate) ||
-        rate < 0 ||
-        !Number.isInteger(duration) ||
-        duration <= 0
-    ) {
+    if (!Number.isFinite(rate) ||rate < 0 ||!Number.isInteger(duration) ||duration <= 0) {
         return null;
     }
 
-    return (
-        Math.round(rate * 100) *
-        duration /
-        60 /
-        100
-    ).toFixed(2);
+    return (Math.round(rate * 100) *duration /60 /100).toFixed(2);
 };
 
-export const getOperatingStatus = (
-    court,
-    currentTime = getCurrentUaeTime()
-) => {
+export const getOperatingStatus = (court,currentTime = getCurrentPhilippineTime()) => {
     if (!court || court.status !== "available") {
         return {
             key: "unavailable",
@@ -223,11 +201,7 @@ export const getOperatingStatus = (
     const openingTime = String(court.opening_time ?? "").slice(0, 5);
     const closingTime = String(court.closing_time ?? "").slice(0, 5);
 
-    if (
-        !isValidTime(openingTime) ||
-        !isValidTime(closingTime) ||
-        closingTime <= openingTime
-    ) {
+    if (!isValidTime(openingTime) ||!isValidTime(closingTime)) {
         return {
             key: "unknown",
             label: "Hours Unavailable",
@@ -245,9 +219,15 @@ export const getOperatingStatus = (
         };
     }
 
-    const isOpen =
-        currentTime >= openingTime &&
-        currentTime < closingTime;
+    let isOpen = false;
+
+    if (openingTime === closingTime) {
+        isOpen = true;
+    } else if (closingTime > openingTime) {
+        isOpen = currentTime >= openingTime && currentTime < closingTime;
+    } else {
+        isOpen = currentTime >= openingTime || currentTime < closingTime;
+    }
 
     if (isOpen) {
         return {
@@ -270,12 +250,8 @@ export const toLocalInput = (value) => {
     if (!value) return "";
 
     const normalized = String(value).trim().replace(" ", "T");
-
     const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(normalized);
-
-    const date = new Date(
-        hasTimezone ? normalized : `${normalized}Z`
-    );
+    const date = new Date(hasTimezone ? normalized : `${normalized}Z`);
 
     if (Number.isNaN(date.getTime())) {
         return "";
@@ -295,7 +271,10 @@ export const toLocalInput = (value) => {
         return parts.find((part) => part.type === type)?.value ?? "";
     };
 
-    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+    return (
+        `${get("year")}-${get("month")}-${get("day")}` +
+        `T${get("hour")}:${get("minute")}`
+    );
 };
 
 export const toUtc = (value) => {
@@ -303,13 +282,11 @@ export const toUtc = (value) => {
 
     const normalized = String(value).trim();
 
-    if (
-        !/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/.test(normalized)
-    ) {
+    if (!/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/.test(normalized)) {
         return "";
     }
 
-    const date = new Date(`${normalized}:00+04:00`);
+    const date = new Date(`${normalized}:00${PHILIPPINE_UTC_OFFSET}`);
 
     if (Number.isNaN(date.getTime())) {
         return "";

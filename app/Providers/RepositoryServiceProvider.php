@@ -9,7 +9,9 @@ use App\Interfaces\CourtMaintenancePeriodInterface;
 use App\Interfaces\CourtUtilizationInterface;
 use App\Interfaces\CourtScheduleInterface;
 use App\Interfaces\CourtRecurringScheduleInterface;
+use App\Interfaces\CourtScheduleOverrideInterface;
 
+use App\Repositories\CourtScheduleOverrideRepository;
 use App\Repositories\CourtRecurringScheduleRepository;
 use App\Repositories\CourtScheduleRepository;
 use App\Repositories\CourtUtilizationRepository;
@@ -30,6 +32,7 @@ class RepositoryServiceProvider extends ServiceProvider
         CourtUtilizationInterface::class => CourtUtilizationRepository::class,
         CourtScheduleInterface::class => CourtScheduleRepository::class,
         CourtRecurringScheduleInterface::class => CourtRecurringScheduleRepository::class,
+        CourtScheduleOverrideInterface::class => CourtScheduleOverrideRepository::class,
     ];
     
     /**

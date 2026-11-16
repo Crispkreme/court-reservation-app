@@ -39,8 +39,15 @@ export const adminMenu = [
     },
     {
         label: "Recurring Schedules",
-        path: "/admin/court-recurring-schedules",
+        path: "court-recurring-schedules",
         icon: CalendarClock,
+        end: true,
+    },
+    {
+        label: "Schedule Overrides",
+        path: "court-schedule-overrides",
+        icon: CalendarClock,
+        end: true,
     },
     {
         label: "Reservations",

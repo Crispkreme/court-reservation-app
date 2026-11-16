@@ -16,20 +16,21 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->date('date');
-
-            // Null means use the court's default hours.
+            $table->enum('status', ['open', 'closed'])->default('open');
             $table->time('opening_time')->nullable();
             $table->time('closing_time')->nullable();
-
-            // open or closed
-            $table->string('status', 20)->default('open');
-
             $table->text('notes')->nullable();
-
             $table->timestamps();
+            
+            $table->unique(
+                ['court_id', 'date'],
+                'court_schedules_court_date_unique'
+            );
 
-            // One daily schedule per court.
-            $table->unique(['court_id', 'date']);
+            $table->index(
+                ['date', 'status'],
+                'court_schedules_date_status_index'
+            );
         });
     }
 

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -12,6 +11,7 @@ use App\Http\Controllers\CourtMaintenancePeriodController;
 use App\Http\Controllers\CourtUtilizationController;
 use App\Http\Controllers\CourtScheduleController;
 use App\Http\Controllers\CourtRecurringScheduleController;
+use App\Http\Controllers\CourtScheduleOverrideController;
 
 Route::prefix('v1')->group(function () {
 
@@ -43,6 +43,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('court-maintenance-periods',CourtMaintenancePeriodController::class)->parameters(['court-maintenance-periods' => 'maintenancePeriod']);
             Route::get('court-utilization',[CourtUtilizationController::class, 'index']);
             Route::apiResource('court-recurring-schedules',CourtRecurringScheduleController::class);
+            Route::apiResource('court-schedule-overrides',CourtScheduleOverrideController::class)->parameters(['court-schedule-overrides' => 'courtScheduleOverride']);
         });
 
         Route::middleware('member')->group(function () {

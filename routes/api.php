@@ -11,6 +11,7 @@ use App\Http\Controllers\CourtController;
 use App\Http\Controllers\CourtMaintenancePeriodController;
 use App\Http\Controllers\CourtUtilizationController;
 use App\Http\Controllers\CourtScheduleController;
+use App\Http\Controllers\CourtRecurringScheduleController;
 
 Route::prefix('v1')->group(function () {
 
@@ -41,6 +42,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/courts/{court}', [CourtController::class, 'destroy'])->whereNumber('court');
             Route::apiResource('court-maintenance-periods',CourtMaintenancePeriodController::class)->parameters(['court-maintenance-periods' => 'maintenancePeriod']);
             Route::get('court-utilization',[CourtUtilizationController::class, 'index']);
+            Route::apiResource('court-recurring-schedules',CourtRecurringScheduleController::class);
         });
 
         Route::middleware('member')->group(function () {

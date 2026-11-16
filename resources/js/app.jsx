@@ -22,6 +22,7 @@ import AdminCourt from "@pages/Admin/Court/Index";
 import AdminCourtMaintenance from "@pages/Admin/Court/maintenance/Index";
 import AdminCourtUtilization from "@pages/Admin/Court/Utilization/Index";
 import AdminCourtSchedule from "@/pages/Admin/Court/CourtSchedule/Index";
+import AdminCourtRecurringSchedule from "@/pages/Admin/Court/CourtRecurringSchedule/Index";
 
 // Member Pages
 import MemberDashboard from "@pages/Member/Dashboard";
@@ -60,6 +61,7 @@ function App() {
                     <Route path="court-maintenance" element={<AdminCourtMaintenance />} />
                     <Route path="court-utilization" element={<AdminCourtUtilization />} />
                     <Route path="court-schedules" element={<AdminCourtSchedule />} />
+                    <Route path="court-recurring-schedules" element={<AdminCourtRecurringSchedule />} />
                 </Route>
             </Route>
 

@@ -278,4 +278,8 @@ class Court extends Model
         return $this->hasMany(CourtSchedule::class);
     }
 
+    public function recurringSchedules(): HasMany
+    {
+        return $this->hasMany(CourtRecurringSchedule::class);
+    }
 }

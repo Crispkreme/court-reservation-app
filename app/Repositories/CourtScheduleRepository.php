@@ -42,7 +42,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
                 break;
         }
 
-        $dayCount = $start->diffInDays($end);
+        $dayCount = (int) $start->diffInDays($end);
         $lastDay = $end->subDay();
 
         $fromUtc = $start->utc()->toDateTimeString();
@@ -66,6 +66,24 @@ class CourtScheduleRepository implements CourtScheduleInterface
                         $start->toDateString(),
                         $lastDay->toDateString(),
                     ]),
+
+                'recurringSchedules' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->where(
+                        'effective_from',
+                        '<=',
+                        $lastDay->toDateString()
+                    )
+                    ->where(function ($query) use ($start) {
+                        $query->whereNull('effective_until')
+                            ->orWhere(
+                                'effective_until',
+                                '>=',
+                                $start->toDateString()
+                            );
+                    })
+                    ->orderByDesc('effective_from')
+                    ->orderByDesc('id'),
 
                 'maintenancePeriods' => fn ($query) => $query
                     ->where('start_at', '<', $untilUtc)
@@ -98,20 +116,33 @@ class CourtScheduleRepository implements CourtScheduleInterface
 
                 $schedule = $schedulesByDate->get($dateKey);
 
+                $recurringSchedule = $court->recurringSchedules->first(
+                    fn ($item) =>
+                        (int) $item->day_of_week === $day->dayOfWeek &&
+                        $item->effective_from->toDateString() <= $dateKey &&
+                        (
+                            $item->effective_until === null ||
+                            $item->effective_until->toDateString() >= $dateKey
+                        )
+                );
+
                 $openingTime = $schedule?->opening_time
-                    ?: $court->opening_time;
+                    ?? $recurringSchedule?->opening_time
+                    ?? $court->opening_time;
 
                 $closingTime = $schedule?->closing_time
-                    ?: $court->closing_time;
+                    ?? $recurringSchedule?->closing_time
+                    ?? $court->closing_time;
 
                 $status = $schedule?->status
+                    ?? $recurringSchedule?->status
                     ?? CourtSchedule::STATUS_OPEN;
 
                 $slots = $this->generateSlots(
                     $court,
                     $day,
                     $now,
-                    $schedule,
+                    $status,
                     $openingTime,
                     $closingTime
                 );
@@ -152,14 +183,11 @@ class CourtScheduleRepository implements CourtScheduleInterface
         Court $court,
         CarbonImmutable $day,
         CarbonImmutable $now,
-        ?CourtSchedule $schedule,
+        string $scheduleStatus,
         ?string $openingTime,
         ?string $closingTime
     ): array {
-        if (
-            !$openingTime ||
-            !$closingTime
-        ) {
+        if (!$openingTime || !$closingTime) {
             return [];
         }
 
@@ -196,7 +224,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
                 break;
             }
 
-            if ($schedule?->status === CourtSchedule::STATUS_CLOSED) {
+            if ($scheduleStatus === CourtSchedule::STATUS_CLOSED) {
                 $status = 'closed';
             } else {
                 $status = $this->getSlotStatus(
@@ -257,5 +285,4 @@ class CourtScheduleRepository implements CourtScheduleInterface
 
         return 'available';
     }
-
 }

@@ -17,6 +17,6 @@ interface BookingInterface
     public function cancel(int $id, int $userId): Booking;
     public function getByCourt(int $courtId, array $filters = []): Collection;
     public function getByUser(int $userId, array $filters = []): Collection;
-    public function getForCalendar(string $startDate,string $endDate,?int $courtId = null,?string $status = null): Collection;
+    public function getForCalendar(string $startDate,string $endDate,?int $courtId = null,?string $status = null,?string $timeFrom = null,?string $timeTo = null): Collection;
     public function hasOverlappingBooking(int $courtId,string $startAt,string $endAt,?int $excludeBookingId = null): bool;
 }

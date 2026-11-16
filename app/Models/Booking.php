@@ -62,9 +62,12 @@ class Booking extends Model
         Carbon|string $start,
         Carbon|string $end
     ): Builder {
+        $startAt = $start instanceof Carbon ? $start : Carbon::parse($start, Court::TIME_ZONE);
+        $endAt = $end instanceof Carbon ? $end : Carbon::parse($end, Court::TIME_ZONE);
+
         return $query
-            ->where('start_at', '<', Carbon::parse($end))
-            ->where('end_at', '>', Carbon::parse($start));
+            ->where('start_at', '<', $endAt->format('Y-m-d H:i:s'))
+            ->where('end_at', '>', $startAt->format('Y-m-d H:i:s'));
     }
 
     public function scopeWithStatus(
@@ -92,16 +95,8 @@ class Booking extends Model
         return $query
             ->with(['court', 'user'])
             ->betweenDates($start, $end)
-            ->when(
-                $courtId !== null,
-                fn (Builder $query) => $query->forCourt($courtId)
-            )
-            ->when(
-                $status !== null,
-                fn (Builder $query) => $query->withStatus($status)
-            )
-            ->orderBy('start_at')
-            ->orderBy('court_id');
+            ->when($courtId !== null,fn (Builder $query) => $query->forCourt($courtId))
+            ->when($status !== null && $status !== '',fn (Builder $query) => $query->withStatus($status));
     }
 
     public function getIsBlockingAttribute(): bool

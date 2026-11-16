@@ -270,24 +270,27 @@ class BookingRepository implements BookingInterface
         string $startDate,
         string $endDate,
         ?int $courtId = null,
-        ?string $status = null
+        ?string $status = null,
+        ?string $timeFrom = null,
+        ?string $timeTo = null
     ): Collection {
-        $start = Carbon::parse(
-            $startDate,
-            Court::TIME_ZONE
-        )->startOfDay();
+        $start = Carbon::parse($startDate, Court::TIME_ZONE)->startOfDay();
+        $end = Carbon::parse($endDate, Court::TIME_ZONE)->addDay()->startOfDay();
+        $query = Booking::forCalendar($start, $end, $courtId, $status);
 
-        $end = Carbon::parse(
-            $endDate,
-            Court::TIME_ZONE
-        )->addDay()->startOfDay();
+        if ($timeFrom !== null) {
+            $query->whereTime('end_at', '>', $timeFrom . ':00');
+        }
 
-        return Booking::forCalendar(
-            $start,
-            $end,
-            $courtId,
-            $status
-        )->get();
+        if ($timeTo !== null) {
+            $query->whereTime('start_at', '<', $timeTo . ':00');
+        }
+
+        return $query
+            ->with(['court', 'user'])
+            ->orderBy('start_at')
+            ->orderBy('court_id')
+            ->get();
     }
 
     public function hasOverlappingBooking(

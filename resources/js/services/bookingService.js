@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 const ENDPOINT = "/bookings";
@@ -87,6 +86,38 @@ export const getCourtAvailability = async (
     const response = await api.get(
         `${getCourtEndpoint(courtId)}/availability`,
         { params }
+    );
+
+    return response.data;
+};
+
+export const getBookingCalendar = async (params = {}) => {
+    if (!params.date_from || !params.date_to) {
+        throw new Error(
+            "Calendar start date and end date are required."
+        );
+    }
+
+    const response = await api.get(
+        `${ENDPOINT}/calendar`,
+        {
+            params: {
+                date_from: params.date_from,
+                date_to: params.date_to,
+                ...(params.court_id
+                    ? { court_id: params.court_id }
+                    : {}),
+                ...(params.status
+                    ? { status: params.status }
+                    : {}),
+                ...(params.time_from
+                    ? { time_from: params.time_from }
+                    : {}),
+                ...(params.time_to
+                    ? { time_to: params.time_to }
+                    : {}),
+            },
+        }
     );
 
     return response.data;

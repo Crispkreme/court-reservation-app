@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
                 Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
                 Route::get('bookings/{booking}', [BookingController::class, 'show'])->whereNumber('booking')->name('bookings.show');
+                Route::get('bookings/calendar', [BookingController::class, 'calendar'])->name('bookings.calendar');
                 Route::match(['put', 'patch'], 'bookings/{booking}', [BookingController::class, 'update'])->whereNumber('booking')->name('bookings.update');
                 Route::patch('bookings/{booking}/status', [BookingController::class, 'updateStatus'])->whereNumber('booking')->name('bookings.status');
                 Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->whereNumber('booking')->name('bookings.destroy');

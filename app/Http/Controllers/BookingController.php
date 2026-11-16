@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Booking\BookingFilterRequest;
+use App\Http\Requests\Booking\BookingCalendarRequest;
 use App\Http\Requests\Booking\BookingStatusRequest;
 use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Http\Requests\Booking\UpdateBookingRequest;
@@ -144,5 +145,25 @@ class BookingController extends Controller
                 && ($user->isAdmin() || $user->isMember()),
             403
         );
+    }
+
+    public function calendar(BookingCalendarRequest $request): JsonResponse
+    {
+        $filters = $request->validated();
+
+        $bookings = $this->bookingRepository->getForCalendar(
+            $filters['date_from'],
+            $filters['date_to'],
+            isset($filters['court_id'])
+                ? (int) $filters['court_id']
+                : null,
+            $filters['status'] ?? null,
+            $filters['time_from'] ?? null,
+            $filters['time_to'] ?? null
+        );
+
+        return response()->json([
+            'data' => $bookings,
+        ]);
     }
 }

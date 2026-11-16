@@ -10,6 +10,7 @@ use App\Http\Controllers\SportCategoryController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\CourtMaintenancePeriodController;
 use App\Http\Controllers\CourtUtilizationController;
+use App\Http\Controllers\CourtScheduleController;
 
 Route::prefix('v1')->group(function () {
 
@@ -28,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/profile/password', [ProfilePasswordController::class,'update'])->middleware('throttle:6,1');
         Route::get('/courts', [CourtController::class, 'index']);
         Route::get('/courts/{court}', [CourtController::class, 'show'])->whereNumber('court');
+        Route::get('court-schedules', [CourtScheduleController::class, 'index']);
 
         Route::middleware('admin')->group(function () {
             Route::apiResource('users',UserController::class);

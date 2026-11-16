@@ -26,6 +26,12 @@ export const adminMenu = [
         end: true,
     },
     {
+        label: "Court Schedules",
+        icon: Clock3,
+        path: "court-schedules",
+        end: true,
+    },
+    {
         label: "Court Utilization",
         icon: ChartNoAxesColumn,
         path: "court-utilization",
@@ -35,12 +41,6 @@ export const adminMenu = [
         label: "Reservations",
         icon: CalendarCheck,
         path: "reservations",
-        enabled: false,
-    },
-    {
-        label: "Court Schedules",
-        icon: Clock3,
-        path: "schedules",
         enabled: false,
     },
     {
@@ -68,6 +68,12 @@ export const memberMenu = [
         label: "Browse Courts",
         icon: LayoutGrid,
         path: "courts",
+        end: true,
+    },
+    {
+        label: "Court Schedules",
+        icon: CalendarDays,
+        path: "court-schedules",
         end: true,
     },
     {

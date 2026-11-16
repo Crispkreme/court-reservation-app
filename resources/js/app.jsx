@@ -21,11 +21,13 @@ import AdminSportCategories from "@pages/Admin/SportCategory/Index";
 import AdminCourt from "@pages/Admin/Court/Index";
 import AdminCourtMaintenance from "@pages/Admin/Court/maintenance/Index";
 import AdminCourtUtilization from "@pages/Admin/Court/Utilization/Index";
+import AdminCourtSchedule from "@/pages/Admin/Court/CourtSchedule/Index";
 
 // Member Pages
 import MemberDashboard from "@pages/Member/Dashboard";
 import MemberCourtIndex from "@pages/Member/Court/Index";
 import MemberCourtShow from "@pages/Member/Court/Show";
+import MemberCourtSchedule from "@/pages/Member/Court/CourtSchedule/Index";
 import MemberCourtUtilization from "@pages/Member/Court/Utilization/Index";
 
 // Navigation
@@ -57,6 +59,7 @@ function App() {
                     <Route path="courts" element={<AdminCourt />} />
                     <Route path="court-maintenance" element={<AdminCourtMaintenance />} />
                     <Route path="court-utilization" element={<AdminCourtUtilization />} />
+                    <Route path="court-schedules" element={<AdminCourtSchedule />} />
                 </Route>
             </Route>
 
@@ -77,6 +80,7 @@ function App() {
                     <Route path="courts" element={<MemberCourtIndex />} />
                     <Route path="courts/:id" element={<MemberCourtShow />} />
                     <Route path="court-utilization" element={<MemberCourtUtilization />}/>
+                    <Route path="court-schedules" element={<MemberCourtSchedule />} />
                 </Route>
             </Route>
 

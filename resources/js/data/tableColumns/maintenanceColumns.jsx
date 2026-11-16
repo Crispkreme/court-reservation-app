@@ -1,6 +1,6 @@
 
 import { Pencil, Trash2, CalendarClock, Clock3 } from "lucide-react";
-import { formatDateTime } from "@utils/index.js";
+import { formatDateTime } from "@utils/Index";
 
 export const getMaintenanceStatus = (period, now = Date.now()) => {
     if (!period || typeof period !== "object") {

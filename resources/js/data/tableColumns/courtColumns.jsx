@@ -1,6 +1,6 @@
 import { Pencil, Trash2, MapPin, Users, Clock3, CalendarClock} from "lucide-react";
 import { statusConfig, courtStatusOptions } from "@config/index";
-import { TIME_ZONE, BOOKING_INTERVALS, formatPrice, formatOperatingTime, formatDuration, hasValidBookingConfiguration, getAllowedBookingDurations, calculateBookingPrice, getCurrentPhilippineTime, getOperatingStatus } from "@utils/index.js";
+import { TIME_ZONE, BOOKING_INTERVALS, formatPrice, formatOperatingTime, formatDuration, hasValidBookingConfiguration, getAllowedBookingDurations, calculateBookingPrice, getCurrentPhilippineTime, getOperatingStatus } from "@utils/Index";
 
 export const courtColumns = ({
     onEdit,

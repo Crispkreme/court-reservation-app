@@ -9,7 +9,7 @@ import FormSelect from "@components/common/FormSelect";
 
 import { createCourt, updateCourt } from "@services/courtService";
 import { getSportCategories } from "@services/sportCategoryService";
-import { TIME_ZONE, formatPrice, formatOperatingTime, getOperatingStatus, isValidTime, startUaeTimeUpdates, formatDuration } from "@utils/index";
+import { TIME_ZONE, formatPrice, formatOperatingTime, getOperatingStatus, isValidTime, startUaeTimeUpdates, formatDuration } from "@utils/Index";
 import { initialForm, typeOptions, bookingIntervalOptions, statusOptions } from "@data/init/court";
 
 export default function CourtModal({

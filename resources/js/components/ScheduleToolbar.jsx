@@ -1,15 +1,33 @@
-
 import React from "react";
-import {
-    CalendarDays,
-    ChevronLeft,
-    ChevronRight,
-    RefreshCw,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
-const shiftDate = (date, days) => {
-    const value = new Date(`${date}T12:00:00Z`);
-    value.setUTCDate(value.getUTCDate() + days);
+const shiftDate = (date, view, direction) => {
+    const [year, month, day] = date.split("-").map(Number);
+    const value = new Date(Date.UTC(year, month - 1, day, 12));
+
+    if (view === "monthly") {
+        const target = new Date(
+            Date.UTC(year, month - 1 + direction, 1, 12)
+        );
+
+        const lastDay = new Date(
+            Date.UTC(
+                target.getUTCFullYear(),
+                target.getUTCMonth() + 1,
+                0,
+                12
+            )
+        ).getUTCDate();
+
+        target.setUTCDate(Math.min(day, lastDay));
+
+        return target.toISOString().slice(0, 10);
+    }
+
+    const days = view === "weekly" ? 7 : 1;
+
+    value.setUTCDate(value.getUTCDate() + direction * days);
+
     return value.toISOString().slice(0, 10);
 };
 
@@ -39,8 +57,7 @@ export default function ScheduleToolbar({
     onRefresh,
 }) {
     const navigate = (direction) => {
-        const days = view === "weekly" ? 7 : 1;
-        onDateChange(shiftDate(date, direction * days));
+        onDateChange(shiftDate(date, view, direction));
     };
 
     return (
@@ -50,19 +67,20 @@ export default function ScheduleToolbar({
                     <h2 className="font-semibold text-slate-900">
                         Schedule Filters
                     </h2>
+
                     <p className="mt-1 text-sm text-slate-500">
-                        Browse court availability by date.
+                        Browse court availability by day, week, or month.
                     </p>
                 </div>
 
                 <div className="inline-flex rounded-xl bg-slate-100 p-1">
-                    {["daily", "weekly"].map((option) => (
+                    {["daily", "weekly", "monthly"].map((option) => (
                         <button
                             key={option}
                             type="button"
                             onClick={() => onViewChange(option)}
                             aria-pressed={view === option}
-                            className={`rounded-lg px-5 py-2 text-sm font-medium capitalize transition ${
+                            className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition sm:px-5 ${
                                 view === option
                                     ? "bg-white text-red-700 shadow-sm"
                                     : "text-slate-500 hover:text-slate-800"
@@ -79,8 +97,8 @@ export default function ScheduleToolbar({
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        aria-label="Previous period"
-                        className="rounded-lg border border-slate-200 p-2.5 hover:bg-slate-50"
+                        aria-label={`Previous ${view} period`}
+                        className="rounded-lg border border-slate-200 p-2.5 transition hover:bg-slate-50"
                     >
                         <ChevronLeft size={18} />
                     </button>
@@ -90,13 +108,15 @@ export default function ScheduleToolbar({
                             size={17}
                             className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
                         />
+
                         <input
                             type="date"
                             value={date}
-                            onChange={(e) =>
-                                e.target.value &&
-                                onDateChange(e.target.value)
-                            }
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    onDateChange(e.target.value);
+                                }
+                            }}
                             className="w-full rounded-lg border border-slate-200 py-2.5 pr-3 pl-10 text-sm outline-none focus:border-red-500"
                         />
                     </div>
@@ -104,8 +124,8 @@ export default function ScheduleToolbar({
                     <button
                         type="button"
                         onClick={() => navigate(1)}
-                        aria-label="Next period"
-                        className="rounded-lg border border-slate-200 p-2.5 hover:bg-slate-50"
+                        aria-label={`Next ${view} period`}
+                        className="rounded-lg border border-slate-200 p-2.5 transition hover:bg-slate-50"
                     >
                         <ChevronRight size={18} />
                     </button>
@@ -113,7 +133,7 @@ export default function ScheduleToolbar({
                     <button
                         type="button"
                         onClick={() => onDateChange(getUaeToday())}
-                        className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium hover:bg-slate-50"
+                        className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium transition hover:bg-slate-50"
                     >
                         Today
                     </button>
@@ -125,6 +145,7 @@ export default function ScheduleToolbar({
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                 >
                     <option value="">All Courts</option>
+
                     {courts.map((court) => (
                         <option key={court.id} value={court.id}>
                             {court.name}
@@ -136,7 +157,7 @@ export default function ScheduleToolbar({
                     type="button"
                     onClick={onRefresh}
                     disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <RefreshCw
                         size={16}

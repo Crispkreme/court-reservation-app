@@ -5,6 +5,7 @@ import { getCourtSchedules } from "@services/courtScheduleService";
 
 import ScheduleToolbar, { getUaeToday } from "@/components/ScheduleToolbar";
 import ScheduleGrid from "@/components/ScheduleGrid";
+import ScheduleCalendar from "@components/ScheduleCalendar";
 import ScheduleLegend from "@/components/ScheduleLegend";
 
 import PageHeader from "@components/common/PageHeader";
@@ -164,11 +165,23 @@ export default function CourtScheduleIndex() {
                         <ScheduleLegend />
                     </div>
 
-                    <ScheduleGrid
-                        courts={visibleCourts}
-                        view={view}
-                        loading={loading}
-                    />
+                    {view === "monthly" ? (
+                        <ScheduleCalendar
+                            date={date}
+                            courts={visibleCourts}
+                            loading={loading}
+                            onDateChange={(selectedDate) => {
+                                setDate(selectedDate);
+                                setView("daily");
+                            }}
+                        />
+                    ) : (
+                        <ScheduleGrid
+                            courts={visibleCourts}
+                            view={view}
+                            loading={loading}
+                        />
+                    )}
                 </div>
             )}
         </div>

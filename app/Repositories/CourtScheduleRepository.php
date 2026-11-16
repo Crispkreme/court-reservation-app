@@ -19,17 +19,31 @@ class CourtScheduleRepository implements CourtScheduleInterface
     ): array {
         $timezone = Court::TIME_ZONE;
 
-        $start = CarbonImmutable::parse($date, $timezone)
+        $selectedDate = CarbonImmutable::parse($date, $timezone)
             ->startOfDay();
 
-        if ($view === 'weekly') {
-            $start = $start->startOfWeek(
-                CarbonInterface::MONDAY
-            );
+        switch ($view) {
+            case 'weekly':
+                $start = $selectedDate->startOfWeek(
+                    CarbonInterface::MONDAY
+                );
+                $end = $start->addWeek();
+                break;
+
+            case 'monthly':
+                $start = $selectedDate->startOfMonth();
+                $end = $start->addMonth();
+                break;
+
+            default:
+                $view = 'daily';
+                $start = $selectedDate;
+                $end = $start->addDay();
+                break;
         }
 
-        $dayCount = $view === 'weekly' ? 7 : 1;
-        $end = $start->addDays($dayCount);
+        $dayCount = $start->diffInDays($end);
+        $lastDay = $end->subDay();
 
         $fromUtc = $start->utc()->toDateTimeString();
         $untilUtc = $end->utc()->toDateTimeString();
@@ -41,14 +55,16 @@ class CourtScheduleRepository implements CourtScheduleInterface
             )
             ->when(
                 !$isAdmin,
-                fn ($query) => $query
-                    ->where('status', 'available')
+                fn ($query) => $query->where(
+                    'status',
+                    'available'
+                )
             )
             ->with([
                 'schedules' => fn ($query) => $query
                     ->whereBetween('date', [
                         $start->toDateString(),
-                        $end->subDay()->toDateString(),
+                        $lastDay->toDateString(),
                     ]),
 
                 'maintenancePeriods' => fn ($query) => $query
@@ -72,14 +88,15 @@ class CourtScheduleRepository implements CourtScheduleInterface
         foreach ($courts as $court) {
             $days = [];
 
+            $schedulesByDate = $court->schedules->keyBy(
+                fn ($schedule) => $schedule->date->toDateString()
+            );
+
             for ($i = 0; $i < $dayCount; $i++) {
                 $day = $start->addDays($i);
                 $dateKey = $day->toDateString();
 
-                $schedule = $court->schedules->first(
-                    fn ($item) =>
-                        $item->date->toDateString() === $dateKey
-                );
+                $schedule = $schedulesByDate->get($dateKey);
 
                 $openingTime = $schedule?->opening_time
                     ?: $court->opening_time;
@@ -87,19 +104,24 @@ class CourtScheduleRepository implements CourtScheduleInterface
                 $closingTime = $schedule?->closing_time
                     ?: $court->closing_time;
 
+                $status = $schedule?->status
+                    ?? CourtSchedule::STATUS_OPEN;
+
+                $slots = $this->generateSlots(
+                    $court,
+                    $day,
+                    $now,
+                    $schedule,
+                    $openingTime,
+                    $closingTime
+                );
+
                 $days[] = [
                     'date' => $dateKey,
                     'opening_time' => $openingTime,
                     'closing_time' => $closingTime,
-                    'status' => $schedule?->status ?? 'open',
-                    'slots' => $this->generateSlots(
-                        $court,
-                        $day,
-                        $now,
-                        $schedule,
-                        $openingTime,
-                        $closingTime
-                    ),
+                    'status' => $status,
+                    'slots' => $slots,
                 ];
             }
 
@@ -120,7 +142,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
             'timezone' => $timezone,
             'period' => [
                 'start_date' => $start->toDateString(),
-                'end_date' => $end->subDay()->toDateString(),
+                'end_date' => $lastDay->toDateString(),
             ],
             'courts' => $result,
         ];
@@ -136,8 +158,7 @@ class CourtScheduleRepository implements CourtScheduleInterface
     ): array {
         if (
             !$openingTime ||
-            !$closingTime ||
-            $closingTime <= $openingTime
+            !$closingTime
         ) {
             return [];
         }
@@ -161,11 +182,19 @@ class CourtScheduleRepository implements CourtScheduleInterface
             $timezone
         );
 
+        if ($closing->lte($opening)) {
+            return [];
+        }
+
         $slots = [];
         $cursor = $opening;
 
-        while ($cursor->addMinutes($interval)->lte($closing)) {
+        while (true) {
             $slotEnd = $cursor->addMinutes($interval);
+
+            if ($slotEnd->gt($closing)) {
+                break;
+            }
 
             if ($schedule?->status === CourtSchedule::STATUS_CLOSED) {
                 $status = 'closed';

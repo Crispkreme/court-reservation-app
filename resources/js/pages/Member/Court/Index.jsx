@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Users, Clock3, Trophy, House, Sun, ArrowRight, LayoutGrid, RefreshCw, CalendarClock } from "lucide-react";
 
 import { getCourts } from "@services/courtService";
-import { getOperatingStatus, getCurrentPhilippineTime, hasValidBookingConfiguration, formatDuration, formatPrice, TIME_ZONE, formatOperatingTime } from "@utils/index";
+import { getOperatingStatus, getCurrentPhilippineTime, hasValidBookingConfiguration, formatDuration, formatPrice, TIME_ZONE, formatOperatingTime } from "@utils";
 import { statusConfig, statusOptions, operatingOptions } from "@data/init/court"
 
 import PageHeader from "@components/common/PageHeader";

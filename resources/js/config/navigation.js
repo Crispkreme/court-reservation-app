@@ -1,4 +1,16 @@
-import { LayoutDashboard, CalendarClock, ChartNoAxesColumn, CalendarDays, CalendarCheck, Clock3, Users, UserRound, Wrench, Tags, LayoutGrid } from "lucide-react";
+import {
+    LayoutDashboard,
+    CalendarClock,
+    ChartNoAxesColumn,
+    CalendarDays,
+    CalendarCheck,
+    Clock3,
+    Users,
+    UserRound,
+    Wrench,
+    Tags,
+    LayoutGrid,
+} from "lucide-react";
 
 export const adminMenu = [
     {
@@ -52,8 +64,8 @@ export const adminMenu = [
     {
         label: "Reservations",
         icon: CalendarCheck,
-        path: "reservations",
-        enabled: false,
+        path: "bookings",
+        end: true,
     },
     {
         label: "Manage Members",
@@ -95,16 +107,10 @@ export const memberMenu = [
         end: true,
     },
     {
-        label: "Book a Court",
-        icon: CalendarDays,
-        path: "book",
-        enabled: false,
-    },
-    {
-        label: "My Reservations",
+        label: "My Booking",
         icon: CalendarCheck,
-        path: "reservations",
-        enabled: false,
+        path: "bookings",
+        end: true,
     },
     {
         label: "My Account",

@@ -1,5 +1,4 @@
-
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, RotateCcw } from "lucide-react";
 
 import FormInput from "@components/common/FormInput";
 import FormSelect from "@components/common/FormSelect";
@@ -8,6 +7,7 @@ export default function FilterPanel({
     title = "Search & Filter",
     search = "",
     onSearchChange,
+    searchLabel = "",
     searchPlaceholder = "Search...",
     filters = [],
     onClear,
@@ -30,12 +30,39 @@ export default function FilterPanel({
         onApply?.();
     };
 
+    const getFilterOptions = (filter) => {
+        const options = filter.options || [];
+
+        if (filter.includeDefault === false) {
+            return options;
+        }
+
+        const defaultValue = filter.defaultValue ?? "";
+        const defaultLabel = filter.placeholder || "All";
+
+        if (
+            options.some(
+                (option) => String(option.value) === String(defaultValue)
+            )
+        ) {
+            return options;
+        }
+
+        return [
+            {
+                value: defaultValue,
+                label: defaultLabel,
+            },
+            ...options,
+        ];
+    };
+
     return (
         <form
             onSubmit={handleSubmit}
             className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}
         >
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                     <SlidersHorizontal
                         size={18}
@@ -51,68 +78,82 @@ export default function FilterPanel({
                     <button
                         type="button"
                         onClick={onClear}
-                        className="text-xs font-semibold text-red-700 transition hover:underline"
+                        disabled={loading}
+                        className="!inline-flex !flex-row !items-center !justify-center !gap-2 !w-auto !rounded-lg !border !border-red-600 !bg-white !px-4 !py-2 !text-sm !font-semibold !text-red-700 !whitespace-nowrap hover:!bg-red-50 disabled:!cursor-not-allowed disabled:!opacity-50"
                     >
-                        Clear Filters
+                        <RotateCcw size={16} className="shrink-0" />
+                        <span className="whitespace-nowrap">Clear Filters</span>
                     </button>
                 )}
             </div>
 
             <div
-                className={`grid grid-cols-1 gap-3 ${gridColumns[columns] || gridColumns[3]}`}
+                className={`grid grid-cols-1 gap-3 ${
+                    gridColumns[columns] || gridColumns[3]
+                }`}
             >
                 {onSearchChange && (
                     <FormInput
                         type="search"
                         name="search"
+                        label={searchLabel}
                         value={search}
                         onChange={(event) =>
                             onSearchChange(event.target.value)
                         }
                         placeholder={searchPlaceholder}
                         icon={Search}
+                        disabled={loading}
                     />
                 )}
 
                 {filters.map((filter) => {
-                    if (filter.type === "date") {
+                    const {
+                        name,
+                        type = "select",
+                        label,
+                        value = "",
+                        onChange,
+                        placeholder,
+                        disabled = false,
+                        required = false,
+                        error,
+                    } = filter;
+
+                    if (type === "date") {
                         return (
                             <FormInput
-                                key={filter.name}
+                                key={name}
                                 type="date"
-                                name={filter.name}
-                                label={filter.label}
-                                value={filter.value ?? ""}
+                                name={name}
+                                label={label}
+                                value={value ?? ""}
                                 onChange={(event) =>
-                                    filter.onChange(event.target.value)
+                                    onChange?.(event.target.value)
                                 }
                                 min={filter.min}
                                 max={filter.max}
-                                required={filter.required}
-                                disabled={filter.disabled || loading}
-                                error={filter.error}
+                                required={required}
+                                disabled={disabled || loading}
+                                error={error}
                             />
                         );
                     }
 
                     return (
                         <FormSelect
-                            key={filter.name}
-                            name={filter.name}
-                            label={filter.label}
-                            value={filter.value ?? ""}
+                            key={name}
+                            name={name}
+                            label={label}
+                            value={value ?? ""}
                             onChange={(event) =>
-                                filter.onChange(event.target.value)
+                                onChange?.(event.target.value)
                             }
-                            placeholder={filter.placeholder || "All"}
-                            options={[
-                                {
-                                    value: "",
-                                    label: filter.placeholder || "All",
-                                },
-                                ...(filter.options || []),
-                            ]}
-                            disabled={filter.disabled || loading}
+                            placeholder={placeholder || "All"}
+                            options={getFilterOptions(filter)}
+                            required={required}
+                            disabled={disabled || loading}
+                            error={error}
                         />
                     );
                 })}

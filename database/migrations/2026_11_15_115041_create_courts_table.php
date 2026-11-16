@@ -59,7 +59,7 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            // Each court has its own hourly rate in AED
+            // Each court has its own hourly rate in PHP
             $table->decimal(
                 'price_per_hour',
                 10,

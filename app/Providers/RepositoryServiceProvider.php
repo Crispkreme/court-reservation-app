@@ -10,7 +10,11 @@ use App\Interfaces\CourtUtilizationInterface;
 use App\Interfaces\CourtScheduleInterface;
 use App\Interfaces\CourtRecurringScheduleInterface;
 use App\Interfaces\CourtScheduleOverrideInterface;
+use App\Interfaces\BookingInterface;
+use App\Interfaces\CourtAvailabilityInterface;
 
+use App\Repositories\CourtAvailabilityRepository;
+use App\Repositories\BookingRepository;
 use App\Repositories\CourtScheduleOverrideRepository;
 use App\Repositories\CourtRecurringScheduleRepository;
 use App\Repositories\CourtScheduleRepository;
@@ -19,7 +23,6 @@ use App\Repositories\CourtMaintenancePeriodRepository;
 use App\Repositories\CourtRepository;
 use App\Repositories\SportCategoryRepository;
 use App\Repositories\UserRepository;
-
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -33,6 +36,8 @@ class RepositoryServiceProvider extends ServiceProvider
         CourtScheduleInterface::class => CourtScheduleRepository::class,
         CourtRecurringScheduleInterface::class => CourtRecurringScheduleRepository::class,
         CourtScheduleOverrideInterface::class => CourtScheduleOverrideRepository::class,
+        BookingInterface::class => BookingRepository::class,
+        CourtAvailabilityInterface::class => CourtAvailabilityRepository::class,
     ];
     
     /**

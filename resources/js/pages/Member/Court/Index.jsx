@@ -32,7 +32,7 @@ function CourtCard({ court, onView, currentTime }) {
         court.price_per_hour !== undefined &&
         court.price_per_hour !== "" &&
         Number.isFinite(Number(court.price_per_hour))
-            ? `AED ${formatPrice(court.price_per_hour)}`
+            ? `PHP ${formatPrice(court.price_per_hour)}`
             : "Price unavailable";
 
     const playerCapacity =

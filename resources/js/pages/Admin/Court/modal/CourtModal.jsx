@@ -440,7 +440,7 @@ export default function CourtModal({
                         />
 
                         <FormInput
-                            label="Price per Hour (AED)"
+                            label="Price per Hour (PHP)"
                             name="price_per_hour"
                             type="number"
                             min={0}
@@ -559,7 +559,7 @@ export default function CourtModal({
                                                 {formatDuration(minutes)}
                                             </span>
                                             <span className="font-semibold text-slate-900">
-                                                AED {formatPrice(minutes)}
+                                                PHP {formatPrice(minutes)}
                                             </span>
                                         </div>
                                     ))}

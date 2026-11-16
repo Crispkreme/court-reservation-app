@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { CalendarClock, X } from "lucide-react";
-import { toLocalInput, toUtc } from "@utils/index";
+import { toLocalInput, toUtc } from "@utils/index.js";
 import FormInput from "@components/common/FormInput";
 import FormSelect from "@components/common/FormSelect";
 import FormTextarea from "@components/common/FormTextarea";

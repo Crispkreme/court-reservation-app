@@ -18,7 +18,7 @@ import TableLoader from "@components/common/table/TableLoader";
 import CourtModal from "./modal/CourtModal";
 import { courtColumns } from "@data/tableColumns/courtColumns";
 import { filterData, paginate } from "@utils/pagination";
-import { getCurrentUaeTime } from "@utils";
+import { getCurrentUaeTime } from "@utils/index.js";
 
 const statusOptions = [
     {

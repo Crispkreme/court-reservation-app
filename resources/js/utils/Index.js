@@ -1,8 +1,6 @@
-
 export const TIME_ZONE = "Asia/Dubai";
 export const BOOKING_INTERVALS = [15, 30, 60];
-
-const MAX_BOOKING_MINUTES = 1440;
+export const MAX_BOOKING_MINUTES = 1440;
 
 export const numeric = (value) => {
     if (value === null || value === undefined || value === "") {
@@ -325,7 +323,6 @@ export const toUtc = (value) => {
 
     return date.toISOString();
 };
-
 
 export const formatDateTime = (value) => {
     const local = toLocalInput(value);

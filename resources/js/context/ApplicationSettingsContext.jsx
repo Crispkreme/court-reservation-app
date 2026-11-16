@@ -17,7 +17,7 @@ const defaultApplicationSettings = {
     portal_logo: null,
     timezone: 'Asia/Dubai',
     date_format: 'DD/MM/YYYY',
-    currency: 'AED',
+    currency: 'PHP',
     validity_days: 30,
     vat_applicable: true,
     vat_rate: '5.00',

@@ -27,7 +27,7 @@ export const defaultSettings = {
     dateFormat: 'DD/MM/YYYY',
 
     // Quotation Settings
-    currency: 'AED',
+    currency: 'PHP',
     validityDays: '30',
     vatApplicable: true,
     vatRate: '5',
@@ -62,7 +62,7 @@ export const normalizeCompany = (company = {}) => ({
 });
 
 export const currencyOptions = [
-    { label: 'AED', value: 'AED' },
+    { label: 'PHP', value: 'PHP' },
     { label: 'USD', value: 'USD' },
     { label: 'EUR', value: 'EUR' },
     { label: 'GBP', value: 'GBP' },

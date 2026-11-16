@@ -9,16 +9,16 @@ import TableLoader from "@components/common/table/TableLoader";
 import TableHeader from "@components/common/table/TableHeader";
 import TablePagination from "@components/common/table/TablePagination";
 
-const uaeDate = (date = new Date()) =>
+const philippineDate = (date = new Date()) =>
     new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Dubai",
+        timeZone: "Asia/Manila",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
     }).format(date);
 
 const initialDates = () => {
-    const today = uaeDate();
+    const today = philippineDate();
 
     return {
         start_date: `${today.slice(0, 7)}-01`,

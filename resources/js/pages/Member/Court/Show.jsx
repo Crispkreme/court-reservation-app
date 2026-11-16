@@ -307,7 +307,7 @@ export default function MemberCourtShow() {
                         </p>
 
                         <p className="mt-1 text-2xl font-bold text-red-700">
-                            AED {formatPrice(court.price_per_hour)}
+                            PHP {formatPrice(court.price_per_hour)}
                         </p>
                     </div>
                 </div>
@@ -498,7 +498,7 @@ export default function MemberCourtShow() {
                                 </span>
 
                                 <span className="font-bold text-slate-900">
-                                    AED {formatPrice(court.price_per_hour)}
+                                    PHP {formatPrice(court.price_per_hour)}
                                 </span>
                             </div>
 
@@ -586,7 +586,7 @@ export default function MemberCourtShow() {
                                     <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
                                         <span className="text-sm text-slate-500">Estimated price</span>
                                         <span className="text-lg font-bold text-red-700">
-                                            {estimatedPrice === null ? "—" : `AED ${formatPrice(estimatedPrice)}`}
+                                            {estimatedPrice === null ? "—" : `PHP ${formatPrice(estimatedPrice)}`}
                                         </span>
                                     </div>
                                     <p className="mt-2 text-xs text-slate-400">

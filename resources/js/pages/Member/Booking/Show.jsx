@@ -38,7 +38,7 @@ const formatTime = (value) => {
 };
 
 const formatCurrency = (value) => {
-    return `AED ${Number(value || 0).toLocaleString("en-AE", {
+    return `PHP ${Number(value || 0).toLocaleString("en-AE", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })}`;

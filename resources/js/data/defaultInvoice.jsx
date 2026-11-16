@@ -32,7 +32,7 @@ export function blankInvoice() {
         deliveryTerms: "",
 
         // Financial Information
-        currency: "AED",
+        currency: "PHP",
         vatApplicable: true,
         vatRate: "5",
 

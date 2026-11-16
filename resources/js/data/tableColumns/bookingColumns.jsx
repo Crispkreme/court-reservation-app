@@ -119,7 +119,7 @@ export const bookingColumns = ({
         label: "Amount",
         render: (booking) => (
             <span className="font-medium">
-                AED {Number(booking.total_price ?? 0).toFixed(2)}
+                PHP {Number(booking.total_price ?? 0).toFixed(2)}
             </span>
         ),
     },

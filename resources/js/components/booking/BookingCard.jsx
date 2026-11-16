@@ -19,7 +19,7 @@ export default function BookingCard({ booking, onView, onCancel }) {
                 {booking.court?.location && <p className="flex items-center gap-2"><MapPin size={16} className="text-green-700" />{booking.court.location}</p>}
             </div>
             <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-                <span className="font-bold text-gray-900">AED {Number(booking.total_price || 0).toFixed(2)}</span>
+                <span className="font-bold text-gray-900">PHP {Number(booking.total_price || 0).toFixed(2)}</span>
                 <div className="flex gap-2">
                     <button type="button" onClick={() => onView(booking.id)} className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-50">Details</button>
                     {canCancel && <button type="button" onClick={() => onCancel(booking)} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Cancel</button>}

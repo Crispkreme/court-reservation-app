@@ -64,7 +64,7 @@ export const courtColumns = ({
             render: (value) => (
                 <div className="flex flex-col gap-1">
                     <span className="whitespace-nowrap font-semibold text-gray-900">
-                        {value != null && value !== "" ? `AED ${formatPrice(value)}` : "—"}
+                        {value != null && value !== "" ? `PHP ${formatPrice(value)}` : "—"}
                     </span>
                     <span className="text-xs text-gray-400">
                         Per hour

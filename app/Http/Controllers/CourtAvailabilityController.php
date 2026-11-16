@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Booking\CourtAvailabilityRequest;
+use App\Http\Requests\CourtAvailability\CourtAvailabilityRequest;
 use App\Interfaces\CourtAvailabilityInterface;
 use Illuminate\Http\JsonResponse;
 

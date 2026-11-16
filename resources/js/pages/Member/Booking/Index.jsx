@@ -90,7 +90,7 @@ export default function Index() {
                 buttonText="New Booking"
                 buttonIcon={CalendarPlus}
                 showButton={true}
-                onButtonClick={() => navigate("/member/book")}
+                onButtonClick={() => navigate("/member/bookings/create")}
             />
 
             <FilterPanel

@@ -90,8 +90,11 @@ export default function CourtScheduleIndex() {
         const result = {
             total: 0,
             available: 0,
-            booked: 0,
-            unavailable: 0,
+            reserved: 0,
+            held: 0,
+            blocked: 0,
+            maintenance: 0,
+            closed: 0,
         };
 
         visibleCourts.forEach((court) => {
@@ -99,12 +102,8 @@ export default function CourtScheduleIndex() {
                 day.slots?.forEach((slot) => {
                     result.total += 1;
 
-                    if (slot.status === "available") {
-                        result.available += 1;
-                    } else if (slot.status === "booked") {
-                        result.booked += 1;
-                    } else {
-                        result.unavailable += 1;
+                    if (Object.hasOwn(result, slot.status)) {
+                        result[slot.status] += 1;
                     }
                 });
             });
@@ -140,16 +139,13 @@ export default function CourtScheduleIndex() {
 
             {!error && (
                 <div className="space-y-6 mt-5">
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                         {courtScheduleStats.map((card) => (
                             <StatCard
                                 key={card.key}
                                 label={card.label}
-                                value={
-                                    loading
-                                        ? "—"
-                                        : stats[card.key] ?? 0
-                                }
+                                value={loading ? "—" : stats[card.key] ?? 0}
                                 icon={card.icon}
                                 iconClassName={card.color}
                             />

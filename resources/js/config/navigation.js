@@ -107,13 +107,7 @@ export const memberMenu = [
         end: true,
     },
     {
-        label: "Book a Court",
-        icon: CalendarDays,
-        path: "book",
-        end: false,
-    },
-    {
-        label: "My Reservations",
+        label: "My Booking",
         icon: CalendarCheck,
         path: "bookings",
         end: true,

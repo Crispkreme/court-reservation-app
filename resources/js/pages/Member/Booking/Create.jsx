@@ -118,7 +118,14 @@ export default function Create() {
                 duration_minutes: Number(duration),
             });
             const booking = result.data ?? result;
-            navigate(booking?.id ? `/member/reservations/${booking.id}` : "/member/reservations");
+
+            navigate(
+                booking?.id
+                    ? `/member/bookings/${booking.id}`
+                    : "/member/bookings",
+                { replace: true }
+            );
+
         } catch (err) {
             setError(errorText(err));
         } finally {
@@ -139,7 +146,7 @@ export default function Create() {
         <div className="space-y-6 p-6 lg:p-10">
             <button
                 type="button"
-                onClick={() => navigate("/member/reservations")}
+                onClick={() => navigate("/member/bookings")}
                 className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-red-700"
             >
                 <ArrowLeft size={17} />

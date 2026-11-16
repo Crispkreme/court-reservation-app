@@ -1,22 +1,9 @@
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-    CalendarDays,
-    CheckCircle2,
-    Clock3,
-    Plus,
-    RefreshCw,
-    Search,
-    XCircle,
-} from "lucide-react";
-
-import {
-    getBookings,
-    updateBookingStatus,
-} from "@/services/bookingService";
+import { CalendarDays, CheckCircle2, Clock3, Plus, RefreshCw, Search, XCircle } from "lucide-react";
+import { getBookings, updateBookingStatus } from "@/services/bookingService";
 import { getCourts } from "@/services/courtService";
-
 import { bookingColumns } from "@data/tableColumns/bookingColumns";
+
 import BookingModal from "./modal/BookingModal";
 import DeleteBookingModal from "./modal/DeleteBookingModal";
 
@@ -120,18 +107,10 @@ export default function BookingIndex() {
     const stats = useMemo(
         () => ({
             total: totalItems,
-            pending: bookings.filter(
-                (booking) => booking.status === "pending",
-            ).length,
-            confirmed: bookings.filter(
-                (booking) => booking.status === "confirmed",
-            ).length,
-            completed: bookings.filter(
-                (booking) => booking.status === "completed",
-            ).length,
-            cancelled: bookings.filter(
-                (booking) => booking.status === "cancelled",
-            ).length,
+            pending: bookings.filter((booking) => booking.status === "pending").length,
+            confirmed: bookings.filter((booking) => booking.status === "confirmed").length,
+            completed: bookings.filter((booking) => booking.status === "completed").length,
+            cancelled: bookings.filter((booking) => booking.status === "cancelled").length,
         }),
         [bookings, totalItems],
     );
@@ -146,10 +125,7 @@ export default function BookingIndex() {
             await updateBookingStatus(booking.id, status);
             await loadBookings();
         } catch (error) {
-            setError(
-                error.response?.data?.message ??
-                    "Unable to update booking status.",
-            );
+            setError(error.response?.data?.message ?? "Unable to update booking status.");
         } finally {
             setUpdatingStatusId(null);
         }
